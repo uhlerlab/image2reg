@@ -15,7 +15,7 @@ def train_val_test_loop(
     output_dir: str,
     domain_config: DomainConfig,
     num_epochs: int = 500,
-    save_freq: int = 10,
+    lamb: float = 1e-7,
     early_stopping: int = 20,
     device: str = None,
 ) -> Tuple[dict, dict]:
@@ -58,7 +58,7 @@ def train_val_test_loop(
         # Iterate over training and validation phase
         for phase in ["train", "val"]:
             epoch_statistics = process_epoch(
-                domain_config=domain_config, phase=phase, device=device,
+                domain_config=domain_config, lamb=lamb, phase=phase, device=device,
             )
 
             logging.debug(
@@ -120,7 +120,7 @@ def train_val_test_loop(
 
     if "test" in domain_config.data_loader_dict:
         epoch_statistics = process_epoch(
-            domain_config=domain_config, phase="test", device=device,
+            domain_config=domain_config, lamb=lamb, phase="test", device=device,
         )
 
         logging.debug("TEST LOSS STATISTICS")
@@ -216,8 +216,6 @@ def train_autoencoder(
     model = domain_model_config.model
     optimizer = domain_model_config.optimizer
     inputs = domain_model_config.inputs
-    labels = domain_model_config.labels
-    recon_loss_fct = domain_model_config.recon_loss_function
     train = domain_model_config.trainable
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True)

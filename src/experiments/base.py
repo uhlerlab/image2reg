@@ -4,6 +4,8 @@ import os
 import numpy as np
 import torch
 
+from src.utils.torch.general import get_device
+
 
 class BaseExperiment:
     def __init__(
