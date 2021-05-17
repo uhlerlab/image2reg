@@ -118,6 +118,7 @@ class ImageDatasetPreprocessor:
         max_area: int = None,
         max_bbarea: int = None,
         max_eccentricity: float = None,
+        min_solidity: float = None,
     ):
         nuclei_metadata = []
         image_metadata = self.metadata.copy()
@@ -168,6 +169,7 @@ class ImageDatasetPreprocessor:
                         or region.eccentricity < max_eccentricity
                     )
                     and (max_bbarea is None or width * length < max_bbarea)
+                    and (min_solidity is None or region.solidity > min_solidity)
                 ):
                     max_width = max(max_width, width)
                     max_length = max(max_length, length)
@@ -243,3 +245,6 @@ class ImageDatasetPreprocessor:
         )
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
+
+        self.nuclei_metadata.to_csv(os.path.join(self.output_dir, "nuclei_metadata.csv"))
+        self.processed_image_metadata.to_csv(os.path.join(self.output_dir, "image_metadata.csv"))
