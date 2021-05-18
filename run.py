@@ -14,17 +14,17 @@ import yaml
 
 from pprint import pformat
 
-sys.path.append("../../.")
+sys.path.append(".")
 
 from src.utils.basic.general import get_timestamp, key_in_dict
 
 # set logging configuration
 
-log_filename = "../../logs/logs" + get_timestamp() + ".log"
+log_filename = "logs/logs" + get_timestamp() + ".log"
 logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s %(name)-4s %(levelname)-4s %(message)s",
-    filename="../../logs/logs" + get_timestamp() + ".log",
+    filename=log_filename,
     filemode="w",
 )
 
@@ -32,6 +32,7 @@ mpl_logger = logging.getLogger("matplotlib")
 mpl_logger.setLevel(logging.WARNING)
 numba_logger = logging.getLogger("numba")
 numba_logger.setLevel(logging.WARNING)
+logging.getLogger('PIL').setLevel(logging.WARNING)
 
 
 class ExperimentRunner:

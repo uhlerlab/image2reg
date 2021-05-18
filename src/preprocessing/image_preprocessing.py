@@ -1,7 +1,7 @@
 import logging
 import os
 from shutil import copyfile
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 import numpy as np
@@ -12,7 +12,8 @@ from skimage.io import imread
 from skimage.measure import regionprops
 from skimage.morphology import remove_small_objects
 
-from src.utils.basic.segmentation import get_label_image_from_outline
+from src.utils.basic.io import get_file_list
+from src.utils.basic.segmentation import get_label_image_from_outline, pad_image
 
 
 class ImageDatasetPreprocessor:
@@ -38,7 +39,10 @@ class ImageDatasetPreprocessor:
         self.processed_image_metadata = None
         self.nuclei_metadata = None
 
-    def add_image_illumination_col(self, posfix: str = "illum_corrected"):
+        self.nuclei_dir = None
+        self.pad_size = None
+
+    def add_image_illumination_col(self, posfix: str = "_illum_corrected"):
         orig_image_file_names = list(self.metadata[self.raw_image_col_name])
         illum_corrected_image_file_names = []
         for orig_image_file_name in orig_image_file_names:
@@ -83,17 +87,15 @@ class ImageDatasetPreprocessor:
 
     def save_filtered_images(
         self,
-        plate_col="Image_Metadata_Plate",
-        illum_file_col="Image_FileName_IllumHoechst",
     ):
         output_dir = os.path.join(self.output_dir, "filtered")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         n = len(self.metadata)
         for i in tqdm(range(n), desc="Copying images"):
-            plate = self.metadata.iloc[i, list(self.metadata.columns).index(plate_col)]
+            plate = self.metadata.iloc[i, list(self.metadata.columns).index(self.plate_col_name)]
             filename = self.metadata.iloc[
-                i, list(self.metadata.columns).index(illum_file_col)
+                i, list(self.metadata.columns).index(self.illum_image_col_name)
             ]
 
             plate_output_dir = os.path.join(output_dir, str(plate))
@@ -104,12 +106,15 @@ class ImageDatasetPreprocessor:
             plate_output_file = os.path.join(plate_output_dir, filename)
             plate_input_file = os.path.join(plate_input_dir, filename)
 
-            copyfile(plate_input_file, plate_output_file)
+            try:
+                copyfile(plate_input_file, plate_output_file)
+            except FileNotFoundError as e:
+                logging.error(e)
         logging.debug(
             "Images (n={}) copied to {}.".format(len(self.metadata), output_dir)
         )
 
-    def segment_all_images(
+    def segment_all_images_given_outlines(
         self,
         outline_input_dir,
         nuclei_outline_col_name: str = "Image_FileName_NucleiOutlines",
@@ -130,7 +135,7 @@ class ImageDatasetPreprocessor:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        for i in tqdm(range(len(self.metadata))):
+        for i in tqdm(range(len(self.metadata)), desc="Segment images"):
             plate = str(self.metadata.iloc[i, :][self.plate_col_name])
 
             image_file_name = self.metadata.iloc[i, :][self.illum_image_col_name]
@@ -239,12 +244,35 @@ class ImageDatasetPreprocessor:
             "nuclei_count",
         ]
         logging.debug(
-            "Nuclei segmentation complete: max dimensions ({}, {})".format(
+            "Nuclei segmentation complete.")
+        logging.debug("Maximum image dimensions: ({}, {})".format(
                 max_width, max_length
             )
         )
+        self.pad_size = max_width+1, max_length+1
+        self.nuclei_dir = output_dir
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
 
         self.nuclei_metadata.to_csv(os.path.join(self.output_dir, "nuclei_metadata.csv"))
         self.processed_image_metadata.to_csv(os.path.join(self.output_dir, "image_metadata.csv"))
+
+    def save_padded_images(self, target_size:Tuple[int]=None, input_dir:str=None):
+        if input_dir is None:
+            input_dir = self.nuclei_dir
+        if target_size is None:
+            target_size = self.pad_size
+        file_list = get_file_list(input_dir)
+        output_dir = os.path.join(self.output_dir, "padded_nuclei")
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        for i in tqdm(range(len(file_list)), desc="Save padded images"):
+            file = file_list[i]
+            image = tifffile.imread(file)
+            dir_name, file_name = os.path.split(file)
+            plate = os.path.split(dir_name)[1]
+            plate_output_dir = os.path.join(output_dir, plate)
+            if not os.path.exists(plate_output_dir):
+                os.makedirs(plate_output_dir)
+            padded_image = pad_image(image, target_size)
+            tifffile.imsave(os.path.join(plate_output_dir, file_name), padded_image)

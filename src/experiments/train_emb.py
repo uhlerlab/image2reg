@@ -5,12 +5,13 @@ import torch
 
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
+from src.utils.torch.data import init_nuclei_image_dataset
 from src.utils.torch.exp import train_val_test_loop
 from src.utils.torch.general import get_device
 from src.utils.torch.model import get_domain_configuration
 
 
-class PretrainAeExperiment(BaseExperiment):
+class TrainAeExperiment(BaseExperiment):
     def __init__(
         self,
         output_dir: str,
@@ -50,9 +51,9 @@ class PretrainAeExperiment(BaseExperiment):
 
     def initialize_image_data_set(self):
         image_dir = self.data_config["image_dir"]
-        label_fname = self.data_config["label_fname"]
+        metadata_file = self.data_config["metadata_file"]
         self.data_set = init_nuclei_image_dataset(
-            image_dir=image_dir, label_fname=label_fname
+            image_dir=image_dir, metadata_file=metadata_file
         )
         self.data_key = self.data_config["data_key"]
         self.label_key = self.data_config["label_key"]
