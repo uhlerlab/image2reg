@@ -6,6 +6,7 @@ from typing import Tuple
 
 import torch
 import numpy as np
+from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.torch.evaluation import visualize_model_performance, visualize_image_ae_performance
@@ -220,7 +221,7 @@ def process_epoch(
     model_base_type = domain_model_config.model.model_base_type.lower()
 
     # Iterate over batches
-    for index, samples in enumerate(data_loader):
+    for index, samples in enumerate(tqdm(data_loader, desc="Epoch progress"))):
         # Set model_configs
         domain_model_config.inputs = samples[data_key]
         domain_model_config.labels = samples[label_key]

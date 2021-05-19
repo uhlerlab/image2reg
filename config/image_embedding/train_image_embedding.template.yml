@@ -2,27 +2,25 @@ output_dir: 'data/experiments/image_embeddings'
 module: src.experiments.train_emb
 class: TrainAeExperiment
 run_params:
-  data_config: {'image_dir':'data/images/padded_nuclei',
-                      'metadata_file':'data/images/nuclei_metadata.csv',
+  data_config: {'image_dir':'data/images/8bit_min_max_96pad/padded_images',
+                      'metadata_file':'data/images/8bit_min_max_96pad/nuclei_metadata.csv',
                       'data_key':'image', 'label_key':'label'}
 
   model_config: {'model_config':{'type':'VanillaConvAE', 'latent_dim':128},
-                       'optimizer_config':{'type':'adam','lr':0.001},
+                       'optimizer_config':{'type':'adam','lr':0.0001},
                        'loss_config':{'type':'mse'}}
 
   domain_name: 'image'
-  num_epochs: 2
-  early_stopping: -1
+  num_epochs: 100
+  early_stopping: 10
   train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 16
+  batch_size: 512
   random_state: 1234
-  save_freq: 1
+  save_freq: 10
 
 pipeline:
   - method: initialize_image_data_set
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
   - method: train_models
-    params:
-      lamb: 0.0000001
 
