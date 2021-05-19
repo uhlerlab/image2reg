@@ -109,7 +109,7 @@ def train_val_test_loop(
                     es_counter += 1
 
             # Save model at checkpoints and visualize performance
-            if save_freq % i == 0:
+            if i % save_freq == 0:
                 checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
 
                 visualize_image_ae_performance(
@@ -187,7 +187,7 @@ def train_val_test_loop(
         visualize_model_performance(
             output_dir=test_dir,
             domain_config=domain_config,
-            dataset_types=["train", "val"],
+            dataset_types=["train", "val", "test"],
             device=device,
         )
 
@@ -221,7 +221,7 @@ def process_epoch(
     model_base_type = domain_model_config.model.model_base_type.lower()
 
     # Iterate over batches
-    for index, samples in enumerate(tqdm(data_loader, desc="Epoch progress"))):
+    for index, samples in enumerate(tqdm(data_loader, desc="Epoch progress")):
         # Set model_configs
         domain_model_config.inputs = samples[data_key]
         domain_model_config.labels = samples[label_key]

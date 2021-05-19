@@ -31,7 +31,7 @@ def get_latent_representations_for_model(
         if label_key is not None:
             labels.extend(sample[label_key].detach().cpu().numpy())
         if index_key in sample:
-            index.extend(sample[index_key].detach().cpu().numpy())
+            index.extend(sample[index_key])
 
         output = model(input)
         latents = output["latents"]
@@ -146,9 +146,9 @@ def visualize_image_ae_performance(
     for i in range(image_inputs.size()[0]):
         imageio.imwrite(
             os.path.join(image_dir, "%s_epoch_%s_inputs_%s.jpg" % (phase, epoch, i)),
-            np.uint8(image_inputs[i].cpu().data.view(92, 92).numpy() * 255),
+            np.uint8(image_inputs[i].cpu().data.view(96, 96).numpy() * 255),
         )
         imageio.imwrite(
             os.path.join(image_dir, "%s_epoch_%s_recons_%s.jpg" % (phase, epoch, i)),
-            np.uint8(recon_images[i].cpu().data.view(92, 92).numpy() * 255),
+            np.uint8(recon_images[i].cpu().data.view(96, 96).numpy() * 255),
         )
