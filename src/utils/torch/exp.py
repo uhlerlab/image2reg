@@ -9,7 +9,10 @@ import numpy as np
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
-from src.utils.torch.evaluation import visualize_model_performance, visualize_image_ae_performance
+from src.utils.torch.evaluation import (
+    visualize_model_performance,
+    visualize_image_ae_performance,
+)
 from src.utils.torch.general import get_device
 
 
@@ -108,29 +111,37 @@ def train_val_test_loop(
                 else:
                     es_counter += 1
 
-            # Save model at checkpoints and visualize performance
-            if i % save_freq == 0:
-                checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
+        # Save model at checkpoints and visualize performance
+        if i % save_freq == 0:
+            checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
 
-                visualize_image_ae_performance(
-                    domain_model_config=domain_config.domain_model_config,
-                    epoch=i,
-                    output_dir=checkpoint_dir,
-                    device=device,
-                    phase=phase,
-                )
+            visualize_image_ae_performance(
+                domain_model_config=domain_config.domain_model_config,
+                epoch=i,
+                output_dir=checkpoint_dir,
+                device=device,
+                phase="train",
+            )
 
-                visualize_model_performance(
-                    output_dir=checkpoint_dir,
-                    domain_config=domain_config,
-                    dataset_types=["train", "val"],
-                    device=device,
-                )
+            visualize_image_ae_performance(
+                domain_model_config=domain_config.domain_model_config,
+                epoch=i,
+                output_dir=checkpoint_dir,
+                device=device,
+                phase="val",
+            )
 
-                torch.save(
-                    domain_config.domain_model_config.model.state_dict(),
-                    "{}/model.pth".format(checkpoint_dir),
-                )
+            visualize_model_performance(
+                output_dir=checkpoint_dir,
+                domain_config=domain_config,
+                dataset_types=["train", "val"],
+                device=device,
+            )
+
+            torch.save(
+                domain_config.domain_model_config.model.state_dict(),
+                "{}/model.pth".format(checkpoint_dir),
+            )
 
     # Training complete
     time_elapsed = time.time() - start_time

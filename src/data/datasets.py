@@ -58,7 +58,7 @@ class TorchNucleiImageDataset(LabeledDataset):
             raise RuntimeError(
                 "Number of image samples does not match the given metadata."
             )
-        self.labels = np.array(self.metadata.loc[:,label_col])
+        self.labels = np.array(self.metadata.loc[:, label_col])
 
     def __len__(self):
         return len(self.image_locs)
@@ -68,7 +68,7 @@ class TorchNucleiImageDataset(LabeledDataset):
         image = self.process_image(image_loc)
         gene_label = self.labels[idx]
 
-        sample = {"id":image_loc, "image": image, "label": gene_label}
+        sample = {"id": image_loc, "image": image, "label": gene_label}
         return sample
 
     def set_transform_pipeline(
@@ -79,7 +79,7 @@ class TorchNucleiImageDataset(LabeledDataset):
     def process_image(self, image_loc: str) -> Tensor:
         image = imread(image_loc)
         image = np.array(image, dtype=np.float32)
-        image = (image - image.min())/(image.max()-image.min())
+        image = (image - image.min()) / (image.max() - image.min())
         image = np.clip(image, 0, 1)
         image = torch.from_numpy(image).unsqueeze(0)
         return image

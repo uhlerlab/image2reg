@@ -26,6 +26,7 @@ class BaseAE(nn.Module):
         loss_dict = {"recon_loss": recon_loss}
         return loss_dict
 
+
 class VanillaConvAE(BaseAE, ABC):
     def __init__(
         self,

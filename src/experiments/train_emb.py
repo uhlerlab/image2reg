@@ -23,7 +23,7 @@ class TrainAeExperiment(BaseExperiment):
         num_epochs: int = 64,
         early_stopping: int = -1,
         random_state: int = 42,
-        save_freq: int = -1
+        save_freq: int = -1,
     ):
         super().__init__(
             output_dir=output_dir,

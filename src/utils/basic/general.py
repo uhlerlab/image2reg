@@ -49,5 +49,6 @@ def key_in_dict(keys, dictionary):
 
     return True
 
+
 def combine_path(x):
     return np.array("/".join(x), dtype=object)

@@ -113,9 +113,9 @@ def explore_segmentation_of_dataset(
 
 def create_ade20k_label_colormap():
     """Creates a label colormap used in ADE20K segmentation benchmark.
-  Returns:
-    A colormap for visualizing segmentation results.
-  """
+    Returns:
+      A colormap for visualizing segmentation results.
+    """
     colors = (
         np.asarray(
             [

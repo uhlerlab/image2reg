@@ -254,14 +254,12 @@ class ImageDatasetPreprocessor:
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
         self.nuclei_metadata_file = os.path.join(self.output_dir, "nuclei_metadata.csv")
-        self.processed_image_metadata_file = os.path.join(self.output_dir, "image_metadata.csv")
+        self.processed_image_metadata_file = os.path.join(
+            self.output_dir, "image_metadata.csv"
+        )
 
-        self.nuclei_metadata.to_csv(
-            self.nuclei_metadata_file
-        )
-        self.processed_image_metadata.to_csv(
-            self.processed_image_metadata_file
-        )
+        self.nuclei_metadata.to_csv(self.nuclei_metadata_file)
+        self.processed_image_metadata.to_csv(self.processed_image_metadata_file)
 
     def save_padded_images(self, target_size: Tuple[int] = None, input_dir: str = None):
         if input_dir is None:
@@ -282,19 +280,25 @@ class ImageDatasetPreprocessor:
                 os.makedirs(plate_output_dir)
             padded_image = pad_image(image, target_size)
             padded_image = padded_image.astype(np.uint16)
-            padded_image = (padded_image - padded_image.min())/(padded_image.max()-padded_image.min())
+            padded_image = (padded_image - padded_image.min()) / (
+                padded_image.max() - padded_image.min()
+            )
             padded_image = np.clip(padded_image, 0, 1)
             padded_image = (padded_image * 255).astype(np.uint8)
             tifffile.imsave(os.path.join(plate_output_dir, file_name), padded_image)
 
-    def add_gene_label_column_to_metadata(self, nuclei_metadata_file:str=None, label_col:str="gene_symbol"):
+    def add_gene_label_column_to_metadata(
+        self, nuclei_metadata_file: str = None, label_col: str = "gene_symbol"
+    ):
         if nuclei_metadata_file is None:
             nuclei_metadata_file = self.nuclei_metadata_file
         nuclei_metadata = pd.read_csv(nuclei_metadata_file, index_col=0)
-        nuclei_metadata["gene_label"] = LabelEncoder().fit_transform(np.array(nuclei_metadata.loc[:,label_col]))
+        nuclei_metadata["gene_label"] = LabelEncoder().fit_transform(
+            np.array(nuclei_metadata.loc[:, label_col])
+        )
         nuclei_metadata.to_csv(nuclei_metadata_file)
 
-    def resize_and_save_images(self, target_size:Tuple[int], input_dir:str=None):
+    def resize_and_save_images(self, target_size: Tuple[int], input_dir: str = None):
         if input_dir is None:
             input_dir = self.nuclei_dir
         file_list = get_file_list(input_dir)

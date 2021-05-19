@@ -5,6 +5,7 @@ import imageio
 import numpy as np
 from torch.nn import Module
 from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.basic.export import dict_to_csv
@@ -15,7 +16,7 @@ def get_latent_representations_for_model(
     dataset: Dataset,
     data_key: str = "seq_data",
     label_key: str = "label",
-    index_key:str="id",
+    index_key: str = "id",
     device: str = "cuda:0",
 ) -> dict:
     # create Dataloader
@@ -26,7 +27,9 @@ def get_latent_representations_for_model(
     index = []
     model.eval().to(device)
 
-    for (idx, sample) in enumerate(dataloader):
+    for (idx, sample) in enumerate(
+        tqdm(dataloader), desc="Compute latents for the evaluation"
+    ):
         input = sample[data_key].to(device)
         if label_key is not None:
             labels.extend(sample[label_key].detach().cpu().numpy())
@@ -61,9 +64,8 @@ def save_latents_to_csv(
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
         raise RuntimeError(
-            "Unknown dataset_type: {}, expected one of the following: train, val, test".format(
-                dataset_type
-            )
+            "Unknown dataset_type: {}, expected one of the following: train, val, test"
+            .format(dataset_type)
         )
     save_latents_and_labels_to_csv(
         model=model,
