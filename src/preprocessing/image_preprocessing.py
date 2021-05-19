@@ -3,8 +3,10 @@ import os
 from shutil import copyfile
 from typing import List, Tuple
 
+import cv2
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 from tifffile import tifffile
 from tqdm import tqdm
 
@@ -85,15 +87,15 @@ class ImageDatasetPreprocessor:
                     self.metadata[self.well_col_name] != outlier_well
                 ]
 
-    def save_filtered_images(
-        self,
-    ):
+    def save_filtered_images(self,):
         output_dir = os.path.join(self.output_dir, "filtered")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         n = len(self.metadata)
         for i in tqdm(range(n), desc="Copying images"):
-            plate = self.metadata.iloc[i, list(self.metadata.columns).index(self.plate_col_name)]
+            plate = self.metadata.iloc[
+                i, list(self.metadata.columns).index(self.plate_col_name)
+            ]
             filename = self.metadata.iloc[
                 i, list(self.metadata.columns).index(self.illum_image_col_name)
             ]
@@ -243,21 +245,25 @@ class ImageDatasetPreprocessor:
             "nuclei_outline_file",
             "nuclei_count",
         ]
+        logging.debug("Nuclei segmentation complete.")
         logging.debug(
-            "Nuclei segmentation complete.")
-        logging.debug("Maximum image dimensions: ({}, {})".format(
-                max_width, max_length
-            )
+            "Maximum image dimensions: ({}, {})".format(max_width, max_length)
         )
-        self.pad_size = max_width+1, max_length+1
+        self.pad_size = max_width + 1, max_length + 1
         self.nuclei_dir = output_dir
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
+        self.nuclei_metadata_file = os.path.join(self.output_dir, "nuclei_metadata.csv")
+        self.processed_image_metadata_file = os.path.join(self.output_dir, "image_metadata.csv")
 
-        self.nuclei_metadata.to_csv(os.path.join(self.output_dir, "nuclei_metadata.csv"))
-        self.processed_image_metadata.to_csv(os.path.join(self.output_dir, "image_metadata.csv"))
+        self.nuclei_metadata.to_csv(
+            self.nuclei_metadata_file
+        )
+        self.processed_image_metadata.to_csv(
+            self.processed_image_metadata_file
+        )
 
-    def save_padded_images(self, target_size:Tuple[int]=None, input_dir:str=None):
+    def save_padded_images(self, target_size: Tuple[int] = None, input_dir: str = None):
         if input_dir is None:
             input_dir = self.nuclei_dir
         if target_size is None:
@@ -275,4 +281,33 @@ class ImageDatasetPreprocessor:
             if not os.path.exists(plate_output_dir):
                 os.makedirs(plate_output_dir)
             padded_image = pad_image(image, target_size)
+            padded_image = padded_image.astype(np.uint16)
+            padded_image = (padded_image - padded_image.min())/(padded_image.max()-padded_image.min())
+            padded_image = np.clip(padded_image, 0, 1)
+            padded_image = (padded_image * 255).astype(np.uint8)
             tifffile.imsave(os.path.join(plate_output_dir, file_name), padded_image)
+
+    def add_gene_label_column_to_metadata(self, nuclei_metadata_file:str=None, label_col:str="gene_symbol"):
+        if nuclei_metadata_file is None:
+            nuclei_metadata_file = self.nuclei_metadata_file
+        nuclei_metadata = pd.read_csv(nuclei_metadata_file, index_col=0)
+        nuclei_metadata["gene_label"] = LabelEncoder().fit_transform(np.array(nuclei_metadata.loc[:,label_col]))
+        nuclei_metadata.to_csv(nuclei_metadata_file)
+
+    def resize_and_save_images(self, target_size:Tuple[int], input_dir:str=None):
+        if input_dir is None:
+            input_dir = self.nuclei_dir
+        file_list = get_file_list(input_dir)
+        output_dir = os.path.join(self.output_dir, "resized_images")
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        for i in tqdm(range(len(file_list)), desc="Save resized images"):
+            file = file_list[i]
+            image = tifffile.imread(file)
+            dir_name, file_name = os.path.split(file)
+            plate = os.path.split(dir_name)[1]
+            plate_output_dir = os.path.join(output_dir, plate)
+            if not os.path.exists(plate_output_dir):
+                os.makedirs(plate_output_dir)
+            resized_image = cv2.resize(image, dsize=target_size)
+            tifffile.imsave(os.path.join(plate_output_dir, file_name), resized_image)

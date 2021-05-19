@@ -8,6 +8,7 @@ import torch
 import numpy as np
 
 from src.helper.models import DomainConfig, DomainModelConfig
+from src.utils.torch.evaluation import visualize_model_performance, visualize_image_ae_performance
 from src.utils.torch.general import get_device
 
 
@@ -18,6 +19,7 @@ def train_val_test_loop(
     lamb: float = 1e-7,
     early_stopping: int = 20,
     device: str = None,
+    save_freq: int = -1,
 ) -> Tuple[dict, dict]:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -105,6 +107,30 @@ def train_val_test_loop(
                 else:
                     es_counter += 1
 
+            # Save model at checkpoints and visualize performance
+            if save_freq % i == 0:
+                checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
+
+                visualize_image_ae_performance(
+                    domain_model_config=domain_config.domain_model_config,
+                    epoch=i,
+                    output_dir=checkpoint_dir,
+                    device=device,
+                    phase=phase,
+                )
+
+                visualize_model_performance(
+                    output_dir=checkpoint_dir,
+                    domain_config=domain_config,
+                    dataset_types=["train", "val"],
+                    device=device,
+                )
+
+                torch.save(
+                    domain_config.domain_model_config.model.state_dict(),
+                    "{}/model.pth".format(checkpoint_dir),
+                )
+
     # Training complete
     time_elapsed = time.time() - start_time
 
@@ -145,8 +171,29 @@ def train_val_test_loop(
         )
         logging.debug("***" * 20)
 
+        # Visualize model performance
         test_dir = "{}/test".format(output_dir)
         os.makedirs(test_dir, exist_ok=True)
+
+        visualize_image_ae_performance(
+            domain_model_config=domain_config.domain_model_config,
+            epoch=i,
+            output_dir=test_dir,
+            device=device,
+            phase="test",
+        )
+
+        visualize_model_performance(
+            output_dir=test_dir,
+            domain_config=domain_config,
+            dataset_types=["train", "val"],
+            device=device,
+        )
+
+        torch.save(
+            domain_config.domain_model_config.model.state_dict(),
+            "{}/model.pth".format(test_dir),
+        )
 
         # Visualize performance
     return domain_config.domain_model_config.model, total_loss_dict
@@ -251,7 +298,7 @@ def train_autoencoder(
         total_loss = recon_loss + kl_loss * lamb
 
     elif model_base_type == "ae":
-        recon_loss = model.loss_function(inputs=inputs, recons=recons)["recon_loss"]
+        recon_loss = domain_model_config.recon_loss_function(inputs, recons)
         total_loss = recon_loss
     else:
         raise RuntimeError("Unknown model type: {}".format(model_base_type))

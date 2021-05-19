@@ -1,5 +1,7 @@
 import datetime
 import time
+import numpy as np
+import os
 from collections import Counter
 
 import pandas as pd
@@ -46,3 +48,6 @@ def key_in_dict(keys, dictionary):
             return False
 
     return True
+
+def combine_path(x):
+    return np.array("/".join(x), dtype=object)

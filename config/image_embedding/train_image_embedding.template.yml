@@ -1,12 +1,12 @@
 output_dir: 'data/experiments/image_embeddings'
-module: src.experiments.training_embedding
+module: src.experiments.train_emb
 class: TrainAeExperiment
 run_params:
-  data_config: {'image_dir':'data/preprocessing/.../padded_nuclei',
-                      'label_fname':'../../data/cd4/nuclear_crops_all_experiments/.csv',
+  data_config: {'image_dir':'data/images/padded_nuclei',
+                      'metadata_file':'data/images/nuclei_metadata.csv',
                       'data_key':'image', 'label_key':'label'}
 
-  model_config: {'model_config':{'type':'VanillaConvVAE', 'latent_dim':128},
+  model_config: {'model_config':{'type':'VanillaConvAE', 'latent_dim':128},
                        'optimizer_config':{'type':'adam','lr':0.001},
                        'loss_config':{'type':'mse'}}
 
@@ -14,9 +14,9 @@ run_params:
   num_epochs: 2
   early_stopping: -1
   train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 128
-  random_state: 1
-
+  batch_size: 16
+  random_state: 1234
+  save_freq: 1
 
 pipeline:
   - method: initialize_image_data_set
@@ -24,8 +24,5 @@ pipeline:
   - method: initialize_domain_config
   - method: train_models
     params:
-      beta: 0.00
       lamb: 0.0000001
-      save_freq: 100
-      use_latent_structure_model: False
 

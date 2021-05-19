@@ -1,11 +1,17 @@
 import logging
+import os
 
 import torch
 import numpy as np
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 from torch import Tensor
 from torch.utils.data import Dataset, Subset
 from torchvision import transforms
 from skimage.io import imread
+
+from src.utils.basic.general import combine_path
+from src.utils.basic.io import get_file_list
 
 
 class LabeledDataset(Dataset):
@@ -16,18 +22,43 @@ class LabeledDataset(Dataset):
 
 
 class TorchNucleiImageDataset(LabeledDataset):
-
-    def __init__(self, image_dir, metadata_file, image_file_col:str="image_file", label_col:str="gene"):
+    def __init__(
+        self,
+        image_dir,
+        metadata_file,
+        image_file_col: str = "image_file",
+        plate_col: str = "plate",
+        label_col: str = "gene_label",
+    ):
+        super().__init__()
         self.image_dir = image_dir
-        self.image_locs = get_file_list(sel.image_dir)
         self.metadata_file = metadata_file
         self.image_file_col = image_file_col
+        self.plate_col = plate_col
         self.label_col = label_col
-        self.metadata = pd.read_csv(self.metadata_file)
-        self.metadata["gene_label_num"] = LabelEncoder().fit_tramsform(np.array(list(self.metadata.loc[:,self.label_col])))
+        self.metadata = pd.read_csv(self.metadata_file, index_col=0)
 
-        if len(self.metadata) != self.image_locs:
-            raise RuntimeError("Number of image samples does not match the given metadata.")
+        # Numpy data type problem leads to strings being cutoff when applying along axis
+        self.image_locs = np.apply_along_axis(
+            combine_path,
+            0,
+            [
+                np.repeat(image_dir, len(self.metadata)).astype(str),
+                np.array(self.metadata.loc[:, self.plate_col], dtype=str),
+                np.array(self.metadata.loc[:, self.image_file_col], dtype=str),
+            ],
+        ).astype(object)
+        # self.image_locs = []
+        # for i in range(len(self.metadata)):
+        #     plate = str(self.metadata.iloc[i,:][self.plate_col])
+        #     image_file = self.metadata.iloc[i, :][self.image_file_col]
+        #     self.image_locs.append(os.path.join(image_dir, plate, image_file))
+
+        if len(self.metadata) != len(get_file_list(self.image_dir)):
+            raise RuntimeError(
+                "Number of image samples does not match the given metadata."
+            )
+        self.labels = np.array(self.metadata.loc[:,label_col])
 
     def __len__(self):
         return len(self.image_locs)
@@ -35,9 +66,9 @@ class TorchNucleiImageDataset(LabeledDataset):
     def __getitem__(self, idx):
         image_loc = self.image_locs[idx]
         image = self.process_image(image_loc)
-        gene_label_num = self.metadata.loc[self.metadata[self.image_file_col] == os.path.split(image_loc)[1], "gene_label_num"]
+        gene_label = self.labels[idx]
 
-        sample = {'img':image, 'label':gene_label_num}
+        sample = {"id":image_loc, "image": image, "label": gene_label}
         return sample
 
     def set_transform_pipeline(
@@ -48,8 +79,11 @@ class TorchNucleiImageDataset(LabeledDataset):
     def process_image(self, image_loc: str) -> Tensor:
         image = imread(image_loc)
         image = np.array(image, dtype=np.float32)
+        image = (image - image.min())/(image.max()-image.min())
+        image = np.clip(image, 0, 1)
         image = torch.from_numpy(image).unsqueeze(0)
         return image
+
 
 class TorchTransformableSubset(Subset):
     def __init__(self, dataset: LabeledDataset, indices):

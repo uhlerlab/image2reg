@@ -23,6 +23,7 @@ class TrainAeExperiment(BaseExperiment):
         num_epochs: int = 64,
         early_stopping: int = -1,
         random_state: int = 42,
+        save_freq: int = -1
     ):
         super().__init__(
             output_dir=output_dir,
@@ -36,6 +37,7 @@ class TrainAeExperiment(BaseExperiment):
         self.data_config = data_config
         self.model_config = model_config
         self.domain_name = domain_name
+        self.save_freq = save_freq
 
         self.data_set = None
         self.data_transform_pipeline_dict = None
@@ -95,6 +97,7 @@ class TrainAeExperiment(BaseExperiment):
             num_epochs=self.num_epochs,
             early_stopping=self.early_stopping,
             device=self.device,
+            save_freq=self.save_freq,
             lamb=lamb,
         )
 

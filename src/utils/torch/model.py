@@ -1,4 +1,10 @@
 from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss
+from torch.optim import Adam, RMSprop
+from torch.nn import Module
+from torch.optim import Optimizer
+
+from src.helper.models import DomainConfig
+from src.models.ae import VanillaConvAE
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
@@ -24,9 +30,7 @@ def get_domain_configuration(
 ) -> DomainConfig:
 
     model_type = model_dict.pop("type")
-    if model_type == "VanillaConvVAE":
-        model = VanillaConvVAE(**model_dict)
-    elif model_type == "VanillaConvAE":
+    if model_type == "VanillaConvAE":
         model = VanillaConvAE(**model_dict)
     else:
         raise NotImplementedError('Unknown model type "{}"'.format(model_type))

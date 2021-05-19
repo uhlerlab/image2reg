@@ -165,14 +165,14 @@ class VanillaConvAE(BaseAE, ABC):
 
         if self.batchnorm:
             self.latent_mapper = nn.Sequential(
-                nn.Linear(hidden_dims[-1] * 2 * 2, self.latent_dim),
+                nn.Linear(hidden_dims[-1] * 3 * 3, self.latent_dim),
                 nn.BatchNorm1d(self.latent_dim),
             )
         else:
-            self.latent_mapper = nn.Linear(hidden_dims[-1] * 2 * 2, self.latent_dim)
+            self.latent_mapper = nn.Linear(hidden_dims[-1] * 3 * 3, self.latent_dim)
 
         self.inv_latent_mapper = nn.Sequential(
-            nn.Linear(self.latent_dim, hidden_dims[-1] * 2 * 2), nn.ReLU(inplace=True)
+            nn.Linear(self.latent_dim, hidden_dims[-1] * 3 * 3), nn.ReLU(inplace=True)
         )
 
         # decoder
@@ -217,7 +217,7 @@ class VanillaConvAE(BaseAE, ABC):
     def decode(self, input: Tensor) -> Any:
         latent_features = self.inv_latent_mapper(input)
         latent_features = latent_features.view(
-            latent_features.size(0), self.hidden_dims[-1], 2, 2
+            latent_features.size(0), self.hidden_dims[-1], 3, 3
         )
         output = self.decoder(input=latent_features)
         return output
