@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from skimage.io import imread
 from skimage.measure import regionprops
-from skimage.morphology import remove_small_objects
+from skimage.morphology import remove_small_objects, remove_small_holes
 
 from src.utils.basic.io import get_file_list
 from src.utils.basic.segmentation import get_label_image_from_outline, pad_image
@@ -40,6 +40,9 @@ class ImageDatasetPreprocessor:
         self.metadata = pd.read_csv(metadata_file)
         self.processed_image_metadata = None
         self.nuclei_metadata = None
+
+        self.nuclei_metadata_file = None
+        self.processed_image_metadata_file = None
 
         self.nuclei_dir = None
         self.pad_size = None
@@ -128,6 +131,7 @@ class ImageDatasetPreprocessor:
         min_solidity: float = None,
     ):
         nuclei_metadata = []
+        nuclei_counts = []
         image_metadata = self.metadata.copy()
 
         metadata_cols = list(self.metadata.columns)
@@ -138,6 +142,7 @@ class ImageDatasetPreprocessor:
             os.makedirs(output_dir)
 
         for i in tqdm(range(len(self.metadata)), desc="Segment images"):
+            nuclei_count = 0
             plate = str(self.metadata.iloc[i, :][self.plate_col_name])
 
             image_file_name = self.metadata.iloc[i, :][self.illum_image_col_name]
@@ -152,6 +157,7 @@ class ImageDatasetPreprocessor:
 
             label_image = get_label_image_from_outline(outline_image)
 
+            label_image = remove_small_holes(min)
             label_image = remove_small_objects(label_image, min_size=min_area)
 
             image_metadata.iloc[i, metadata_cols.index(nuclei_count_col_name)] = len(
@@ -194,6 +200,9 @@ class ImageDatasetPreprocessor:
                         metadata_cols.index(self.illum_image_col_name)
                     ] = os.path.split(output_file_name)[1]
                     nuclei_metadata.append(nucleus_metadata)
+
+                    nuclei_count += 1
+                nuclei_counts.append(nuclei_count)
         nuclei_metadata = pd.DataFrame(np.array(nuclei_metadata), columns=metadata_cols)
         selected_cols = [
             "Image_Metadata_Plate",
@@ -245,6 +254,7 @@ class ImageDatasetPreprocessor:
             "nuclei_outline_file",
             "nuclei_count",
         ]
+        image_metadata.loc[:, "nuclei_count"] = nuclei_counts
         logging.debug("Nuclei segmentation complete.")
         logging.debug(
             "Maximum image dimensions: ({}, {})".format(max_width, max_length)
