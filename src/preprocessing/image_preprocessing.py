@@ -328,10 +328,13 @@ class ImageDatasetPreprocessor:
 
     def save_padded_images(
         self,
+        nuclei_metadata_file: str,
         target_size: Tuple[int] = None,
         input_dir: str = None,
         image_file_col: str = "image_file",
     ):
+
+        nuclei_metadata = pd.read_csv(nuclei_metadata_file, index_col=0)
         if input_dir is None:
             input_dir = self.nuclei_dir
         if target_size is None:
@@ -349,8 +352,8 @@ class ImageDatasetPreprocessor:
             width, height = image.shape
             if width > target_size[0] or height > target_size[1]:
                 n_skipped += 1
-                self.metadata = self.metadata.loc[
-                    self.metadata[image_file_col] != file_name, :
+                nuclei_metadata = nuclei_metadata.loc[
+                    nuclei_metadata[image_file_col] != file_name, :
                 ]
             else:
                 plate = os.path.split(dir_name)[1]
@@ -369,7 +372,8 @@ class ImageDatasetPreprocessor:
             "Padding complete: {} image were skipped as they exceeded the target"
             " dimensions.".format(n_skipped)
         )
-        self.metadata.to_csv(os.path.join(output_dir, "padded_nuclei_metadata.csv"))
+
+        nuclei_metadata.to_csv(os.path.join(output_dir, "padded_nuclei_metadata.csv"))
 
     def add_gene_label_column_to_metadata(
         self, nuclei_metadata_file: str = None, label_col: str = "gene_symbol"
