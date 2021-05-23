@@ -1,0 +1,57 @@
+output_dir: "data/experiments/image_preprocessing"
+module: "src.preprocessing.image_preprocessing"
+class: "ImageDatasetPreprocessor"
+
+run_params:
+  image_input_dir: "data/images/raw/"
+  metadata_file: "data/images/metadata/metadata_images.csv"
+  raw_image_col_name: "Image_FileName_OrigHoechst"
+  illum_image_col_name: "Image_FileName_IllumHoechst"
+  plate_col_name: "Image_Metadata_Plate"
+  well_col_name: "Image_Metadata_Well"
+
+pipeline:
+  - method: add_image_illumination_col
+    params:
+      posfix: "_illum_corrected"
+  - method: filter_out_qc_flagged_images
+    params:
+      blurry_col: "Image_Metadata_QCFlag_isBlurry"
+      saturated_col: "Image_Metadata_QCFlag_isSaturated"
+  - method: remove_outlier_images
+    params:
+      outlier_plates: [41749]
+      outlier_plate_wells: [[41754, "b01"], [41754, "c01"],
+                            [41754, "d01"], [41754, "e01"],
+                            [41754, "f01"], [41757, "e17"]]
+      outlier_wells: []
+  - method: save_filtered_images
+#  - method: segment_all_images_given_outlines
+#    params:
+#      outline_input_dir: "data/images/segmented_outlines"
+#      nuclei_outline_col_name: "Image_FileName_NucleiOutlines"
+#      min_area: 100
+#      fill_holes: 16
+#
+#  - method: get_nuclear_crops
+#    params:
+#      nuclei_count_col_name: "Image_Count_Nuclei"
+#      max_area: 4000
+#      max_bbarea: 4000
+#      max_eccentricity: 1.0
+#      min_solidity: 0.7
+
+#  - method: save_padded_images
+#    params:
+#      input_dir: "data/experiments/preprocessing_0518/segmented_nuclei"
+#      target_size: [92,92]
+#  - method: add_gene_label_column_to_metadata
+#    params:
+#      nuclei_metadata_file: "data/images/nuclei_metadata.csv"
+#  - method: resize_and_save_images
+#    params:
+#      input_dir: "data/images/padded_nuclei"
+#      target_size: [64,64]
+
+
+

@@ -11,12 +11,16 @@ run_params:
   well_col_name: "Image_Metadata_Well"
 
 pipeline:
-  - method: segment_all_images_given_outlines
+  - method: get_nuclear_crops
     params:
-      outline_input_dir: "data/images/segmented_outlines"
-      nuclei_outline_col_name: "Image_FileName_NucleiOutlines"
-      min_area: 100
-      fill_holes: 16
+      label_image_input_dir: "data/experiments/image_preprocessing/unet_segmentation"
+      nuclei_count_col_name: "Image_Count_Nuclei"
+      min_area: 400
+      max_area: 4000
+      max_bbarea: 4000
+      max_eccentricity: 1.0
+      min_solidity: 0.5
+      min_aspect_ratio: 0.1
 
 #  - method: save_padded_images
 #    params:

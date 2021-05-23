@@ -8,11 +8,11 @@ import numpy as np
 from numpy import ndarray
 
 
-def get_label_image_from_outline(outline_image: ndarray) -> ndarray:
+def get_mask_image_from_outline(outline_image: ndarray) -> ndarray:
     binary = binary_fill_holes(outline_image)
     binary[outline_image != 0] = 0
-    labeled = label(binary)
-    return labeled
+    binary = ndi.binary_fill_holes(binary)
+    return binary
 
 
 def pad_image(image: ndarray, size: Tuple[int]) -> ndarray:

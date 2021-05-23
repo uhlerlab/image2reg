@@ -11,20 +11,13 @@ run_params:
   well_col_name: "Image_Metadata_Well"
 
 pipeline:
-  - method: segment_all_images_given_outlines
+  - method: save_padded_images
     params:
-      outline_input_dir: "data/images/segmented_outlines"
-      nuclei_outline_col_name: "Image_FileName_NucleiOutlines"
-      min_area: 100
-      fill_holes: 16
-
-#  - method: save_padded_images
-#    params:
-#      input_dir: "data/experiments/preprocessing_0518/segmented_nuclei"
-#      target_size: [92,92]
-#  - method: add_gene_label_column_to_metadata
-#    params:
-#      nuclei_metadata_file: "data/images/nuclei_metadata.csv"
+      input_dir: "data/experiments/preprocessing_0518/segmented_nuclei"
+      target_size: [64,64]
+  - method: add_gene_label_column_to_metadata
+    params:
+      nuclei_metadata_file: "data/images/nuclei_metadata.csv"
 #  - method: resize_and_save_images
 #    params:
 #      input_dir: "data/images/padded_nuclei"
