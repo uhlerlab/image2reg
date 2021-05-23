@@ -123,42 +123,72 @@ class ImageDatasetPreprocessor:
         self,
         outline_input_dir,
         nuclei_outline_col_name: str = "Image_FileName_NucleiOutlines",
-        nuclei_count_col_name: str = "Image_Count_Nuclei",
         min_area: int = None,
-        max_area: int = None,
-        max_bbarea: int = None,
-        max_eccentricity: float = None,
-        min_solidity: float = None,
+        fill_holes: int = 16,
     ):
-        nuclei_metadata = []
-        nuclei_counts = []
-        image_metadata = self.metadata.copy()
-
-        metadata_cols = list(self.metadata.columns)
-        max_width = 0
-        max_length = 0
-        output_dir = os.path.join(self.output_dir, "segmented_nuclei")
+        output_dir = os.path.join(self.output_dir, "label_images")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
         for i in tqdm(range(len(self.metadata)), desc="Segment images"):
-            nuclei_count = 0
             plate = str(self.metadata.iloc[i, :][self.plate_col_name])
 
             image_file_name = self.metadata.iloc[i, :][self.illum_image_col_name]
-            image_file_path = os.path.join(self.image_input_dir, plate, image_file_name)
-            image = tifffile.imread(image_file_path)
 
             outline_file_name = self.metadata.iloc[i, :][nuclei_outline_col_name]
             outline_file_path = os.path.join(
                 outline_input_dir, plate, outline_file_name
             )
             outline_image = imread(outline_file_path)
+            label_image_file_path = os.path.join(output_dir, plate, image_file_name)
 
             label_image = get_label_image_from_outline(outline_image)
 
-            label_image = remove_small_holes(min)
+            label_image = remove_small_holes(label_image, area_threshold=fill_holes)
             label_image = remove_small_objects(label_image, min_size=min_area)
+
+            tifffile.imsave(label_image_file_path, label_image)
+
+    def get_nuclear_crops(
+        self,
+        label_image_input_dir: str = None,
+        output_dir: str = None,
+        nuclei_count_col_name: str = "Image_Count_Nuclei",
+        max_area: int = None,
+        max_bbarea: int = None,
+        max_eccentricity: float = None,
+        min_solidity: float = None,
+    ):
+
+        nuclei_metadata = []
+        nuclei_counts = []
+        image_metadata = self.metadata.copy()
+
+        nuclei_widths = []
+        nuclei_heights = []
+
+        metadata_cols = list(self.metadata.columns)
+
+        if output_dir is None:
+            output_dir = os.path.join(self.output_dir, "label_images")
+
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+
+        for i in tqdm(range(len(self.metadata)), desc="Get nuclear crops"):
+            nuclei_count = 0
+            plate = str(self.metadata.iloc[i, :][self.plate_col_name])
+
+            image_file_name = self.metadata.iloc[i, :][self.illum_image_col_name]
+            label_image_file_name = image_file_name
+
+            image_file_path = os.path.join(self.image_input_dir, plate, image_file_name)
+            label_image_file_path = os.path.join(
+                label_image_input_dir, plate, label_image_file_name
+            )
+
+            image = tifffile.imread(image_file_path)
+            label_image = tifffile.imread(label_image_file_path)
 
             image_metadata.iloc[i, metadata_cols.index(nuclei_count_col_name)] = len(
                 np.unique(label_image)
@@ -166,7 +196,9 @@ class ImageDatasetPreprocessor:
 
             regions = regionprops(label_image=label_image, intensity_image=image)
             for region in regions:
-                width, length = region.image.shape
+                width, height = region.image.shape
+                nuclei_widths.append(width)
+                nuclei_heights.append(height)
 
                 fname_start = image_file_name[: image_file_name.index(".")]
                 fname_ending = image_file_name[image_file_name.index(".") :]
@@ -181,11 +213,9 @@ class ImageDatasetPreprocessor:
                         max_eccentricity is None
                         or region.eccentricity < max_eccentricity
                     )
-                    and (max_bbarea is None or width * length < max_bbarea)
+                    and (max_bbarea is None or width * height < max_bbarea)
                     and (min_solidity is None or region.solidity > min_solidity)
                 ):
-                    max_width = max(max_width, width)
-                    max_length = max(max_length, length)
 
                     output_file_name = os.path.join(
                         plate_output_dir,
@@ -203,6 +233,7 @@ class ImageDatasetPreprocessor:
 
                     nuclei_count += 1
                 nuclei_counts.append(nuclei_count)
+
         nuclei_metadata = pd.DataFrame(np.array(nuclei_metadata), columns=metadata_cols)
         selected_cols = [
             "Image_Metadata_Plate",
@@ -244,22 +275,27 @@ class ImageDatasetPreprocessor:
             "timepoint",
             "assay_well_role",
         ]
+        nuclei_widths = np.array(nuclei_widths)
+        nuclei_heights = np.array(nuclei_heights)
+
         nuclei_metadata = nuclei_metadata.loc[:, selected_cols]
         nuclei_metadata.columns = new_selected_cols
+        nuclei_metadata["bb_width"] = nuclei_widths
+        nuclei_metadata["bb_height"] = nuclei_heights
 
-        image_metadata = image_metadata.loc[
-            :, selected_cols + [nuclei_outline_col_name, nuclei_count_col_name]
-        ]
+        max_width, max_height = nuclei_widths.max(), nuclei_heights.max()
+
+        image_metadata = image_metadata.loc[:, selected_cols + [nuclei_count_col_name]]
         image_metadata.columns = new_selected_cols + [
-            "nuclei_outline_file",
             "nuclei_count",
         ]
+
         image_metadata.loc[:, "nuclei_count"] = nuclei_counts
         logging.debug("Nuclei segmentation complete.")
         logging.debug(
-            "Maximum image dimensions: ({}, {})".format(max_width, max_length)
+            "Maximum image dimensions: ({}, {})".format(max_width, max_height)
         )
-        self.pad_size = max_width + 1, max_length + 1
+        self.pad_size = max_width + 1, max_height + 1
         self.nuclei_dir = output_dir
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
@@ -290,9 +326,8 @@ class ImageDatasetPreprocessor:
                 os.makedirs(plate_output_dir)
             padded_image = pad_image(image, target_size)
             padded_image = padded_image.astype(np.uint16)
-            padded_image = (padded_image - padded_image.min()) / (
-                padded_image.max() - padded_image.min()
-            )
+            padded_image = padded_image - padded_image.min()
+            padded_image = padded_image / padded_image.max()
             padded_image = np.clip(padded_image, 0, 1)
             padded_image = (padded_image * 255).astype(np.uint8)
             tifffile.imsave(os.path.join(plate_output_dir, file_name), padded_image)
