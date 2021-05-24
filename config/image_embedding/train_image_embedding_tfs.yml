@@ -1,0 +1,31 @@
+output_dir: 'data/experiments/image_embeddings'
+module: src.experiments.train_emb
+class: TrainAeExperiment
+run_params:
+  data_config: {'image_dir':'data/images/8bit_min_max_96pad/padded_nuclei',
+                      'metadata_file':'data/images/8bit_min_max_96pad/nuclei_metadata.csv',
+                      'data_key':'image', 'label_key':'label',
+                      'target_list':['ARNTL', 'ATF2', 'ATF4', 'ATF6', 'CEBPA', 'CLOCK', 'CREB1', 'CXXC4', 'DDIT3',
+                                     'E2F1', 'ELK1', 'ERG', 'FOXO1', 'GLI1', 'HIF1A', 'JUN', 'NFKB1', 'NFKB2', 'RBPJ',
+                                     'REL', 'RELA', 'RELB', 'SMAD3', 'SMAD4', 'SMAD5', 'SREBF1', 'STAT1', 'STAT3',
+                                     'TCF4', 'TP53', 'XBP1'],
+                      'n_control_samples': 20000}
+
+  model_config: {'model_config':{'type':'VanillaConvAE', 'latent_dim':256, 'hidden_dims': [64, 128, 256, 512, 512]},
+                       'optimizer_config':{'type':'adam','lr':0.0001},
+                       'loss_config':{'type':'mse'}}
+
+  domain_name: 'image'
+  num_epochs: 100
+  early_stopping: 10
+  train_val_test_split: [0.7, 0.2, 0.1]
+  batch_size: 256
+  random_state: 1234
+  save_freq: 5
+
+pipeline:
+  - method: initialize_image_data_set
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: train_models
+

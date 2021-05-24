@@ -56,14 +56,9 @@ class TrainAeExperiment(BaseExperiment):
             target_list = self.data_config["target_list"]
         else:
             target_list = None
-        if "n_control_samples" in self.data_config:
-            n_control_samples = self.data_config["n_control_samples"]
-        else:
-            n_control_samples = None
         self.data_set = init_nuclei_image_dataset(
             image_dir=image_dir, metadata_file=metadata_file,
-            target_list=target_list,
-            n_control_samples=n_control_samples
+            target_list=target_list
         )
         self.data_key = self.data_config["data_key"]
         self.label_key = self.data_config["label_key"]
@@ -108,6 +103,3 @@ class TrainAeExperiment(BaseExperiment):
     def load_model(self, weights_fname):
         weights = torch.load(weights_fname)
         self.domain_config.domain_model_config.model.load_state_dict(weights)
-
-    def visualize_loss_evolution(self):
-        super().visualize_loss_evolution()

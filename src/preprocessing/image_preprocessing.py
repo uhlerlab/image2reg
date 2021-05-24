@@ -169,6 +169,7 @@ class ImageDatasetPreprocessor:
         max_eccentricity: float = None,
         min_solidity: float = None,
         min_aspect_ratio: float = None,
+        convex_crop:bool=True,
     ):
 
         nuclei_metadata = []
@@ -240,8 +241,11 @@ class ImageDatasetPreprocessor:
                     )
 
                     # returns convex crop of the segmented object.
-                    xmin, ymin, xmax, ymax = region.bbox
-                    cropped = image[xmin:xmax, ymin:ymax] * region.convex_image
+                    if convex_crop:
+                        xmin, ymin, xmax, ymax = region.bbox
+                        cropped = image[xmin:xmax, ymin:ymax] * region.convex_image
+                    else:
+                        cropped = region.intensity_image
 
                     tifffile.imsave(output_file_name, cropped)
                     nucleus_metadata = list(self.metadata.iloc[i, :])

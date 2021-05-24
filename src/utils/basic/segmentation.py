@@ -1,17 +1,13 @@
 from typing import Tuple
-
 from scipy.ndimage import binary_fill_holes
-from skimage.measure import label
-
 import numpy as np
-
 from numpy import ndarray
 
 
 def get_mask_image_from_outline(outline_image: ndarray) -> ndarray:
     binary = binary_fill_holes(outline_image)
     binary[outline_image != 0] = 0
-    binary = ndi.binary_fill_holes(binary)
+    binary = binary_fill_holes(binary)
     return binary
 
 

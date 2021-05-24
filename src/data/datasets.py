@@ -1,10 +1,12 @@
 import logging
 import os
+from collections import Counter
+from typing import List
 
 import torch
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+from imblearn.under_sampling import RandomUnderSampler
 from torch import Tensor
 from torch.utils.data import Dataset, Subset
 from torchvision import transforms
@@ -29,6 +31,9 @@ class TorchNucleiImageDataset(LabeledDataset):
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_label",
+        symbol_col: str = "gene_symbol",
+        target_list: List = None,
+        n_control_samples:int=None,
     ):
         super().__init__()
         self.image_dir = image_dir
@@ -36,7 +41,19 @@ class TorchNucleiImageDataset(LabeledDataset):
         self.image_file_col = image_file_col
         self.plate_col = plate_col
         self.label_col = label_col
+        self.symbol_col = symbol_col
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
+        if target_list is not None:
+            if "EMPTY" not in target_list:
+                target_list += ["EMPTY"]
+            self.metadata = self.metadata.loc[self.metadata[symbol_col].isin(target_list), :]
+        if n_control_samples is not None:
+            idc = np.array(list(range(len(self.metadata)))).reshape(-1,1)
+            labels = self.metadata[self.symbol_col]
+            target_n_samples = dict(Counter(labels))
+            target_n_samples["EMPTY"] = n_control_samples
+            idc, _ = RandomUnderSampler(sampling_strategy=target_n_samples,random_state=1234).fit_resample(idc, labels)
+            self.metadata = self.metadata.iloc[idc.flatten(),:]
 
         # Numpy data type problem leads to strings being cutoff when applying along axis
         self.image_locs = np.apply_along_axis(
@@ -48,13 +65,8 @@ class TorchNucleiImageDataset(LabeledDataset):
                 np.array(self.metadata.loc[:, self.image_file_col], dtype=str),
             ],
         ).astype(object)
-        # self.image_locs = []
-        # for i in range(len(self.metadata)):
-        #     plate = str(self.metadata.iloc[i,:][self.plate_col])
-        #     image_file = self.metadata.iloc[i, :][self.image_file_col]
-        #     self.image_locs.append(os.path.join(image_dir, plate, image_file))
 
-        if len(self.metadata) != len(get_file_list(self.image_dir)):
+        if len(self.metadata) != len(self.image_locs):
             raise RuntimeError(
                 "Number of image samples does not match the given metadata."
             )

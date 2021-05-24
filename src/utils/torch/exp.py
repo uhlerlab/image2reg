@@ -16,7 +16,7 @@ from src.utils.torch.evaluation import (
 from src.utils.torch.general import get_device
 
 
-def train_val_test_loop(
+def ae_train_val_test_loop(
     output_dir: str,
     domain_config: DomainConfig,
     num_epochs: int = 500,
@@ -63,9 +63,7 @@ def train_val_test_loop(
 
         # Iterate over training and validation phase
         for phase in ["train", "val"]:
-            epoch_statistics = process_epoch(
-                domain_config=domain_config, lamb=lamb, phase=phase, device=device,
-            )
+            epoch_statistics = process_ae_epoch(domain_config=domain_config, lamb=lamb, phase=phase, device=device)
 
             logging.debug(
                 "{} LOSS STATISTICS FOR EPOCH {}: ".format(phase.upper(), i + 1)
@@ -157,9 +155,7 @@ def train_val_test_loop(
     domain_config.domain_model_config.model.load_state_dict(best_model_weights)
 
     if "test" in domain_config.data_loader_dict:
-        epoch_statistics = process_epoch(
-            domain_config=domain_config, lamb=lamb, phase="test", device=device,
-        )
+        epoch_statistics = process_ae_epoch(domain_config=domain_config, lamb=lamb, phase="test", device=device)
 
         logging.debug("TEST LOSS STATISTICS")
 
@@ -211,7 +207,7 @@ def train_val_test_loop(
     return domain_config.domain_model_config.model, total_loss_dict
 
 
-def process_epoch(
+def process_ae_epoch(
     domain_config: DomainConfig,
     lamb: float = 1e-7,
     phase: str = "train",
