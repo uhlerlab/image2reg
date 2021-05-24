@@ -372,8 +372,10 @@ class ImageDatasetPreprocessor:
             "Padding complete: {} image were skipped as they exceeded the target"
             " dimensions.".format(n_skipped)
         )
-
-        nuclei_metadata.to_csv(os.path.join(output_dir, "padded_nuclei_metadata.csv"))
+        self.nuclei_metadata_file = os.path.join(
+            output_dir, "padded_nuclei_metadata.csv"
+        )
+        nuclei_metadata.to_csv(self.nuclei_metadata_file)
 
     def add_gene_label_column_to_metadata(
         self, nuclei_metadata_file: str = None, label_col: str = "gene_symbol"
