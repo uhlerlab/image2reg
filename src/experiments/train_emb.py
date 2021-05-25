@@ -61,9 +61,10 @@ class TrainAeExperiment(BaseExperiment):
         else:
             n_control_samples = None
         self.data_set = init_nuclei_image_dataset(
-            image_dir=image_dir, metadata_file=metadata_file,
+            image_dir=image_dir,
+            metadata_file=metadata_file,
             target_list=target_list,
-            n_control_samples=n_control_samples
+            n_control_samples=n_control_samples,
         )
         self.data_key = self.data_config["data_key"]
         self.label_key = self.data_config["label_key"]
@@ -84,7 +85,7 @@ class TrainAeExperiment(BaseExperiment):
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
         optimizer_config = self.model_config["optimizer_config"]
-        recon_loss_config = self.model_config["loss_config"]
+        loss_config = self.model_config["loss_config"]
 
         self.domain_config = get_domain_configuration(
             name=self.domain_name,
@@ -93,17 +94,21 @@ class TrainAeExperiment(BaseExperiment):
             data_key=self.data_key,
             label_key=self.label_key,
             optimizer_dict=optimizer_config,
-            recon_loss_fct_dict=recon_loss_config,
+            loss_fct_dict=loss_config,
         )
 
     def train_models(
         self, lamb: float = 0.00000001,
     ):
-        self.trained_model, self.loss_dict = ae_train_val_test_loop(output_dir=self.output_dir,
-                                                                    domain_config=self.domain_config,
-                                                                    num_epochs=self.num_epochs, lamb=lamb,
-                                                                    early_stopping=self.early_stopping,
-                                                                    device=self.device, save_freq=self.save_freq)
+        self.trained_model, self.loss_dict = ae_train_val_test_loop(
+            output_dir=self.output_dir,
+            domain_config=self.domain_config,
+            num_epochs=self.num_epochs,
+            lamb=lamb,
+            early_stopping=self.early_stopping,
+            device=self.device,
+            save_freq=self.save_freq,
+        )
 
     def load_model(self, weights_fname):
         weights = torch.load(weights_fname)

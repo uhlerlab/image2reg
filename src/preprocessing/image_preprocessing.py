@@ -169,7 +169,7 @@ class ImageDatasetPreprocessor:
         max_eccentricity: float = None,
         min_solidity: float = None,
         min_aspect_ratio: float = None,
-        convex_crop:bool=True,
+        convex_crop: bool = True,
     ):
 
         nuclei_metadata = []

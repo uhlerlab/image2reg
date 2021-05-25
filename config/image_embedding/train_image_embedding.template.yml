@@ -2,8 +2,8 @@ output_dir: 'data/experiments/image_embeddings'
 module: src.experiments.train_emb
 class: TrainAeExperiment
 run_params:
-  data_config: {'image_dir':'data/images/8bit_min_max_96pad/padded_nuclei',
-                      'metadata_file':'data/images/8bit_min_max_96pad/nuclei_metadata.csv',
+  data_config: {'image_dir':'data/experiments/image_preprocessing/pad_nuclei_64px_unet_seg',
+                      'metadata_file':'data/experiments/image_preprocessing/pad_nuclei_64px_unet_seg/padded_nuclei_metadata.csv',
                       'data_key':'image', 'label_key':'label'}
 
   model_config: {'model_config':{'type':'VanillaConvAE', 'latent_dim':256, 'hidden_dims': [64, 128, 256, 512, 512]},

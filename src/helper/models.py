@@ -8,14 +8,14 @@ class DomainModelConfig(object):
         self,
         model: Module,
         optimizer: Optimizer,
-        recon_loss_function: Module,
+        loss_function: Module,
         inputs: Tensor = None,
         labels: Tensor = None,
         trainable: bool = True,
     ):
         self.model = model
         self.optimizer = optimizer
-        self.recon_loss_function = recon_loss_function
+        self.loss_function = loss_function
         self.inputs = inputs
         self.labels = labels
         self.trainable = trainable
@@ -32,7 +32,7 @@ class DomainConfig(object):
         name: str,
         model: Module,
         optimizer: Optimizer,
-        recon_loss_function: Module,
+        loss_function: Module,
         data_loader_dict: dict,
         data_key: str,
         label_key: str,
@@ -42,7 +42,7 @@ class DomainConfig(object):
         self.domain_model_config = DomainModelConfig(
             model=model,
             optimizer=optimizer,
-            recon_loss_function=recon_loss_function,
+            loss_function=loss_function,
             trainable=train_model,
         )
         self.data_loader_dict = data_loader_dict

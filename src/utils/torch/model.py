@@ -27,7 +27,7 @@ def get_domain_configuration(
     name: str,
     model_dict: dict,
     optimizer_dict: dict,
-    recon_loss_fct_dict: dict,
+    loss_fct_dict: dict,
     data_loader_dict: dict,
     data_key: str,
     label_key: str,
@@ -42,15 +42,15 @@ def get_domain_configuration(
 
     optimizer = get_optimizer_for_model(optimizer_dict=optimizer_dict, model=model)
 
-    recon_loss_fct_type = recon_loss_fct_dict.pop("type")
-    if recon_loss_fct_type == "mae":
-        recon_loss_function = L1Loss()
-    elif recon_loss_fct_type == "mse":
-        recon_loss_function = MSELoss()
-    elif recon_loss_fct_type == "bce":
-        recon_loss_function = BCELoss()
-    elif recon_loss_fct_type == "bce_ll":
-        recon_loss_function = BCEWithLogitsLoss()
+    loss_fct_type = loss_fct_dict.pop("type")
+    if loss_fct_type == "mae":
+        loss_function = L1Loss()
+    elif loss_fct_type == "mse":
+        loss_function = MSELoss()
+    elif loss_fct_type == "bce":
+        loss_function = BCELoss()
+    elif loss_fct_type == "bce_ll":
+        loss_function = BCEWithLogitsLoss()
     else:
         raise NotImplementedError(
             'Unknown loss function type "{}"'.format(recon_loss_fct_type)
@@ -60,7 +60,7 @@ def get_domain_configuration(
         name=name,
         model=model,
         optimizer=optimizer,
-        recon_loss_function=recon_loss_function,
+        loss_function=loss_function,
         data_loader_dict=data_loader_dict,
         data_key=data_key,
         label_key=label_key,

@@ -33,7 +33,7 @@ class TorchNucleiImageDataset(LabeledDataset):
         label_col: str = "gene_label",
         symbol_col: str = "gene_symbol",
         target_list: List = None,
-        n_control_samples:int=None,
+        n_control_samples: int = None,
     ):
         super().__init__()
         self.image_dir = image_dir
@@ -46,14 +46,22 @@ class TorchNucleiImageDataset(LabeledDataset):
         if target_list is not None:
             if "EMPTY" not in target_list:
                 target_list += ["EMPTY"]
-            self.metadata = self.metadata.loc[self.metadata[symbol_col].isin(target_list), :]
+            self.metadata = self.metadata.loc[
+                self.metadata[symbol_col].isin(target_list), :
+            ]
         if n_control_samples is not None:
-            idc = np.array(list(range(len(self.metadata)))).reshape(-1,1)
+            idc = np.array(list(range(len(self.metadata)))).reshape(-1, 1)
             labels = self.metadata[self.symbol_col]
             target_n_samples = dict(Counter(labels))
             target_n_samples["EMPTY"] = n_control_samples
-            idc, _ = RandomUnderSampler(sampling_strategy=target_n_samples,random_state=1234).fit_resample(idc, labels)
-            self.metadata = self.metadata.iloc[idc.flatten(),:]
+            idc, _ = RandomUnderSampler(
+                sampling_strategy=target_n_samples, random_state=1234
+            ).fit_resample(idc, labels)
+            self.metadata = self.metadata.iloc[idc.flatten(), :]
+            logging.debug(
+                "Label counts after undersampling: %s",
+                dict(Counter(np.array(self.metadata[self.symbol_col]))),
+            )
 
         # Numpy data type problem leads to strings being cutoff when applying along axis
         self.image_locs = np.apply_along_axis(
