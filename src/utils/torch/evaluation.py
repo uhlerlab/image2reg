@@ -64,11 +64,18 @@ def save_latents_to_csv_gz(
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
         raise RuntimeError(
-            "Unknown dataset_type: {}, expected one of the following: train, val, test"
-            .format(dataset_type)
+            "Unknown dataset_type: {}, expected one of the following: train, val, test".format(
+                dataset_type
+            )
         )
-    save_latents_and_labels_to_csv_gz(model=model, dataset=dataset, save_path=save_path,
-                                      data_key=domain_config.data_key, label_key=domain_config.label_key, device=device)
+    save_latents_and_labels_to_csv_gz(
+        model=model,
+        dataset=dataset,
+        save_path=save_path,
+        data_key=domain_config.data_key,
+        label_key=domain_config.label_key,
+        device=device,
+    )
 
 
 def save_latents_and_labels_to_csv_gz(
@@ -102,7 +109,7 @@ def save_latents_and_labels_to_csv_gz(
     dict_to_csv_gz(data=expanded_data, save_path=save_path, index=index)
 
 
-def visualize_ae_model_performance(
+def save_latents_from_model(
     output_dir: str,
     domain_config: DomainConfig,
     dataset_types: List[str] = None,

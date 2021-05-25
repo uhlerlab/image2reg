@@ -10,9 +10,10 @@ def init_nuclei_image_dataset(
     image_dir: str,
     metadata_file: str,
     image_file_col: str = "image_file",
-    label_col: str = "gene_label",
+    label_col: str = "gene_symbol",
     target_list: List = None,
     n_control_samples=None,
+    pseudo_rgb: bool = False,
 ) -> TorchNucleiImageDataset:
     logging.debug(
         "Load image data set from {} and label information from {}.".format(
@@ -26,6 +27,7 @@ def init_nuclei_image_dataset(
         label_col=label_col,
         target_list=target_list,
         n_control_samples=n_control_samples,
+        pseudo_rgb=pseudo_rgb,
     )
     logging.debug("Samples loaded: {}".format(len(nuclei_dataset)))
     return nuclei_dataset

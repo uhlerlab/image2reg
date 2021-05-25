@@ -1,4 +1,4 @@
-from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss
+from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 from torch.optim import Adam, RMSprop
 from torch.nn import Module
 from torch.optim import Optimizer
@@ -10,6 +10,8 @@ from src.models.ae import VanillaConvAE
 from torchvision import transforms, models
 
 import logging
+
+from src.models.clf import resnet18, resnet34, resnet50, resnet101, resnet152
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
@@ -37,6 +39,8 @@ def get_domain_configuration(
     model_type = model_dict.pop("type")
     if model_type == "VanillaConvAE":
         model = VanillaConvAE(**model_dict)
+    elif "resnet" in model_type.lower():
+        model = initialize_imagenet_model(model_name=model_type, **model_dict)
     else:
         raise NotImplementedError('Unknown model type "{}"'.format(model_type))
 
@@ -51,9 +55,11 @@ def get_domain_configuration(
         loss_function = BCELoss()
     elif loss_fct_type == "bce_ll":
         loss_function = BCEWithLogitsLoss()
+    elif loss_fct_type == "ce":
+        loss_function = CrossEntropyLoss(**loss_fct_dict)
     else:
         raise NotImplementedError(
-            'Unknown loss function type "{}"'.format(recon_loss_fct_type)
+            'Unknown loss function type "{}"'.format(loss_fct_type)
         )
 
     domain_config = DomainConfig(
@@ -151,8 +157,8 @@ def get_image_net_nonrandom_transformations_dict(input_size):
 def initialize_imagenet_model(
     model_name,
     n_output_nodes,
-    extract_features,
-    use_pretrained=True,
+    fix_feature_extractor: bool = False,
+    pretrained: bool = True,
     fix_first_k_layers=None,
 ):
     r""" Method to get an initialized a Imagenet CNN model.
@@ -167,11 +173,11 @@ def initialize_imagenet_model(
     n_output_nodes : int
         Number of output neurons in the final layer of the model.
 
-    extract_features : bool
+    fix_feature_extractor : bool
         Indicator, if set to True the model is completely frozen, i.e. none of the parameters will be optimized
         during the training of the model.
 
-    use_pretrained : bool
+    pretrained : bool
         Indicator, if the weights of the model are supposed to be initialized with the weights obtained from training
         the network on the Imagenet dataset
 
@@ -193,58 +199,60 @@ def initialize_imagenet_model(
     model_ft = None
     input_size = 0
 
+    model_name = model_name.lower()
+
     if model_name == "resnet18":
-        model_ft = models.resnet18(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = resnet18(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet34":
-        model_ft = models.resnet34(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = resnet34(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet50":
-        model_ft = models.resnet50(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = resnet50(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet101":
-        model_ft = models.resnet101(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = resnet101(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet152":
-        model_ft = models.resnet152(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = resnet152(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "alexnet":
-        model_ft = models.alexnet(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = models.alexnet(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier[6].in_features
         model_ft.classifier[6] = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "vgg":
-        model_ft = models.vgg11_bn(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = models.vgg11_bn(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier[6].in_features
         model_ft.classifier[6] = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "squeezenet":
-        model_ft = models.squeezenet1_0(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = models.squeezenet1_0(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         model_ft.classifier[1] = nn.Conv2d(
             512, n_output_nodes, kernel_size=(1, 1), stride=(1, 1)
         )
@@ -253,15 +261,15 @@ def initialize_imagenet_model(
 
     elif model_name == "densenet":
 
-        model_ft = models.densenet121(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = models.densenet121(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier.in_features
         model_ft.classifier = nn.Linear(num_ftrs, n_output_nodes)
         input_size = 224
 
     elif model_name == "inception":
-        model_ft = models.inception_v3(pretrained=use_pretrained)
-        set_parameter_requires_grad(model_ft, extract_features, fix_first_k_layers)
+        model_ft = models.inception_v3(pretrained=pretrained)
+        set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         # Handle the auxiliary net
         num_ftrs = model_ft.AuxLogits.fc.in_features
         model_ft.AuxLogits.fc = nn.Linear(num_ftrs, n_output_nodes)
@@ -275,10 +283,12 @@ def initialize_imagenet_model(
         logging.error("Invalid model name, exiting...")
         exit()
 
-    return model_ft, input_size
+    return model_ft
 
 
-def set_parameter_requires_grad(model, extract_features, fix_first_k_layers=None):
+def set_parameter_requires_grad(
+    model, fix_feature_extractor: bool = False, fix_first_k_layers=None
+):
     r""" Method to set prevent the update of certain parameters in a given model.
 
     Parameters
@@ -286,7 +296,7 @@ def set_parameter_requires_grad(model, extract_features, fix_first_k_layers=None
     model : :py:class:`~torch.nn.Module`
         The model of question.
 
-    extract_features : bool
+    fix_feature_extractor : bool
         An indicator, if set to True the model is completely frozen, i.e. none of the parameters will be optimized
         during the training of the model.
 
@@ -295,7 +305,7 @@ def set_parameter_requires_grad(model, extract_features, fix_first_k_layers=None
         training of the model.
 
     """
-    if extract_features:
+    if fix_feature_extractor:
         for param in model.parameters():
             param.requires_grad = False
         fix_first_k_layers = None

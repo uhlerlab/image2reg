@@ -1,6 +1,6 @@
 output_dir: 'data/experiments/image_embeddings'
-module: src.experiments.train_emb
-class: TrainAeExperiment
+module: src.experiments.train_model
+class: TrainModelExperiment
 run_params:
   data_config: {'image_dir':'data/experiments/image_preprocessing/pad_nuclei_64px_unet_seg',
                       'metadata_file':'data/experiments/image_preprocessing/pad_nuclei_64px_unet_seg/padded_nuclei_metadata.csv',

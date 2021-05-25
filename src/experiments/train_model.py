@@ -4,12 +4,16 @@ import torch
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
 from src.utils.torch.data import init_nuclei_image_dataset
-from src.utils.torch.exp import ae_train_val_test_loop
+from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
-from src.utils.torch.model import get_domain_configuration
+from src.utils.torch.model import (
+    get_domain_configuration,
+    get_image_net_transformations_dict,
+    get_image_net_nonrandom_transformations_dict,
+)
 
 
-class TrainAeExperiment(BaseExperiment):
+class TrainModelExperiment(BaseExperiment):
     def __init__(
         self,
         output_dir: str,
@@ -22,6 +26,7 @@ class TrainAeExperiment(BaseExperiment):
         early_stopping: int = -1,
         random_state: int = 42,
         save_freq: int = -1,
+        pseudo_rgb: bool = False,
     ):
         super().__init__(
             output_dir=output_dir,
@@ -36,6 +41,7 @@ class TrainAeExperiment(BaseExperiment):
         self.model_config = model_config
         self.domain_name = domain_name
         self.save_freq = save_freq
+        self.pseudo_rbg = pseudo_rgb
 
         self.data_set = None
         self.data_transform_pipeline_dict = None
@@ -60,16 +66,30 @@ class TrainAeExperiment(BaseExperiment):
             n_control_samples = self.data_config["n_control_samples"]
         else:
             n_control_samples = None
+        if "pseudo_rgb" in self.data_config:
+            pseudo_rgb = self.data_config["pseudo_rgb"]
+        else:
+            pseudo_rgb = False
+
         self.data_set = init_nuclei_image_dataset(
             image_dir=image_dir,
             metadata_file=metadata_file,
             target_list=target_list,
             n_control_samples=n_control_samples,
+            pseudo_rgb=pseudo_rgb,
         )
         self.data_key = self.data_config["data_key"]
         self.label_key = self.data_config["label_key"]
 
-    def initialize_data_loader_dict(self, drop_last_batch: bool = False):
+    def initialize_data_loader_dict(
+        self, drop_last_batch: bool = False, data_transform_pipeline: str = None
+    ):
+        if data_transform_pipeline == "imagenet_random":
+            self.data_transform_pipeline_dict = get_image_net_transformations_dict(224)
+        elif data_transform_pipeline == "imagenet_nonrandom":
+            self.data_transform_pipeline_dict = get_image_net_nonrandom_transformations_dict(
+                224
+            )
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
@@ -100,7 +120,7 @@ class TrainAeExperiment(BaseExperiment):
     def train_models(
         self, lamb: float = 0.00000001,
     ):
-        self.trained_model, self.loss_dict = ae_train_val_test_loop(
+        self.trained_model, self.loss_dict = model_train_val_test_loop(
             output_dir=self.output_dir,
             domain_config=self.domain_config,
             num_epochs=self.num_epochs,
