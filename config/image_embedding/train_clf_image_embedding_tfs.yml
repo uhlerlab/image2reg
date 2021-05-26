@@ -12,15 +12,16 @@ run_params:
                       'n_control_samples': 20000,
                       'pseudo_rgb':True}
 
-  model_config: {'model_config':{'type':'ResNet18', 'pretrained':True},
-                       'optimizer_config':{'type':'adam','lr':0.0001},
+  model_config: {'model_config':{'type':'ResNet18', 'pretrained':True, 'n_output_nodes':32,
+                                 fix_feature_extractor: False},
+                       'optimizer_config':{'type':'adam','lr':0.001},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'image'
   num_epochs: 300
   early_stopping: 10
   train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 256
+  batch_size: 128
   random_state: 1234
   save_freq: 50
 

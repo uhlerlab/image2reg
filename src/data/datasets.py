@@ -22,7 +22,7 @@ class LabeledDataset(Dataset):
     def __init__(self):
         super(LabeledDataset, self).__init__()
         self.labels = None
-        self.transformation_pipeline = None
+        self.transform_pipeline = None
 
 
 class TorchNucleiImageDataset(LabeledDataset):
@@ -125,9 +125,12 @@ class TorchNucleiImageDataset(LabeledDataset):
 class TorchTransformableSubset(Subset):
     def __init__(self, dataset: LabeledDataset, indices):
         super().__init__(dataset=dataset, indices=indices)
+        self.transform_pipeline = None
 
     def set_transform_pipeline(self, transform_pipeline: transforms.Compose) -> None:
         try:
+            #todo change not only on subset but for the whole data set - undesired
+            #self.transform_pipeline = transform_pipeline
             self.dataset.set_transform_pipeline(transform_pipeline)
         except AttributeError as exception:
             logging.error(

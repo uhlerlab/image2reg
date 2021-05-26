@@ -1,8 +1,8 @@
 import torch
+from torch.functional import Tensor
 from torch.hub import load_state_dict_from_url
 from torch.nn import Module
 from torch import nn
-from torch.nn.functional import Tensor
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck, model_urls
 from typing import Type, List, Union, Optional, Callable, Any
 
@@ -40,17 +40,18 @@ class CustomResNet(ResNet):
             layers=layers,
             num_classes=num_classes,
             zero_init_residual=zero_init_residual,
-            groups=groups,
-            width_per_group=width_per_group,
-            replace_stride_with_dilation=replace_stride_with_dilation,
-            norm_layer=norm_layer,
+            # groups=groups,
+            # width_per_group=width_per_group,
+            # replace_stride_with_dilation=replace_stride_with_dilation,
+            # norm_layer=norm_layer,
         )
 
         self.model_base_type = "clf"
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         return super()._make_layer(
-            block=block, planes=planes, blocks=blocks, stride=stride, dilate=dilate
+            block=block, planes=planes, blocks=blocks, stride=stride,
+            #dilate=dilate
         )
 
     def forward(self, x: Tensor) -> dict:

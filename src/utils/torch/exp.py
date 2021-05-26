@@ -93,7 +93,7 @@ def model_train_val_test_loop(
 
             if "clf_accuracy" in epoch_statistics:
                 logging.debug(
-                    "Classification accuracy for domain {}: {.8f}".format(
+                    "Classification accuracy for domain {}: {:.8f}".format(
                         domain_config.name, epoch_statistics["clf_accuracy"]
                     )
                 )
@@ -136,6 +136,7 @@ def model_train_val_test_loop(
         # Save model at checkpoints and visualize performance
         if i % save_freq == 0:
             checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
+            os.makedirs(checkpoint_dir, exist_ok=True)
 
             if model_base_type in ["ae", "vae"]:
                 if domain_config.name == "image":
@@ -155,12 +156,12 @@ def model_train_val_test_loop(
                         phase="val",
                     )
 
-                save_latents_from_model(
-                    output_dir=checkpoint_dir,
-                    domain_config=domain_config,
-                    dataset_types=["train", "val"],
-                    device=device,
-                )
+            # save_latents_from_model(
+            #         output_dir=checkpoint_dir,
+            #         domain_config=domain_config,
+            #         dataset_types=["train", "val"],
+            #         device=device,
+            #     )
 
             torch.save(
                 domain_config.domain_model_config.model.state_dict(),
@@ -203,7 +204,7 @@ def model_train_val_test_loop(
 
         if "clf_accuracy" in epoch_statistics:
             logging.debug(
-                "Test classification accuracy for domain {}: {.8f}".format(
+                "Test classification accuracy for domain {}: {:.8f}".format(
                     domain_config.name, epoch_statistics["clf_accuracy"]
                 )
             )
@@ -328,7 +329,7 @@ def process_single_epoch(
 
     if model_base_type == "clf":
         epoch_statistics["clf_loss"] = clf_loss
-        clf_accuracy["clf_accuracy"] = clf_accuracy
+        epoch_statistics["clf_accuracy"] = clf_accuracy
 
     return epoch_statistics
 
