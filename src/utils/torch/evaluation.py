@@ -3,12 +3,15 @@ from typing import List
 
 import imageio
 import numpy as np
+import torch
+from sklearn.metrics import confusion_matrix
 from torch.nn import Module
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.basic.export import dict_to_csv_gz
+from src.utils.torch.general import get_device
 
 
 def get_latent_representations_for_model(
@@ -155,3 +158,29 @@ def visualize_image_ae_performance(
             os.path.join(image_dir, "%s_epoch_%s_recons_%s.jpg" % (phase, epoch, i)),
             np.uint8(recon_images[i].cpu().data.view(size).numpy() * 255),
         )
+
+
+def get_confusion_matrices(domain_config:DomainConfig, dataset_types:List=["test"]):
+    confusion_matrices = {}
+    for dataset_type in dataset_types:
+        confusion_matrices[dataset_type] = get_confusion_matrix(domain_config, dataset_type)
+    return confusion_matrices
+
+
+def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
+    device = get_device()
+    model = domain_config.domain_model_config.model.to(device).eval()
+    dataloader = domain_config.data_loader_dict[dataset_type]
+    all_labels = []
+    all_preds = []
+
+    for i, sample in enumerate(dataloader):
+        inputs = sample[domain_config.data_key].to(device)
+        labels = sample[domain_config.label_key]
+        outputs = model(inputs)["outputs"]
+        _, preds = torch.max(outputs, 1)
+
+        all_labels.extend(list(labels.detach().cpu().numpy()))
+        all_preds.extend(list(preds.detach().cpu().numpy()))
+
+    return confusion_matrix(all_labels, all_preds)

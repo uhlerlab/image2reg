@@ -11,7 +11,7 @@ from tqdm import tqdm
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.torch.evaluation import (
     save_latents_from_model,
-    visualize_image_ae_performance,
+    visualize_image_ae_performance, get_confusion_matrices,
 )
 from src.utils.torch.general import get_device
 
@@ -62,6 +62,9 @@ def model_train_val_test_loop(
                 " loss for {} epochs.".format(early_stopping)
             )
             break
+        if i % save_freq == 0:
+            checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
+            os.makedirs(checkpoint_dir, exist_ok=True)
 
         # Iterate over training and validation phase
         for phase in ["train", "val"]:
@@ -134,34 +137,16 @@ def model_train_val_test_loop(
                     es_counter += 1
 
         # Save model at checkpoints and visualize performance
-        if i % save_freq == 0:
-            checkpoint_dir = "{}/epoch_{}".format(output_dir, i)
-            os.makedirs(checkpoint_dir, exist_ok=True)
-
-            if model_base_type in ["ae", "vae"]:
-                if domain_config.name == "image":
-                    visualize_image_ae_performance(
+            if i % save_freq == 0:
+                if model_base_type in ["ae", "vae"]:
+                    if domain_config.name == "image":
+                        visualize_image_ae_performance(
                         domain_model_config=domain_config.domain_model_config,
                         epoch=i,
                         output_dir=checkpoint_dir,
                         device=device,
-                        phase="train",
+                        phase=phase,
                     )
-
-                    visualize_image_ae_performance(
-                        domain_model_config=domain_config.domain_model_config,
-                        epoch=i,
-                        output_dir=checkpoint_dir,
-                        device=device,
-                        phase="val",
-                    )
-
-            # save_latents_from_model(
-            #         output_dir=checkpoint_dir,
-            #         domain_config=domain_config,
-            #         dataset_types=["train", "val"],
-            #         device=device,
-            #     )
 
             torch.save(
                 domain_config.domain_model_config.model.state_dict(),
@@ -235,6 +220,10 @@ def model_train_val_test_loop(
                 device=device,
                 phase="test",
             )
+        elif model_base_type == "clf":
+            confusion_matrices = get_confusion_matrices(domain_config=domain_config,
+                                                        dataset_types=["train", "val", "test"])
+            logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
 
         save_latents_from_model(
             output_dir=test_dir,

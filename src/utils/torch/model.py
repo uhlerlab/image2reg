@@ -101,26 +101,21 @@ def get_image_net_transformations_dict(input_size):
                 transforms.RandomVerticalFlip(),
                 transforms.RandomRotation(180),
                 transforms.ToTensor(),
-                # transforms.Normalize([0.479, 0.324, 0.292], [0.333, 0.263, 0.235])
-                #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "val": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                #transforms.CenterCrop(input_size),
                 transforms.ToTensor(),
-                # transforms.Normalize([0.479, 0.324, 0.292], [0.333, 0.263, 0.235])
-                #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "test": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                #transforms.CenterCrop(input_size),
                 transforms.ToTensor(),
-                # transforms.Normalize([0.479, 0.324, 0.292], [0.333, 0.263, 0.235])
-                #transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
     }
