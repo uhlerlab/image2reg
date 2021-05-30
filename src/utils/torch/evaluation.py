@@ -14,6 +14,7 @@ from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.basic.export import dict_to_csv_gz
+from src.utils.basic.visualization import plot_image_seq
 from src.utils.torch.general import get_device
 
 
@@ -190,7 +191,7 @@ def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
 
 
 def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, dataset_type:str="test", n_components:int=2,
-                                    steps:int=10):
+                                    n_steps:int=11):
 
     device = get_device()
     dataset = domain_config.data_loader_dict[dataset_type].dataset
@@ -208,24 +209,22 @@ def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, 
     norm_latents = sc.fit_transform(latents)
     pc = PCA(n_components=n_components)
     pc.fit(norm_latents)
+    latent = np.mean(latents, axis=0)
+    #latent = latents[np.random.randint(0, len(latents))]
     components = pc.components_
-    embeddings = pc.transform(norm_latents)
-    min_embs = np.min(embeddings, axis=1)
-    max_embs = np.max(embeddings, axis=1)
 
     latent_space_walk_results = {}
     for i in range(n_components):
-        stepseq = np.linspace(min_embs[i], max_embs[i], num=steps)
-        pc_latents = np.zeros([len(stepseq), n_components])
-        pc_latents[:,i] = stepseq
-        walk_norm_latents = pc.inverse_transform(pc_latents)
-        walk_latents = sc.inverse_transform(walk_norm_latents)
-        walk_latents = torch.FloatTensor(walk_latents).to(device)
+        stepseq = np.linspace(-10, 10, num=n_steps)
+        pc_latents = np.array([latent] * n_steps)
+        for j in range(n_steps):
+            pc_latents[j,:] += (stepseq[j] * components[i])
+        walk_latents = torch.FloatTensor(pc_latents).to(device)
         walk_recons = model.decode(walk_latents).detach().cpu().numpy()
         latent_space_walk_results["pc"+str(i)] = walk_recons
 
     for k in latent_space_walk_results.keys():
-        plot_image_seq(output_dir = output_dir+k, images = latent_space_walk_results[k])
+        plot_image_seq(output_dir = output_dir, prefix=k, image_seq = latent_space_walk_results[k])
 
 
 

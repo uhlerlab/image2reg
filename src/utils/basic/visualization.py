@@ -1,6 +1,7 @@
 import logging
 import os
 
+import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
@@ -278,9 +279,10 @@ def create_ade20k_label_colormap():
     cmap = LinearSegmentedColormap.from_list("segmentation_cmap", colors, N=256)
     return cmap
 
-def plot_image_seq(output_dir, image_seq):
+
+def plot_image_seq(output_dir, image_seq, prefix:str=""):
     for i in range(len(image_seq)):
         imageio.imwrite(
-            os.path.join(output_dir, "walk_recon_i.jpg" % (i)),
-            np.uint8(image_seq[i] * 255),
+            os.path.join(output_dir, "{}_walk_recon_{}.jpg".format(prefix, str(i))),
+            np.uint8(np.squeeze(image_seq[i] * 255)),
         )

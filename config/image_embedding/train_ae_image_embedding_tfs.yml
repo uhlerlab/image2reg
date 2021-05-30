@@ -27,6 +27,14 @@ pipeline:
   - method: initialize_image_data_set
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-  - method: train_models
-  - method: visualize_loss_evolution
+  #- method: train_models
+  #- method: visualize_loss_evolution
+  - method: load_model
+    params:
+      weights_fname: 'data/experiments/image_embeddings/ae_training_64px_unet_seg/best_model_weights.pth'
+  - method: visualize_latent_space_pca_walk
+    params:
+      dataset_type: 'test'
+      n_components: 10
+      n_steps: 11
 

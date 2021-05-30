@@ -1,9 +1,11 @@
+import os
 from typing import List
 import torch
 
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
 from src.utils.torch.data import init_nuclei_image_dataset
+from src.utils.torch.evaluation import visualize_latent_space_pca_walk
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
 from src.utils.torch.model import (
@@ -137,13 +139,13 @@ class TrainModelExperiment(BaseExperiment):
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
 
-    def visualize_latent_space_pca_walk(self, dataset_type:str="test", n_components:int=2, n_steps:int=10):
+    def visualize_latent_space_pca_walk(self, dataset_type:str="test", n_components:int=2, n_steps:int=11):
         output_dir = os.path.join(self.output_dir, "pc_latent_walk")
-        if not os.path.exist(output_dir):
+        if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
         if self.domain_config.domain_model_config.model.model_base_type not in ["ae", "vae"]:
             raise RuntimeError("Only implemented for autoencoder models")
         else:
-            visualize_latent_space_pca_walk(domain_config=self.domain_config, output_dir=self.output_dir,
+            visualize_latent_space_pca_walk(domain_config=self.domain_config, output_dir=output_dir,
                                             dataset_type=dataset_type, n_components=n_components, n_steps=n_steps)
