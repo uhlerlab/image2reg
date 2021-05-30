@@ -169,7 +169,7 @@ class ImageDatasetPreprocessor:
         max_eccentricity: float = None,
         min_solidity: float = None,
         min_aspect_ratio: float = None,
-        convex_crop: bool = True,
+        convex_crop: bool = False,
     ):
 
         nuclei_metadata = []
@@ -377,7 +377,7 @@ class ImageDatasetPreprocessor:
             " dimensions.".format(n_skipped)
         )
         self.nuclei_metadata_file = os.path.join(
-            output_dir, "padded_nuclei_metadata.csv"
+            self.output_dir, "padded_nuclei_metadata.csv"
         )
         nuclei_metadata.to_csv(self.nuclei_metadata_file)
 

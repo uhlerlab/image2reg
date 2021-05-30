@@ -28,4 +28,5 @@ pipeline:
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
   - method: train_models
+  - method: visualize_loss_evolution
 

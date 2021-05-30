@@ -1,3 +1,4 @@
+import copy
 import logging
 import os
 from collections import Counter
@@ -60,8 +61,8 @@ class TorchNucleiImageDataset(LabeledDataset):
                 sampling_strategy=target_n_samples, random_state=1234
             ).fit_resample(idc, labels)
             self.metadata = self.metadata.iloc[idc.flatten(), :]
-            logging.debug(
-                "Label counts after undersampling: %s",
+        logging.debug(
+            "Label counts: %s",
                 dict(Counter(np.array(self.metadata[self.label_col]))),
             )
 
@@ -114,10 +115,6 @@ class TorchNucleiImageDataset(LabeledDataset):
             rgbimg = Image.new("RGB", image.size)
             rgbimg.paste(image)
             image = rgbimg
-        # image = np.array(image, dtype=np.float32)
-        # image = (image - image.min()) / (image.max() - image.min())
-        # image = np.clip(image, 0, 1)
-        # image = torch.from_numpy(image).unsqueeze(0)
         image = self.transform_pipeline(image)
         return image
 
@@ -125,6 +122,9 @@ class TorchNucleiImageDataset(LabeledDataset):
 class TorchTransformableSubset(Subset):
     def __init__(self, dataset: LabeledDataset, indices):
         super().__init__(dataset=dataset, indices=indices)
+        # Hacky way to create a independent dataset instance such changes to the dataset of the subset instance are not
+        # passed through --> might increase CPU/GPU memory usage linearly
+        self.dataset = copy.deepcopy(self.dataset)
         self.transform_pipeline = None
 
     def set_transform_pipeline(self, transform_pipeline: transforms.Compose) -> None:

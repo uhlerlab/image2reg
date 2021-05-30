@@ -3,12 +3,18 @@ from typing import List
 
 import imageio
 import numpy as np
+import torch
+from sklearn.decomposition import PCA
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
+from torch import FloatTensor
 from torch.nn import Module
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.basic.export import dict_to_csv_gz
+from src.utils.torch.general import get_device
 
 
 def get_latent_representations_for_model(
@@ -155,3 +161,72 @@ def visualize_image_ae_performance(
             os.path.join(image_dir, "%s_epoch_%s_recons_%s.jpg" % (phase, epoch, i)),
             np.uint8(recon_images[i].cpu().data.view(size).numpy() * 255),
         )
+
+
+def get_confusion_matrices(domain_config:DomainConfig, dataset_types:List=["test"]):
+    confusion_matrices = {}
+    for dataset_type in dataset_types:
+        confusion_matrices[dataset_type] = get_confusion_matrix(domain_config, dataset_type)
+    return confusion_matrices
+
+
+def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
+    device = get_device()
+    model = domain_config.domain_model_config.model.to(device).eval()
+    dataloader = domain_config.data_loader_dict[dataset_type]
+    all_labels = []
+    all_preds = []
+
+    for i, sample in enumerate(dataloader):
+        inputs = sample[domain_config.data_key].to(device)
+        labels = sample[domain_config.label_key]
+        outputs = model(inputs)["outputs"]
+        _, preds = torch.max(outputs, 1)
+
+        all_labels.extend(list(labels.detach().cpu().numpy()))
+        all_preds.extend(list(preds.detach().cpu().numpy()))
+
+    return confusion_matrix(all_labels, all_preds)
+
+
+def visualize_latent_space_pca_walk(domain_config:DomainConfig, dataset_type:str="test", n_components:int=2, steps:int=10):
+
+    device = get_device()
+    dataset = domain_config.data_loader_dict[dataset_type].dataset
+    model = domain_config.domain_model_config.model.to(device)
+    data_key = domain_config.data_key
+    label_key = domain_config.label_key
+
+    latent_dict = get_latent_representations_for_model(dataset=dataset, model=model, data_key=data_key,
+                                                       label_key=label_key)
+    latents = latent_dict["latents"]
+    labels = latent_dict["labels"]
+
+    sc = StandardScaler()
+    norm_latents = sc.fit_transform(latents)
+    pc = PCA(n_components=n_components)
+    pc.fit(norm_latents)
+    components = pc.components_
+    embeddings = pc.transform(norm_latents)
+    min_embs = np.min(embeddings, axis=1)
+    max_embs = np.max(embeddings, axis=1)
+
+    walk_recons = {}
+    for i in range(n_components):
+        step_seq = np.linspace(min_embs[i], max_embs[i], num=steps)
+        walk_vec = np.array([components[i] * k for k in step_seq])
+        walk_embedding = np.zeros[len(step_seq),n_components]
+        walk_embedding[:,i]= walk_vec
+        walk_latents_norm = pc.inverse_transform(walk_embedding)
+        walk_latents = sc.inverse_transform(walk_latents_norm)
+        recons = model(FloatTensor(walk_latents).to(device))["recons"]
+        walk_recons["pc"+str(i)] = recons
+
+
+    for k in walk_recons:
+
+
+
+
+
+
