@@ -189,11 +189,13 @@ def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
     return confusion_matrix(all_labels, all_preds)
 
 
-def visualize_latent_space_pca_walk(domain_config:DomainConfig, dataset_type:str="test", n_components:int=2, steps:int=10):
+def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, dataset_type:str="test", n_components:int=2,
+                                    steps:int=10):
 
     device = get_device()
     dataset = domain_config.data_loader_dict[dataset_type].dataset
     model = domain_config.domain_model_config.model.to(device)
+    model.eval()
     data_key = domain_config.data_key
     label_key = domain_config.label_key
 
@@ -211,19 +213,20 @@ def visualize_latent_space_pca_walk(domain_config:DomainConfig, dataset_type:str
     min_embs = np.min(embeddings, axis=1)
     max_embs = np.max(embeddings, axis=1)
 
-    walk_recons = {}
+    latent_space_walk_results = {}
     for i in range(n_components):
-        step_seq = np.linspace(min_embs[i], max_embs[i], num=steps)
-        walk_vec = np.array([components[i] * k for k in step_seq])
-        walk_embedding = np.zeros[len(step_seq),n_components]
-        walk_embedding[:,i]= walk_vec
-        walk_latents_norm = pc.inverse_transform(walk_embedding)
-        walk_latents = sc.inverse_transform(walk_latents_norm)
-        recons = model(FloatTensor(walk_latents).to(device))["recons"]
-        walk_recons["pc"+str(i)] = recons
+        stepseq = np.linspace(min_embs[i], max_embs[i], num=steps)
+        pc_latents = np.zeros([len(stepseq), n_components])
+        pc_latents[:,i] = stepseq
+        walk_norm_latents = pc.inverse_transform(pc_latents)
+        walk_latents = sc.inverse_transform(walk_norm_latents)
+        walk_latents = torch.FloatTensor(walk_latents).to(device)
+        walk_recons = model.decode(walk_latents).detach().cpu().numpy()
+        latent_space_walk_results["pc"+str(i)] = walk_recons
 
+    for k in latent_space_walk_results.keys():
+        plot_image_seq(output_dir = output_dir+k, images = latent_space_walk_results[k])
 
-    for k in walk_recons:
 
 
 

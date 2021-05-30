@@ -136,3 +136,14 @@ class TrainModelExperiment(BaseExperiment):
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
+
+    def visualize_latent_space_pca_walk(self, dataset_type:str="test", n_components:int=2, n_steps:int=10):
+        output_dir = os.path.join(self.output_dir, "pc_latent_walk")
+        if not os.path.exist(output_dir):
+            os.makedirs(output_dir)
+
+        if self.domain_config.domain_model_config.model.model_base_type not in ["ae", "vae"]:
+            raise RuntimeError("Only implemented for autoencoder models")
+        else:
+            visualize_latent_space_pca_walk(domain_config=self.domain_config, output_dir=self.output_dir,
+                                            dataset_type=dataset_type, n_components=n_components, n_steps=n_steps)
