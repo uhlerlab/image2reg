@@ -71,9 +71,8 @@ def save_latents_to_csv_gz(
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
         raise RuntimeError(
-            "Unknown dataset_type: {}, expected one of the following: train, val, test".format(
-                dataset_type
-            )
+            "Unknown dataset_type: {}, expected one of the following: train, val, test"
+            .format(dataset_type)
         )
     save_latents_and_labels_to_csv_gz(
         model=model,
@@ -164,14 +163,16 @@ def visualize_image_ae_performance(
         )
 
 
-def get_confusion_matrices(domain_config:DomainConfig, dataset_types:List=["test"]):
+def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["test"]):
     confusion_matrices = {}
     for dataset_type in dataset_types:
-        confusion_matrices[dataset_type] = get_confusion_matrix(domain_config, dataset_type)
+        confusion_matrices[dataset_type] = get_confusion_matrix(
+            domain_config, dataset_type
+        )
     return confusion_matrices
 
 
-def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
+def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"):
     device = get_device()
     model = domain_config.domain_model_config.model.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]
@@ -190,8 +191,13 @@ def get_confusion_matrix(domain_config:DomainConfig, dataset_type:str="test"):
     return confusion_matrix(all_labels, all_preds)
 
 
-def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, dataset_type:str="test", n_components:int=2,
-                                    n_steps:int=11):
+def visualize_latent_space_pca_walk(
+    domain_config: DomainConfig,
+    output_dir: str,
+    dataset_type: str = "test",
+    n_components: int = 2,
+    n_steps: int = 11,
+):
 
     device = get_device()
     dataset = domain_config.data_loader_dict[dataset_type].dataset
@@ -200,8 +206,9 @@ def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, 
     data_key = domain_config.data_key
     label_key = domain_config.label_key
 
-    latent_dict = get_latent_representations_for_model(dataset=dataset, model=model, data_key=data_key,
-                                                       label_key=label_key)
+    latent_dict = get_latent_representations_for_model(
+        dataset=dataset, model=model, data_key=data_key, label_key=label_key
+    )
     latents = latent_dict["latents"]
     labels = latent_dict["labels"]
 
@@ -210,7 +217,7 @@ def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, 
     pc = PCA(n_components=n_components)
     pc.fit(norm_latents)
     latent = np.mean(latents, axis=0)
-    #latent = latents[np.random.randint(0, len(latents))]
+    # latent = latents[np.random.randint(0, len(latents))]
     components = pc.components_
 
     latent_space_walk_results = {}
@@ -218,17 +225,12 @@ def visualize_latent_space_pca_walk(domain_config:DomainConfig, output_dir:str, 
         stepseq = np.linspace(-10, 10, num=n_steps)
         pc_latents = np.array([latent] * n_steps)
         for j in range(n_steps):
-            pc_latents[j,:] += (stepseq[j] * components[i])
+            pc_latents[j, :] += stepseq[j] * components[i]
         walk_latents = torch.FloatTensor(pc_latents).to(device)
         walk_recons = model.decode(walk_latents).detach().cpu().numpy()
-        latent_space_walk_results["pc"+str(i)] = walk_recons
+        latent_space_walk_results["pc" + str(i)] = walk_recons
 
     for k in latent_space_walk_results.keys():
-        plot_image_seq(output_dir = output_dir, prefix=k, image_seq = latent_space_walk_results[k])
-
-
-
-
-
-
-
+        plot_image_seq(
+            output_dir=output_dir, prefix=k, image_seq=latent_space_walk_results[k]
+        )

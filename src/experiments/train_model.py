@@ -4,7 +4,7 @@ import torch
 
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
-from src.utils.torch.data import init_nuclei_image_dataset
+from src.utils.torch.data import init_image_dataset
 from src.utils.torch.evaluation import visualize_latent_space_pca_walk
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
@@ -12,6 +12,7 @@ from src.utils.torch.model import (
     get_domain_configuration,
     get_image_net_transformations_dict,
     get_image_net_nonrandom_transformations_dict,
+    get_imagenet_extended_transformations_dict,
 )
 
 
@@ -54,34 +55,31 @@ class TrainModelExperiment(BaseExperiment):
 
         self.trained_model = None
         self.loss_dict = None
+        self.label_weights = None
 
         self.device = get_device()
 
     def initialize_image_data_set(self):
-        image_dir = self.data_config["image_dir"]
-        metadata_file = self.data_config["metadata_file"]
-        if "target_list" in self.data_config:
-            target_list = self.data_config["target_list"]
-        else:
-            target_list = None
-        if "n_control_samples" in self.data_config:
-            n_control_samples = self.data_config["n_control_samples"]
-        else:
-            n_control_samples = None
-        if "pseudo_rgb" in self.data_config:
-            pseudo_rgb = self.data_config["pseudo_rgb"]
-        else:
-            pseudo_rgb = False
+        # image_dir = self.data_config["image_dir"]
+        # metadata_file = self.data_config["metadata_file"]
+        # if "target_list" in self.data_config:
+        #     target_list = self.data_config["target_list"]
+        # else:
+        #     target_list = None
+        # if "n_control_samples" in self.data_config:
+        #     n_control_samples = self.data_config["n_control_samples"]
+        # else:
+        #     n_control_samples = None
+        # if "pseudo_rgb" in self.data_config:
+        #     pseudo_rgb = self.data_config["pseudo_rgb"]
+        # else:
+        #     pseudo_rgb = False
 
-        self.data_set = init_nuclei_image_dataset(
-            image_dir=image_dir,
-            metadata_file=metadata_file,
-            target_list=target_list,
-            n_control_samples=n_control_samples,
-            pseudo_rgb=pseudo_rgb,
-        )
-        self.data_key = self.data_config["data_key"]
-        self.label_key = self.data_config["label_key"]
+        # self.data_set = init_image_dataset(image_dir=image_dir, metadata_file=metadata_file, target_list=target_list,
+        #                                    n_control_samples=n_control_samples, pseudo_rgb=pseudo_rgb, image_file_col)
+        self.data_key = self.data_config.pop("data_key")
+        self.label_key = self.data_config.pop("label_key")
+        self.data_set = init_image_dataset(**self.data_config)
 
     def initialize_data_loader_dict(
         self, drop_last_batch: bool = False, data_transform_pipeline: str = None
@@ -90,6 +88,10 @@ class TrainModelExperiment(BaseExperiment):
             self.data_transform_pipeline_dict = get_image_net_transformations_dict(224)
         elif data_transform_pipeline == "imagenet_nonrandom":
             self.data_transform_pipeline_dict = get_image_net_nonrandom_transformations_dict(
+                224
+            )
+        elif data_transform_pipeline == "imagenet_extended_random":
+            self.data_transform_pipeline_dict = get_imagenet_extended_transformations_dict(
                 224
             )
         dh = DataHandler(
@@ -103,11 +105,14 @@ class TrainModelExperiment(BaseExperiment):
         dh.stratified_train_val_test_split(splits=self.train_val_test_split)
         dh.get_data_loader_dict(shuffle=True)
         self.data_loader_dict = dh.data_loader_dict
+        self.label_weights = dh.dataset.label_weights
 
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
         optimizer_config = self.model_config["optimizer_config"]
         loss_config = self.model_config["loss_config"]
+        if self.label_weights is not None:
+            loss_config["weight"] = self.label_weights
 
         self.domain_config = get_domain_configuration(
             name=self.domain_name,
@@ -139,13 +144,23 @@ class TrainModelExperiment(BaseExperiment):
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
 
-    def visualize_latent_space_pca_walk(self, dataset_type:str="test", n_components:int=2, n_steps:int=11):
+    def visualize_latent_space_pca_walk(
+        self, dataset_type: str = "test", n_components: int = 2, n_steps: int = 11
+    ):
         output_dir = os.path.join(self.output_dir, "pc_latent_walk")
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        if self.domain_config.domain_model_config.model.model_base_type not in ["ae", "vae"]:
+        if self.domain_config.domain_model_config.model.model_base_type not in [
+            "ae",
+            "vae",
+        ]:
             raise RuntimeError("Only implemented for autoencoder models")
         else:
-            visualize_latent_space_pca_walk(domain_config=self.domain_config, output_dir=output_dir,
-                                            dataset_type=dataset_type, n_components=n_components, n_steps=n_steps)
+            visualize_latent_space_pca_walk(
+                domain_config=self.domain_config,
+                output_dir=output_dir,
+                dataset_type=dataset_type,
+                n_components=n_components,
+                n_steps=n_steps,
+            )

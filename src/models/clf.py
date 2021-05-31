@@ -6,21 +6,65 @@ from torch import nn
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck, model_urls
 from typing import Type, List, Union, Optional, Callable, Any
 
-
-class ResNet18(Module):
-    pass
+from src.utils.torch.general import get_device
 
 
-class ResNet50(Module):
-    pass
+class SimpleConvClassifier(Module):
+    def __init__(
+        self,
+        n_output_nodes: int,
+        input_channels: int = 1,
+        hidden_dims: List[int] = [64, 128, 256, 512, 512],
+        batchnorm: bool = True,
+    ) -> None:
+        super().__init__()
+        self.in_channels = input_channels
+        self.hidden_dims = hidden_dims
+        self.batchnorm = batchnorm
+        self.updated = False
+        self.n_output_nodes = n_output_nodes
+        self.model_base_type = "clf"
 
+        # Build encoder
+        encoder_modules = [
+            nn.Sequential(
+                nn.Conv2d(
+                    in_channels=self.in_channels,
+                    out_channels=self.hidden_dims[0],
+                    kernel_size=4,
+                    stride=2,
+                    padding=1,
+                    bias=False,
+                ),
+                nn.PReLU(),
+            )
+        ]
 
-class ResNet101(Module):
-    pass
+        for i in range(1, len(self.hidden_dims)):
+            encoder_modules.append(
+                nn.Sequential(
+                    nn.Conv2d(
+                        in_channels=self.hidden_dims[i - 1],
+                        out_channels=self.hidden_dims[i],
+                        kernel_size=4,
+                        stride=2,
+                        padding=1,
+                        bias=False,
+                    ),
+                    nn.BatchNorm2d(self.hidden_dims[i]),
+                    nn.PReLU(),
+                )
+            )
+        self.encoder = nn.Sequential(*encoder_modules)
+        self.output_layer = nn.Linear(self.hidden_dims[-1] * 2 * 2, self.n_output_nodes)
+        self.device = get_device()
 
-
-class ResNet152(Module):
-    pass
+    def forward(self, inputs: Tensor) -> dict:
+        latents = self.encoder(inputs.to(self.device))
+        latents = torch.flatten(latents, 1)
+        outputs = self.output_layer(latents)
+        output = {"outputs": outputs, "latents": latents}
+        return output
 
 
 class CustomResNet(ResNet):
@@ -50,8 +94,11 @@ class CustomResNet(ResNet):
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         return super()._make_layer(
-            block=block, planes=planes, blocks=blocks, stride=stride,
-            #dilate=dilate
+            block=block,
+            planes=planes,
+            blocks=blocks,
+            stride=stride,
+            # dilate=dilate
         )
 
     def forward(self, x: Tensor) -> dict:
@@ -90,12 +137,12 @@ def _resnet(
 
 def resnet18(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
     r"""ResNet-18 model from
-        `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
+    `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
-        Args:
-            pretrained (bool): If True, returns a model pre-trained on ImageNet
-            progress (bool): If True, displays a progress bar of the download to stderr
-        """
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        progress (bool): If True, displays a progress bar of the download to stderr
+    """
     return _resnet("resnet18", BasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs)
 
 

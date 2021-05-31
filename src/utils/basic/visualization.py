@@ -280,7 +280,7 @@ def create_ade20k_label_colormap():
     return cmap
 
 
-def plot_image_seq(output_dir, image_seq, prefix:str=""):
+def plot_image_seq(output_dir, image_seq, prefix: str = ""):
     for i in range(len(image_seq)):
         imageio.imwrite(
             os.path.join(output_dir, "{}_walk_recon_{}.jpg".format(prefix, str(i))),

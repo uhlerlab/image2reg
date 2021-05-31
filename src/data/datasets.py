@@ -26,7 +26,7 @@ class LabeledDataset(Dataset):
         self.transform_pipeline = None
 
 
-class TorchNucleiImageDataset(LabeledDataset):
+class TorchImageDataset(LabeledDataset):
     def __init__(
         self,
         image_dir,
@@ -62,9 +62,8 @@ class TorchNucleiImageDataset(LabeledDataset):
             ).fit_resample(idc, labels)
             self.metadata = self.metadata.iloc[idc.flatten(), :]
         logging.debug(
-            "Label counts: %s",
-                dict(Counter(np.array(self.metadata[self.label_col]))),
-            )
+            "Label counts: %s", dict(Counter(np.array(self.metadata[self.label_col]))),
+        )
 
         # Numpy data type problem leads to strings being cutoff when applying along axis
         self.image_locs = np.apply_along_axis(
@@ -84,6 +83,10 @@ class TorchNucleiImageDataset(LabeledDataset):
         self.labels = np.array(self.metadata.loc[:, label_col])
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
+        self.label_weights = (
+            len(self.labels) / np.unique(self.labels, return_counts=True)[1]
+        )
+        self.label_weights /= np.sum(self.label_weights)
         le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
         self.set_transform_pipeline(transform_pipeline)
@@ -110,10 +113,15 @@ class TorchNucleiImageDataset(LabeledDataset):
 
     def process_image(self, image_loc: str) -> Tensor:
         image = imread(image_loc)
+        if (image > 255).any():
+            image = image - image.min()
+            image = image / image.max()
+            image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
         image = Image.fromarray(image)
         if self.pseudo_rgb:
             rgbimg = Image.new("RGB", image.size)
             rgbimg.paste(image)
+            ##rgbimg = torch.stack([image]*3)
             image = rgbimg
         image = self.transform_pipeline(image)
         return image
@@ -129,8 +137,6 @@ class TorchTransformableSubset(Subset):
 
     def set_transform_pipeline(self, transform_pipeline: transforms.Compose) -> None:
         try:
-            #todo change not only on subset but for the whole data set - undesired
-            #self.transform_pipeline = transform_pipeline
             self.dataset.set_transform_pipeline(transform_pipeline)
         except AttributeError as exception:
             logging.error(

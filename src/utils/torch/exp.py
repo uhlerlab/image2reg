@@ -11,7 +11,8 @@ from tqdm import tqdm
 from src.helper.models import DomainConfig, DomainModelConfig
 from src.utils.torch.evaluation import (
     save_latents_from_model,
-    visualize_image_ae_performance, get_confusion_matrices,
+    visualize_image_ae_performance,
+    get_confusion_matrices,
 )
 from src.utils.torch.general import get_device
 
@@ -47,6 +48,12 @@ def model_train_val_test_loop(
     best_total_loss = np.infty
 
     model_base_type = domain_config.domain_model_config.model.model_base_type
+
+    logging.debug(
+        "Start training of model {}".format(
+            str(domain_config.domain_model_config.model)
+        )
+    )
 
     # Iterate over the epochs
     for i in range(num_epochs):
@@ -136,17 +143,17 @@ def model_train_val_test_loop(
                 else:
                     es_counter += 1
 
-        # Save model at checkpoints and visualize performance
+            # Save model at checkpoints and visualize performance
             if i % save_freq == 0:
                 if model_base_type in ["ae", "vae"]:
                     if domain_config.name == "image":
                         visualize_image_ae_performance(
-                        domain_model_config=domain_config.domain_model_config,
-                        epoch=i,
-                        output_dir=checkpoint_dir,
-                        device=device,
-                        phase=phase,
-                    )
+                            domain_model_config=domain_config.domain_model_config,
+                            epoch=i,
+                            output_dir=checkpoint_dir,
+                            device=device,
+                            phase=phase,
+                        )
 
             torch.save(
                 domain_config.domain_model_config.model.state_dict(),
@@ -221,8 +228,9 @@ def model_train_val_test_loop(
                 phase="test",
             )
         elif model_base_type == "clf":
-            confusion_matrices = get_confusion_matrices(domain_config=domain_config,
-                                                        dataset_types=["train", "val", "test"])
+            confusion_matrices = get_confusion_matrices(
+                domain_config=domain_config, dataset_types=["train", "val", "test"]
+            )
             logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
 
         save_latents_from_model(

@@ -1,3 +1,4 @@
+import torch
 from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 from torch.optim import Adam, RMSprop
 from torch.nn import Module
@@ -11,7 +12,15 @@ from torchvision import transforms, models
 
 import logging
 
-from src.models.clf import resnet18, resnet34, resnet50, resnet101, resnet152
+from src.models.clf import (
+    resnet18,
+    resnet34,
+    resnet50,
+    resnet101,
+    resnet152,
+    SimpleConvClassifier,
+)
+from src.utils.torch.general import get_device
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
@@ -37,10 +46,12 @@ def get_domain_configuration(
 ) -> DomainConfig:
 
     model_type = model_dict.pop("type")
-    if model_type == "VanillaConvAE":
+    if model_type.lower() == "vanillaconvae":
         model = VanillaConvAE(**model_dict)
     elif "resnet" in model_type.lower():
         model = initialize_imagenet_model(model_name=model_type, **model_dict)
+    elif model_type.lower() == "simpleconvclf":
+        model = SimpleConvClassifier(**model_dict)
     else:
         raise NotImplementedError('Unknown model type "{}"'.format(model_type))
 
@@ -56,7 +67,11 @@ def get_domain_configuration(
     elif loss_fct_type == "bce_ll":
         loss_function = BCEWithLogitsLoss()
     elif loss_fct_type == "ce":
-        loss_function = CrossEntropyLoss(**loss_fct_dict)
+        if "weight" in loss_fct_dict:
+            weight = torch.FloatTensor(loss_fct_dict["weight"]).to(get_device())
+        else:
+            weight = None
+        loss_function = CrossEntropyLoss(weight)
     else:
         raise NotImplementedError(
             'Unknown loss function type "{}"'.format(loss_fct_type)
@@ -74,6 +89,46 @@ def get_domain_configuration(
     )
 
     return domain_config
+
+
+def get_imagenet_extended_transformations_dict(input_size):
+    data_transforms = {
+        # In the original paper the random permutation were used to make models more general to diverse pictures.
+        "train": transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                # transforms.RandomAffine(degrees=180),
+                transforms.RandomCrop(input_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "val": transforms.Compose(
+            [
+                # transforms.RandomHorizontalFlip(),
+                # transforms.RandomVerticalFlip(),
+                # transforms.RandomAffine(degrees=180),
+                # transforms.RandomCrop(input_size),
+                # transforms.RandomCrop(input_size),
+                transforms.CenterCrop(input_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "test": transforms.Compose(
+            [
+                # transforms.RandomHorizontalFlip(),
+                # transforms.RandomVerticalFlip(),
+                # transforms.RandomAffine(degrees=180),
+                # transforms.RandomCrop(input_size),
+                transforms.CenterCrop(input_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+    }
+    return data_transforms
 
 
 def get_image_net_transformations_dict(input_size):
