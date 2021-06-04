@@ -13,6 +13,7 @@ from src.utils.torch.model import (
     get_image_net_transformations_dict,
     get_image_net_nonrandom_transformations_dict,
     get_imagenet_extended_transformations_dict,
+    get_randomflips_transformation_dict,
 )
 
 
@@ -94,6 +95,9 @@ class TrainModelExperiment(BaseExperiment):
             self.data_transform_pipeline_dict = get_imagenet_extended_transformations_dict(
                 224
             )
+        elif data_transform_pipeline == "randomflips":
+            self.data_transform_pipeline_dict = get_randomflips_transformation_dict()
+
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,

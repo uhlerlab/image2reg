@@ -91,6 +91,28 @@ def get_domain_configuration(
     return domain_config
 
 
+def get_randomflips_transformation_dict():
+    data_transforms = {
+        "train": transforms.Compose(
+            [
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.ToTensor(),
+            ]
+        ),
+        "val": transforms.Compose(
+            [
+                transforms.ToTensor(),
+            ]
+        ),
+        "test": transforms.Compose(
+            [
+                transforms.ToTensor(),
+            ]
+        ),
+    }
+    return data_transforms
+
 def get_imagenet_extended_transformations_dict(input_size):
     data_transforms = {
         # In the original paper the random permutation were used to make models more general to diverse pictures.
@@ -99,7 +121,9 @@ def get_imagenet_extended_transformations_dict(input_size):
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 # transforms.RandomAffine(degrees=180),
-                transforms.RandomCrop(input_size),
+                #transforms.Resize(input_size),
+                #transforms.RandomCrop(input_size),
+                transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -110,8 +134,8 @@ def get_imagenet_extended_transformations_dict(input_size):
                 # transforms.RandomVerticalFlip(),
                 # transforms.RandomAffine(degrees=180),
                 # transforms.RandomCrop(input_size),
-                # transforms.RandomCrop(input_size),
-                transforms.CenterCrop(input_size),
+                #transforms.RandomCrop(input_size),
+                transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -121,8 +145,8 @@ def get_imagenet_extended_transformations_dict(input_size):
                 # transforms.RandomHorizontalFlip(),
                 # transforms.RandomVerticalFlip(),
                 # transforms.RandomAffine(degrees=180),
-                # transforms.RandomCrop(input_size),
-                transforms.CenterCrop(input_size),
+                #transforms.RandomCrop(input_size),
+                transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]

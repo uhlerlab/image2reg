@@ -9,12 +9,12 @@ run_params:
                                      'E2F1', 'ELK1', 'ERG', 'FOXO1', 'GLI1', 'HIF1A', 'JUN', 'NFKB1', 'NFKB2', 'RBPJ',
                                      'REL', 'RELA', 'RELB', 'SMAD3', 'SMAD4', 'SMAD5', 'SREBF1', 'STAT1', 'STAT3',
                                      'TCF4', 'TP53', 'XBP1'],
-                      'n_control_samples': 20000,
+                      'n_control_samples': 12000,
                       'pseudo_rgb':False}
 
-  model_config: {'model_config':{'type':'SimpleConvClf', 'hidden_dims': [64, 128, 256, 512, 512],
+  model_config: {'model_config':{'type':'SimpleConvClf', 'hidden_dims': [32, 64, 128, 256, 256],
                                  'n_output_nodes':32,},
-                       'optimizer_config':{'type':'adam','lr':0.00001},
+                       'optimizer_config':{'type':'adam','lr':0.0001},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'image'
@@ -28,6 +28,8 @@ run_params:
 pipeline:
   - method: initialize_image_data_set
   - method: initialize_data_loader_dict
+    params:
+      data_transform_pipeline: 'randomflips'
   - method: initialize_domain_config
   - method: train_models
   - method: visualize_loss_evolution
