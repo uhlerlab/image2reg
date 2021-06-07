@@ -6,7 +6,6 @@ from typing import List, Tuple
 import cv2
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import LabelEncoder
 from tifffile import tifffile
 from tqdm import tqdm
 
@@ -174,10 +173,13 @@ class ImageDatasetPreprocessor:
 
         nuclei_metadata = []
         nuclei_counts = []
+        nuclei_counts_rep = []
         image_metadata = self.metadata.copy()
 
         nuclei_widths = []
         nuclei_heights = []
+        nuclei_minor_axis_lengths = []
+        nuclei_major_axis_lengths = []
 
         metadata_cols = list(self.metadata.columns)
 
@@ -235,6 +237,9 @@ class ImageDatasetPreprocessor:
                     nuclei_widths.append(width)
                     nuclei_heights.append(height)
 
+                    nuclei_minor_axis_lengths.append(region.minor_axis_length)
+                    nuclei_major_axis_lengths.append(region.major_axis_length)
+
                     output_file_name = os.path.join(
                         plate_output_dir,
                         fname_start + "_{}".format(region.label) + fname_ending,
@@ -256,6 +261,7 @@ class ImageDatasetPreprocessor:
 
                     nuclei_count += 1
             nuclei_counts.append(nuclei_count)
+            nuclei_counts_rep.extend([nuclei_count] * nuclei_count)
 
         nuclei_metadata = pd.DataFrame(np.array(nuclei_metadata), columns=metadata_cols)
         selected_cols = [
@@ -301,10 +307,21 @@ class ImageDatasetPreprocessor:
         nuclei_widths = np.array(nuclei_widths)
         nuclei_heights = np.array(nuclei_heights)
 
+        nuclei_minor_axis_lengths = np.array(nuclei_minor_axis_lengths)
+        nuclei_major_axis_lengths = np.array(nuclei_major_axis_lengths)
+
         nuclei_metadata = nuclei_metadata.loc[:, selected_cols]
         nuclei_metadata.columns = new_selected_cols
         nuclei_metadata["bb_width"] = nuclei_widths
         nuclei_metadata["bb_height"] = nuclei_heights
+
+        nuclei_metadata["minor_axis_length"] = nuclei_minor_axis_lengths
+        nuclei_metadata["major_axis_length"] = nuclei_major_axis_lengths
+        nuclei_metadata["aspect_ratio"] = (
+            nuclei_minor_axis_lengths / nuclei_major_axis_lengths
+        )
+
+        nuclei_metadata["nuclei_count_image"] = np.array(nuclei_counts_rep)
 
         max_width, max_height = nuclei_widths.max(), nuclei_heights.max()
 
@@ -380,17 +397,6 @@ class ImageDatasetPreprocessor:
             self.output_dir, "padded_nuclei_metadata.csv"
         )
         nuclei_metadata.to_csv(self.nuclei_metadata_file)
-
-    def add_gene_label_column_to_metadata(
-        self, nuclei_metadata_file: str = None, label_col: str = "gene_symbol"
-    ):
-        if nuclei_metadata_file is None:
-            nuclei_metadata_file = self.nuclei_metadata_file
-        nuclei_metadata = pd.read_csv(nuclei_metadata_file, index_col=0)
-        nuclei_metadata["gene_label"] = LabelEncoder().fit_transform(
-            np.array(nuclei_metadata.loc[:, label_col])
-        )
-        nuclei_metadata.to_csv(nuclei_metadata_file)
 
     def resize_and_save_images(self, target_size: Tuple[int], input_dir: str = None):
         if input_dir is None:
