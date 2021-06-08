@@ -1,0 +1,46 @@
+output_dir: "data/experiments/image_preprocessing"
+module: "src.preprocessing.image_preprocessing"
+class: "ImageDatasetPreprocessor"
+
+run_params:
+  image_input_dir: "data/images/raw/"
+  metadata_file: "data/images/metadata/metadata_images.csv"
+  raw_image_col_name: "Image_FileName_OrigHoechst"
+  illum_image_col_name: "Image_FileName_IllumHoechst"
+  plate_col_name: "Image_Metadata_Plate"
+  well_col_name: "Image_Metadata_Well"
+
+pipeline:
+  - method: add_image_illumination_col
+    params:
+      posfix: "_illum_corrected"
+  - method: filter_out_qc_flagged_images
+    params:
+      blurry_col: "Image_Metadata_QCFlag_isBlurry"
+      saturated_col: "Image_Metadata_QCFlag_isSaturated"
+  - method: remove_outlier_images
+    params:
+      outlier_plates: [41749]
+      outlier_plate_wells: [[41754, "b01"], [41754, "c01"],
+                            [41754, "d01"], [41754, "e01"],
+                            [41754, "f01"], [41757, "e17"]]
+      outlier_wells: []
+  - method: save_filtered_images
+#
+  - method: get_nuclear_crops
+    params:
+      label_image_input_dir: "data/experiments/image_preprocessing/unet_segmentation"
+      nuclei_count_col_name: "Image_Count_Nuclei"
+      min_area: 400
+      max_area: 4000
+      max_bbarea: 4000
+      max_eccentricity: 1.0
+      min_solidity: 0.1
+      min_aspect_ratio: 0.1
+
+  - method: save_padded_images
+    params:
+      target_size: [64,64]
+
+
+

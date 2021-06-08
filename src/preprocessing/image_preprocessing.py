@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 from shutil import copyfile
 from typing import List, Tuple
@@ -6,6 +7,7 @@ from typing import List, Tuple
 import cv2
 import pandas as pd
 import numpy as np
+from sklearn.mixture import GaussianMixture
 from tifffile import tifffile
 from tqdm import tqdm
 
@@ -174,6 +176,7 @@ class ImageDatasetPreprocessor:
         nuclei_metadata = []
         nuclei_counts = []
         nuclei_counts_rep = []
+        slide_image_names = []
         image_metadata = self.metadata.copy()
 
         nuclei_widths = []
@@ -257,6 +260,7 @@ class ImageDatasetPreprocessor:
                     nucleus_metadata[
                         metadata_cols.index(self.illum_image_col_name)
                     ] = os.path.split(output_file_name)[1]
+                    slide_image_names.append(fname_start + fname_ending)
                     nuclei_metadata.append(nucleus_metadata)
 
                     nuclei_count += 1
@@ -320,8 +324,27 @@ class ImageDatasetPreprocessor:
         nuclei_metadata["aspect_ratio"] = (
             nuclei_minor_axis_lengths / nuclei_major_axis_lengths
         )
+        gmm_ar = GaussianMixture(n_components=2, random_state=1234)
+        nuclei_metadata["aspect_ratio_cluster"] = gmm_ar.fit_predict(
+            np.array(nuclei_metadata["aspect_ratio"]).reshape(-1, 1)
+        )
 
         nuclei_metadata["nuclei_count_image"] = np.array(nuclei_counts_rep)
+        nuclei_metadata["slide_image_name"] = np.array(slide_image_names)
+        nuclei_metadata["aspect_ratio_cluster_ratio"] = np.repeat(
+            np.nan, len(nuclei_metadata)
+        )
+        slide_image_names = list(np.unique(slide_image_names))
+        for slide_image_name in tqdm(slide_image_names, desc="Add aspect ratio cluster information"):
+            nuclei_metadata.loc[
+                nuclei_metadata["slide_image_name"] == slide_image_name,
+                "aspect_ratio_cluster_ratio",
+            ] = np.mean(
+                np.array(nuclei_metadata.loc[
+                    nuclei_metadata["slide_image_name"] == slide_image_name,
+                    "aspect_ratio_cluster",
+                ])
+            )
 
         max_width, max_height = nuclei_widths.max(), nuclei_heights.max()
 
@@ -339,9 +362,9 @@ class ImageDatasetPreprocessor:
         self.nuclei_dir = output_dir
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
-        self.nuclei_metadata_file = os.path.join(self.output_dir, "nuclei_metadata.csv")
+        self.nuclei_metadata_file = os.path.join(self.output_dir, "processed_nuclei_metadata.csv")
         self.processed_image_metadata_file = os.path.join(
-            self.output_dir, "image_metadata.csv"
+            self.output_dir, "processed_image_metadata.csv"
         )
 
         self.nuclei_metadata.to_csv(self.nuclei_metadata_file)
@@ -349,11 +372,16 @@ class ImageDatasetPreprocessor:
 
     def save_padded_images(
         self,
-        nuclei_metadata_file: str,
+        nuclei_metadata_file: str = None,
         target_size: Tuple[int] = None,
         input_dir: str = None,
         image_file_col: str = "image_file",
     ):
+
+        if nuclei_metadata_file is None and self.nuclei_metadata_file is not None:
+            nuclei_metadata_file = self.nuclei_metadata_file
+        else:
+            raise RuntimeError("No nuclei metadata file given.")
 
         nuclei_metadata = pd.read_csv(nuclei_metadata_file, index_col=0)
         if input_dir is None:

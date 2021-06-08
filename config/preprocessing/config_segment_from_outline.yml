@@ -18,17 +18,5 @@ pipeline:
       min_area: 100
       fill_holes: 16
 
-#  - method: save_padded_images
-#    params:
-#      input_dir: "data/experiments/preprocessing_0518/segmented_nuclei"
-#      target_size: [92,92]
-#  - method: add_gene_label_column_to_metadata
-#    params:
-#      nuclei_metadata_file: "data/images/nuclei_metadata.csv"
-#  - method: resize_and_save_images
-#    params:
-#      input_dir: "data/images/padded_nuclei"
-#      target_size: [64,64]
-
 
 

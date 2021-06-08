@@ -16,11 +16,6 @@ pipeline:
       nuclei_metadata_file: "data/experiments/image_preprocessing/cropped_nuclei_unet_seg/nuclei_metadata.csv"
       input_dir: "data/experiments/image_preprocessing/cropped_nuclei_unet_seg/nuclei_images"
       target_size: [64,64]
-  - method: add_gene_label_column_to_metadata
-#  - method: resize_and_save_images
-#    params:
-#      input_dir: "data/images/padded_nuclei"
-#      target_size: [64,64]
 
 
 
