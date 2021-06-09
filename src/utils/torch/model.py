@@ -115,6 +115,7 @@ def get_imagenet_extended_transformations_dict(input_size):
             [
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
+                transforms.RandomRotation(90),
                 transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -220,6 +221,7 @@ def initialize_imagenet_model(
     pretrained: bool = True,
     fix_first_k_layers=None,
     n_extra_features:int = 0,
+    dropout_rate:float = 0,
 ):
     r""" Method to get an initialized a Imagenet CNN classifier.
 
@@ -266,6 +268,7 @@ def initialize_imagenet_model(
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
         model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
+        model_ft.dropout = nn.Dropout(dropout_rate)
         input_size = 224
 
     elif model_name == "resnet34":
@@ -347,7 +350,7 @@ def initialize_imagenet_model(
 
 
 def set_parameter_requires_grad(
-    model, fix_feature_extractor: bool = False, fix_first_k_layers=None
+    model, fix_feature_extractor: bool = False, fix_first_k_layers:int=None
 ):
     r""" Method to set prevent the update of certain parameters in a given classifier.
 

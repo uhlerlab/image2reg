@@ -23,6 +23,7 @@ def get_latent_representations_for_model(
     dataset: Dataset,
     data_key: str = "seq_data",
     label_key: str = "label",
+    extra_feature_key: str = None,
     index_key: str = "id",
     device: str = "cuda:0",
 ) -> dict:
@@ -43,7 +44,10 @@ def get_latent_representations_for_model(
         if index_key in sample:
             index.extend(sample[index_key])
 
-        output = model(input)
+        if extra_feature_key is not None:
+            extra_features = sample[extra_feature_key].float().to(device)
+
+        output = model(input, extra_features)
         latents = output["latents"]
         latent_representations.extend(latents.detach().cpu().numpy())
 
@@ -66,7 +70,7 @@ def save_latents_to_csv_gz(
     dataset_type: str = "val",
     device: str = "cuda:0",
 ):
-    model = domain_config.domain_model_config.classifier
+    model = domain_config.domain_model_config.model
     try:
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
@@ -80,6 +84,7 @@ def save_latents_to_csv_gz(
         save_path=save_path,
         data_key=domain_config.data_key,
         label_key=domain_config.label_key,
+        extra_feature_key=domain_config.extra_feature_key,
         device=device,
     )
 
@@ -90,6 +95,7 @@ def save_latents_and_labels_to_csv_gz(
     save_path: str,
     data_key: str = "image",
     label_key: str = "label",
+    extra_feature_key: str = None,
     device: str = "cuda:0",
 ):
     data = get_latent_representations_for_model(
@@ -97,6 +103,7 @@ def save_latents_and_labels_to_csv_gz(
         dataset=dataset,
         data_key=data_key,
         label_key=label_key,
+        extra_feature_key=extra_feature_key,
         device=device,
     )
 
@@ -174,7 +181,7 @@ def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["
 
 def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"):
     device = get_device()
-    model = domain_config.domain_model_config.classifier.to(device).eval()
+    model = domain_config.domain_model_config.model.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]
     all_labels = []
     all_preds = []
@@ -182,7 +189,9 @@ def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"
     for i, sample in enumerate(dataloader):
         inputs = sample[domain_config.data_key].to(device)
         labels = sample[domain_config.label_key]
-        outputs = model(inputs)["outputs"]
+        if domain_config.extra_feature_key is not None:
+            extra_features = sample[domain_config.extra_feature_key].float().to(device)
+        outputs = model(inputs, extra_features)["outputs"]
         _, preds = torch.max(outputs, 1)
 
         all_labels.extend(list(labels.detach().cpu().numpy()))
@@ -201,7 +210,7 @@ def visualize_latent_space_pca_walk(
 
     device = get_device()
     dataset = domain_config.data_loader_dict[dataset_type].dataset
-    model = domain_config.domain_model_config.classifier.to(device)
+    model = domain_config.domain_model_config.model.to(device)
     model.eval()
     data_key = domain_config.data_key
     label_key = domain_config.label_key
