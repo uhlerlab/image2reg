@@ -335,15 +335,19 @@ class ImageDatasetPreprocessor:
             np.nan, len(nuclei_metadata)
         )
         slide_image_names = list(np.unique(slide_image_names))
-        for slide_image_name in tqdm(slide_image_names, desc="Add aspect ratio cluster information"):
+        for slide_image_name in tqdm(
+            slide_image_names, desc="Add aspect ratio cluster information"
+        ):
             nuclei_metadata.loc[
                 nuclei_metadata["slide_image_name"] == slide_image_name,
                 "aspect_ratio_cluster_ratio",
             ] = np.mean(
-                np.array(nuclei_metadata.loc[
-                    nuclei_metadata["slide_image_name"] == slide_image_name,
-                    "aspect_ratio_cluster",
-                ])
+                np.array(
+                    nuclei_metadata.loc[
+                        nuclei_metadata["slide_image_name"] == slide_image_name,
+                        "aspect_ratio_cluster",
+                    ]
+                )
             )
 
         max_width, max_height = nuclei_widths.max(), nuclei_heights.max()
@@ -362,7 +366,9 @@ class ImageDatasetPreprocessor:
         self.nuclei_dir = output_dir
         self.nuclei_metadata = nuclei_metadata
         self.processed_image_metadata = image_metadata
-        self.nuclei_metadata_file = os.path.join(self.output_dir, "processed_nuclei_metadata.csv")
+        self.nuclei_metadata_file = os.path.join(
+            self.output_dir, "processed_nuclei_metadata.csv"
+        )
         self.processed_image_metadata_file = os.path.join(
             self.output_dir, "processed_image_metadata.csv"
         )

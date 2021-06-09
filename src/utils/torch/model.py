@@ -42,6 +42,7 @@ def get_domain_configuration(
     data_loader_dict: dict,
     data_key: str,
     label_key: str,
+    extra_feature_key:str=None,
     train_model: bool = True,
 ) -> DomainConfig:
 
@@ -53,7 +54,7 @@ def get_domain_configuration(
     elif model_type.lower() == "simpleconvclf":
         model = SimpleConvClassifier(**model_dict)
     else:
-        raise NotImplementedError('Unknown model type "{}"'.format(model_type))
+        raise NotImplementedError('Unknown classifier type "{}"'.format(model_type))
 
     optimizer = get_optimizer_for_model(optimizer_dict=optimizer_dict, model=model)
 
@@ -85,6 +86,7 @@ def get_domain_configuration(
         data_loader_dict=data_loader_dict,
         data_key=data_key,
         label_key=label_key,
+        extra_feature_key=extra_feature_key,
         train_model=train_model,
     )
 
@@ -100,18 +102,11 @@ def get_randomflips_transformation_dict():
                 transforms.ToTensor(),
             ]
         ),
-        "val": transforms.Compose(
-            [
-                transforms.ToTensor(),
-            ]
-        ),
-        "test": transforms.Compose(
-            [
-                transforms.ToTensor(),
-            ]
-        ),
+        "val": transforms.Compose([transforms.ToTensor(),]),
+        "test": transforms.Compose([transforms.ToTensor(),]),
     }
     return data_transforms
+
 
 def get_imagenet_extended_transformations_dict(input_size):
     data_transforms = {
@@ -120,9 +115,6 @@ def get_imagenet_extended_transformations_dict(input_size):
             [
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                # transforms.RandomAffine(degrees=180),
-                #transforms.Resize(input_size),
-                #transforms.RandomCrop(input_size),
                 transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -130,11 +122,6 @@ def get_imagenet_extended_transformations_dict(input_size):
         ),
         "val": transforms.Compose(
             [
-                # transforms.RandomHorizontalFlip(),
-                # transforms.RandomVerticalFlip(),
-                # transforms.RandomAffine(degrees=180),
-                # transforms.RandomCrop(input_size),
-                #transforms.RandomCrop(input_size),
                 transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -142,10 +129,6 @@ def get_imagenet_extended_transformations_dict(input_size):
         ),
         "test": transforms.Compose(
             [
-                # transforms.RandomHorizontalFlip(),
-                # transforms.RandomVerticalFlip(),
-                # transforms.RandomAffine(degrees=180),
-                #transforms.RandomCrop(input_size),
                 transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -167,7 +150,7 @@ def get_image_net_transformations_dict(input_size):
     Returns
     -------
     data_transforms : dict
-        A dictionary with the transformation pipelines for the training, validation and testing phase of the model
+        A dictionary with the transformation pipelines for the training, validation and testing phase of the classifier
         training procedure as the values to the respective keys ``train``, ``val`` and ``test``.
 
     """
@@ -214,7 +197,7 @@ def get_image_net_nonrandom_transformations_dict(input_size):
     Returns
     -------
     data_transforms : dict
-        A dictionary with the transformation pipelines for the training, validation and testing phase of the model
+        A dictionary with the transformation pipelines for the training, validation and testing phase of the classifier
         training procedure as the values to the respective keys ``train``, ``val`` and ``test``.
 
     """
@@ -222,7 +205,7 @@ def get_image_net_nonrandom_transformations_dict(input_size):
     transform_dict["train"] = transforms.Compose(
         [
             transforms.Resize(input_size),
-            transforms.CenterCrop(input_size),
+            # transforms.CenterCrop(input_size),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
@@ -236,42 +219,43 @@ def initialize_imagenet_model(
     fix_feature_extractor: bool = False,
     pretrained: bool = True,
     fix_first_k_layers=None,
+    n_extra_features:int = 0,
 ):
-    r""" Method to get an initialized a Imagenet CNN model.
+    r""" Method to get an initialized a Imagenet CNN classifier.
 
     Parameters
     ----------
     model_name : str
-        Identifier of the model that is supposed to be used. Supported options include: ``"alexnet"``, ``"resnet18"``,
+        Identifier of the classifier that is supposed to be used. Supported options include: ``"alexnet"``, ``"resnet18"``,
         ``"resnet34"``, ``"resnet50"``, ``"resnet101"``, ``"resnet152"``, ``"vgg"``, ``"densenet"``, ``"inception"``,
         ``"squeezenet"``.
 
     n_output_nodes : int
-        Number of output neurons in the final layer of the model.
+        Number of output neurons in the final layer of the classifier.
 
     fix_feature_extractor : bool
-        Indicator, if set to True the model is completely frozen, i.e. none of the parameters will be optimized
-        during the training of the model.
+        Indicator, if set to True the classifier is completely frozen, i.e. none of the parameters will be optimized
+        during the training of the classifier.
 
     pretrained : bool
-        Indicator, if the weights of the model are supposed to be initialized with the weights obtained from training
+        Indicator, if the weights of the classifier are supposed to be initialized with the weights obtained from training
         the network on the Imagenet dataset
 
     fix_first_k_layers : int
-        The number of layers of the model that are frozen, i.e. whose parameters will not be optimized during the
-        training of the model.
+        The number of layers of the classifier that are frozen, i.e. whose parameters will not be optimized during the
+        training of the classifier.
 
     Returns
     -------
     model_ft : :py:class:`~torch.nn.Module`
-        The initialized CNN model.
+        The initialized CNN classifier.
 
     input_size : int
         The dimensions of the input the model_ft expects.
 
     """
     # Initialize these variables which will be set in this if statement. Each of these
-    # variables is model specific.
+    # variables is classifier specific.
     model_ft = None
     input_size = 0
 
@@ -281,49 +265,49 @@ def initialize_imagenet_model(
         model_ft = resnet18(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet34":
         model_ft = resnet34(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet50":
         model_ft = resnet50(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet101":
         model_ft = resnet101(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "resnet152":
         model_ft = resnet152(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "alexnet":
         model_ft = models.alexnet(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier[6].in_features
-        model_ft.classifier[6] = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.classifier[6] = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "vgg":
         model_ft = models.vgg11_bn(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier[6].in_features
-        model_ft.classifier[6] = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.classifier[6] = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "squeezenet":
@@ -340,7 +324,7 @@ def initialize_imagenet_model(
         model_ft = models.densenet121(pretrained=pretrained)
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         num_ftrs = model_ft.classifier.in_features
-        model_ft.classifier = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.classifier = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 224
 
     elif model_name == "inception":
@@ -348,15 +332,15 @@ def initialize_imagenet_model(
         set_parameter_requires_grad(model_ft, fix_feature_extractor, fix_first_k_layers)
         # Handle the auxiliary net
         num_ftrs = model_ft.AuxLogits.fc.in_features
-        model_ft.AuxLogits.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.AuxLogits.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         # Handle the primary net
         num_ftrs = model_ft.fc.in_features
-        model_ft.fc = nn.Linear(num_ftrs, n_output_nodes)
+        model_ft.fc = nn.Linear(num_ftrs + n_extra_features, n_output_nodes)
         input_size = 299
 
     else:
         logging.debug("---" * 20)
-        logging.error("Invalid model name, exiting...")
+        logging.error("Invalid classifier name, exiting...")
         exit()
 
     return model_ft
@@ -365,20 +349,20 @@ def initialize_imagenet_model(
 def set_parameter_requires_grad(
     model, fix_feature_extractor: bool = False, fix_first_k_layers=None
 ):
-    r""" Method to set prevent the update of certain parameters in a given model.
+    r""" Method to set prevent the update of certain parameters in a given classifier.
 
     Parameters
     ----------
     model : :py:class:`~torch.nn.Module`
-        The model of question.
+        The classifier of question.
 
     fix_feature_extractor : bool
-        An indicator, if set to True the model is completely frozen, i.e. none of the parameters will be optimized
-        during the training of the model.
+        An indicator, if set to True the classifier is completely frozen, i.e. none of the parameters will be optimized
+        during the training of the classifier.
 
     fix_first_k_layers : int
-        The number of layers of the model that are frozen, i.e. whose parameters will not be optimized during the
-        training of the model.
+        The number of layers of the classifier that are frozen, i.e. whose parameters will not be optimized during the
+        training of the classifier.
 
     """
     if fix_feature_extractor:

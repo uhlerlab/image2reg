@@ -11,6 +11,7 @@ class DomainModelConfig(object):
         loss_function: Module,
         inputs: Tensor = None,
         labels: Tensor = None,
+        extra_features: Tensor = None,
         trainable: bool = True,
     ):
         self.model = model
@@ -18,6 +19,7 @@ class DomainModelConfig(object):
         self.loss_function = loss_function
         self.inputs = inputs
         self.labels = labels
+        self.extra_features = extra_features
         self.trainable = trainable
 
         self.initial_weights = self.model.state_dict()
@@ -37,6 +39,7 @@ class DomainConfig(object):
         data_key: str,
         label_key: str,
         train_model: bool = True,
+        extra_feature_key: str = None,
     ):
         self.name = name
         self.domain_model_config = DomainModelConfig(
@@ -48,3 +51,12 @@ class DomainConfig(object):
         self.data_loader_dict = data_loader_dict
         self.data_key = data_key
         self.label_key = label_key
+        self.extra_feature_key = extra_feature_key
+
+
+class LatentClassifierConfig(object):
+    def __init__(self, classifier: Module, loss_function: Module, optimizer: Optimizer):
+        super().__init__()
+        self.classifier = classifier
+        self.loss_function = loss_function
+        self.optimizer = optimizer

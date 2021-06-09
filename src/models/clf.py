@@ -1,3 +1,5 @@
+from abc import ABC
+
 import torch
 from torch.functional import Tensor
 from torch.hub import load_state_dict_from_url
@@ -14,8 +16,9 @@ class SimpleConvClassifier(Module):
         self,
         n_output_nodes: int,
         input_channels: int = 1,
-        hidden_dims: List[int] = [64, 128, 256, 512, 512],
+        hidden_dims: List[int] = [32, 64, 128, 256, 256],
         batchnorm: bool = True,
+        dropout_rate:float = 0,
     ) -> None:
         super().__init__()
         self.in_channels = input_channels
@@ -24,6 +27,7 @@ class SimpleConvClassifier(Module):
         self.updated = False
         self.n_output_nodes = n_output_nodes
         self.model_base_type = "clf"
+        self.dropout_rate = dropout_rate
 
         # Build encoder
         encoder_modules = [
@@ -56,13 +60,17 @@ class SimpleConvClassifier(Module):
                 )
             )
         self.encoder = nn.Sequential(*encoder_modules)
-        self.output_layer = nn.Linear(self.hidden_dims[-1] * 2 * 2, self.n_output_nodes)
+        self.dropout = nn.Dropout(p=self.dropout_rate)
+        self.output_layer = nn.Linear(self.hidden_dims[-1]*2*2, self.n_output_nodes)
         self.device = get_device()
 
-    def forward(self, inputs: Tensor) -> dict:
+    def forward(self, inputs: Tensor, extra_features: Tensor = None) -> dict:
         latents = self.encoder(inputs.to(self.device))
         latents = torch.flatten(latents, 1)
-        outputs = self.output_layer(latents)
+        x = self.dropout(latents)
+        if extra_features is not None:
+            x = torch.cat([x, extra_features], dim=1)
+        outputs = self.output_layer(x)
         output = {"outputs": outputs, "latents": latents}
         return output
 
@@ -74,22 +82,16 @@ class CustomResNet(ResNet):
         layers: List[int],
         num_classes: int = 1000,
         zero_init_residual: bool = False,
-        groups: int = 1,
-        width_per_group: int = 64,
-        replace_stride_with_dilation: Optional[List[bool]] = None,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
+        dropout_rate:float=0,
     ) -> None:
         super().__init__(
             block=block,
             layers=layers,
             num_classes=num_classes,
             zero_init_residual=zero_init_residual,
-            # groups=groups,
-            # width_per_group=width_per_group,
-            # replace_stride_with_dilation=replace_stride_with_dilation,
-            # norm_layer=norm_layer,
         )
-
+        self.dropout_rate = dropout_rate
+        self.dropout = nn.Dropout(self.dropout_rate)
         self.model_base_type = "clf"
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
@@ -98,10 +100,9 @@ class CustomResNet(ResNet):
             planes=planes,
             blocks=blocks,
             stride=stride,
-            # dilate=dilate
         )
 
-    def forward(self, x: Tensor) -> dict:
+    def forward(self, x: Tensor, extra_features:Tensor = None) -> dict:
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -114,7 +115,10 @@ class CustomResNet(ResNet):
 
         x = self.avgpool(x)
         latents = torch.flatten(x, 1)
-        outputs = self.fc(latents)
+        x = self.dropout(latents)
+        if extra_features is not None:
+            x = torch.cat([x, extra_features.view(latents.size(0), -1)], dim=1)
+        outputs = self.fc(x)
 
         output = {"outputs": outputs, "latents": latents}
         return output
@@ -136,44 +140,44 @@ def _resnet(
 
 
 def resnet18(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
-    r"""ResNet-18 model from
+    r"""ResNet-18 classifier from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a classifier pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _resnet("resnet18", BasicBlock, [2, 2, 2, 2], pretrained, progress, **kwargs)
 
 
 def resnet34(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
-    r"""ResNet-34 model from
+    r"""ResNet-34 classifier from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a classifier pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _resnet("resnet34", BasicBlock, [3, 4, 6, 3], pretrained, progress, **kwargs)
 
 
 def resnet50(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
-    r"""ResNet-50 model from
+    r"""ResNet-50 classifier from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a classifier pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _resnet("resnet50", Bottleneck, [3, 4, 6, 3], pretrained, progress, **kwargs)
 
 
 def resnet101(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
-    r"""ResNet-101 model from
+    r"""ResNet-101 classifier from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a classifier pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _resnet(
@@ -182,13 +186,57 @@ def resnet101(pretrained: bool = False, progress: bool = True, **kwargs: Any) ->
 
 
 def resnet152(pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
-    r"""ResNet-152 model from
+    r"""ResNet-152 classifier from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on ImageNet
+        pretrained (bool): If True, returns a classifier pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
     return _resnet(
         "resnet152", Bottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
     )
+
+
+class SimpleDiscriminator(nn.Module, ABC):
+    def __init__(
+        self,
+        latent_dim: int = 128,
+        hidden_dims: List = [1024, 1024, 1024],
+        n_classes: int = 2,
+        trainable: bool = True,
+        extra_feature_dim :int= 0,
+    ):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.hidden_dims = hidden_dims
+        self.n_classes = n_classes
+        self.trainable = trainable
+        self.extra_feature_dim = extra_feature_dim
+
+        if hidden_dims is not None:
+            model_modules = [
+                nn.Sequential(
+                    nn.Linear(self.latent_dim + self.extra_feature_dim, hidden_dims[0]),
+                    nn.ReLU(),
+                    nn.BatchNorm1d(self.hidden_dims[0]),
+                )
+            ]
+            for i in range(0, len(self.hidden_dims) - 1):
+                model_modules.append(
+                    nn.Sequential(
+                        nn.Linear(self.hidden_dims[i], self.hidden_dims[i + 1]),
+                        nn.ReLU(),
+                        nn.BatchNorm1d(self.hidden_dims[i + 1]),
+                    )
+                )
+            model_modules.append(nn.Linear(self.hidden_dims[-1], self.n_classes))
+            self.feature_extractor = nn.Sequential(*model_modules)
+        else:
+            self.model = nn.Linear(self.latent_dim, self.n_classes)
+
+    def forward(self, input: Tensor, extra_features: Tensor = None) -> Tensor:
+        if extra_features is not None:
+            input = torch.cat([input, extra_features], dim=1)
+        output = self.model(input)
+        return output

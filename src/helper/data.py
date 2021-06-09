@@ -122,7 +122,7 @@ class DataHandlerCV(BaseDataHandler):
         self.train_val_split = train_val_split
 
         # The training dataset will be all folds except the one left out for validation split into train and validation
-        # portion to trigger e.g. early stopping and select the best performing model
+        # portion to trigger e.g. early stopping and select the best performing classifier
         # The test dataset will be the hold-out fold.
         self.train_val_test_datasets = None
         self.data_loader_dicts = None

@@ -1,5 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Any, List
+
+import torch
 from torch import nn, Tensor
 
 from src.utils.torch.general import get_device
@@ -124,18 +126,13 @@ class VanillaConvAE(BaseAE, ABC):
 
         self.decoder = nn.Sequential(*decoder_modules)
 
-    def encode(self, input: Tensor) -> Tensor:
+    def encode(self, input: Tensor, extra_features: Tensor = None) -> Tensor:
         features = self.encoder(input=input)
         features = features.view(features.size(0), -1)
         latents = features
-        # latents = self.latent_mapper(input=features)
         return latents
 
     def decode(self, input: Tensor) -> Any:
-        # latent_features = self.inv_latent_mapper(input)
-        # latent_features = latent_features.view(
-        #    latent_features.size(0), self.hidden_dims[-1], 3, 3
-        # )
         latent_features = input.view(input.size(0), self.hidden_dims[-1], 2, 2)
         output = self.decoder(input=latent_features)
         return output

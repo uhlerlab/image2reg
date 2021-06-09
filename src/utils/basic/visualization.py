@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy import ndarray
 from matplotlib.colors import LinearSegmentedColormap
+from sklearn.metrics import ConfusionMatrixDisplay
 
 
 def plot_train_val_hist(
@@ -286,3 +287,11 @@ def plot_image_seq(output_dir, image_seq, prefix: str = ""):
             os.path.join(output_dir, "{}_walk_recon_{}.jpg".format(prefix, str(i))),
             np.uint8(np.squeeze(image_seq[i] * 255)),
         )
+
+
+def plot_confusion_matrices(confusion_matrices_dict: dict, output_dir: str):
+    for k, cmatrix in confusion_matrices_dict.items():
+        cmd = ConfusionMatrixDisplay(cmatrix)
+        cmd.plot()
+        plt.savefig(os.path.join(output_dir, "confusion_matrix_{}.png".format(str(k))))
+        plt.close()

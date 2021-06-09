@@ -34,6 +34,8 @@ class TorchImageDataset(LabeledDataset):
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
+        nuclei_density_col: str = "nuclei_count_image",
+        elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
         target_list: List = None,
         n_control_samples: int = None,
         transform_pipeline: transforms.Compose = None,
@@ -47,12 +49,10 @@ class TorchImageDataset(LabeledDataset):
         self.label_col = label_col
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
         if target_list is not None:
-            if "EMPTY" not in target_list:
-                target_list += ["EMPTY"]
             self.metadata = self.metadata.loc[
                 self.metadata[label_col].isin(target_list), :
             ]
-        if n_control_samples is not None:
+        if n_control_samples is not None and "EMPTY" in target_list:
             idc = np.array(list(range(len(self.metadata)))).reshape(-1, 1)
             labels = self.metadata[self.label_col]
             target_n_samples = dict(Counter(labels))
@@ -61,6 +61,7 @@ class TorchImageDataset(LabeledDataset):
                 sampling_strategy=target_n_samples, random_state=1234
             ).fit_resample(idc, labels)
             self.metadata = self.metadata.iloc[idc.flatten(), :]
+
         logging.debug(
             "Label counts: %s", dict(Counter(np.array(self.metadata[self.label_col]))),
         )
@@ -83,6 +84,10 @@ class TorchImageDataset(LabeledDataset):
         self.labels = np.array(self.metadata.loc[:, label_col])
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
+
+        self.nuclei_densities = np.array(self.metadata.loc[:, nuclei_density_col])
+        self.elongation_ratios = np.array(self.metadata.loc[:, elongation_ratio_col])
+
         self.label_weights = (
             len(self.labels) / np.unique(self.labels, return_counts=True)[1]
         )
@@ -100,7 +105,13 @@ class TorchImageDataset(LabeledDataset):
         image = self.process_image(image_loc)
         gene_label = self.labels[idx]
 
-        sample = {"id": image_loc, "image": image, "label": gene_label}
+        sample = {
+            "id": image_loc,
+            "image": image,
+            "label": gene_label,
+            "nuclei_density": self.nuclei_densities[idx],
+            "elongation_ratio": self.elongation_ratios[idx],
+        }
         return sample
 
     def set_transform_pipeline(

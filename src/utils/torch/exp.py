@@ -8,7 +8,8 @@ import torch
 import numpy as np
 from tqdm import tqdm
 
-from src.helper.models import DomainConfig, DomainModelConfig
+from src.helper.models import DomainConfig, DomainModelConfig, LatentClassifierConfig
+from src.utils.basic.visualization import plot_confusion_matrices
 from src.utils.torch.evaluation import (
     save_latents_from_model,
     visualize_image_ae_performance,
@@ -21,10 +22,11 @@ def model_train_val_test_loop(
     output_dir: str,
     domain_config: DomainConfig,
     num_epochs: int = 500,
-    lamb: float = 1e-7,
+    lamb: float = 1e-3,
     early_stopping: int = 20,
     device: str = None,
     save_freq: int = -1,
+    latent_clf_config: LatentClassifierConfig = None,
 ) -> Tuple[dict, dict]:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -43,14 +45,14 @@ def model_train_val_test_loop(
 
     total_loss_dict = {"train": [], "val": []}
 
-    # Reserve space for best model weights
+    # Reserve space for best classifier weights
     best_model_weights = domain_config.domain_model_config.model.cpu().state_dict()
     best_total_loss = np.infty
 
     model_base_type = domain_config.domain_model_config.model.model_base_type
 
     logging.debug(
-        "Start training of model {}".format(
+        "Start training of classifier {}".format(
             str(domain_config.domain_model_config.model)
         )
     )
@@ -81,6 +83,7 @@ def model_train_val_test_loop(
                 phase=phase,
                 device=device,
                 epoch=i,
+                latent_clf_config=latent_clf_config,
             )
 
             logging.debug(
@@ -108,10 +111,17 @@ def model_train_val_test_loop(
                     )
                 )
 
-            if "kl_loss" in epoch_statistics:
+            if "latent_clf_loss" in epoch_statistics:
                 logging.debug(
-                    "KL loss for {} domain: {:.8f}".format(
-                        domain_config.name, epoch_statistics["kl_loss"]
+                    "Latent classification loss for {} domain: {:.8f}".format(
+                        domain_config.name, epoch_statistics["latent_clf_loss"]
+                    )
+                )
+
+            if "latent_clf_accuracy" in epoch_statistics:
+                logging.debug(
+                    "Latent classification accuracy for domain {}: {:.8f}".format(
+                        domain_config.name, epoch_statistics["latent_clf_accuracy"]
                     )
                 )
 
@@ -126,7 +136,7 @@ def model_train_val_test_loop(
             logging.debug("***" * 20)
 
             if phase == "val":
-                # Save model states if current parameters give the best validation loss
+                # Save classifier states if current parameters give the best validation loss
                 if epoch_total_loss < best_total_loss:
                     es_counter = 0
                     best_total_loss = epoch_total_loss
@@ -143,7 +153,7 @@ def model_train_val_test_loop(
                 else:
                     es_counter += 1
 
-            # Save model at checkpoints and visualize performance
+            # Save classifier at checkpoints and visualize performance
             if i % save_freq == 0:
                 if model_base_type in ["ae", "vae"]:
                     if domain_config.name == "image":
@@ -157,7 +167,7 @@ def model_train_val_test_loop(
 
             torch.save(
                 domain_config.domain_model_config.model.state_dict(),
-                "{}/model.pth".format(checkpoint_dir),
+                "{}/classifier.pth".format(checkpoint_dir),
             )
 
     # Training complete
@@ -170,7 +180,7 @@ def model_train_val_test_loop(
         )
     )
 
-    # Load best model
+    # Load best classifier
     domain_config.domain_model_config.model.load_state_dict(best_model_weights)
 
     if "test" in domain_config.data_loader_dict:
@@ -201,21 +211,23 @@ def model_train_val_test_loop(
                 )
             )
 
-        if "kl_loss" in epoch_statistics:
+        if "latent_clf_loss" in epoch_statistics:
             logging.debug(
-                "Test KL loss for {} domain: {:.8f}".format(
-                    domain_config.name, epoch_statistics["kl_loss"]
+                "Latent classification loss for {} domain: {:.8f}".format(
+                    domain_config.name, epoch_statistics["latent_clf_loss"]
                 )
             )
-        logging.debug("***" * 20)
-        logging.debug(
-            "Total test loss for {} domain: {:.8f}".format(
-                domain_config.name, epoch_statistics["total_loss"]
+
+        if "latent_clf_accuracy" in epoch_statistics:
+            logging.debug(
+                "Latent classification accuracy for domain {}: {:.8f}".format(
+                    domain_config.name, epoch_statistics["latent_clf_accuracy"]
+                )
             )
-        )
+
         logging.debug("***" * 20)
 
-        # Visualize model performance
+        # Visualize classifier performance
         test_dir = "{}/test".format(output_dir)
         os.makedirs(test_dir, exist_ok=True)
 
@@ -232,6 +244,7 @@ def model_train_val_test_loop(
                 domain_config=domain_config, dataset_types=["train", "val", "test"]
             )
             logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
+            plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
 
         save_latents_from_model(
             output_dir=test_dir,
@@ -242,7 +255,7 @@ def model_train_val_test_loop(
 
         torch.save(
             domain_config.domain_model_config.model.state_dict(),
-            "{}/model.pth".format(test_dir),
+            "{}/classifier.pth".format(test_dir),
         )
 
         # Visualize performance
@@ -251,10 +264,11 @@ def model_train_val_test_loop(
 
 def process_single_epoch(
     domain_config: DomainConfig,
-    lamb: float = 1e-7,
+    lamb: float = 1e-3,
     phase: str = "train",
     device: str = "cuda:0",
     epoch: int = -1,
+    latent_clf_config=None,
 ) -> dict:
     # Get domain configurations for the domain
     domain_model_config = domain_config.domain_model_config
@@ -262,13 +276,16 @@ def process_single_epoch(
     data_loader = data_loader_dict[phase]
     data_key = domain_config.data_key
     label_key = domain_config.label_key
+    extra_feature_key = domain_config.extra_feature_key
 
     # Initialize epoch statistics
     recon_loss = 0
     clf_loss = 0
     n_correct = 0
     n_total = 0
-    kl_loss = 0
+    latent_clf_loss = 0
+    latent_n_correct = 0
+    latent_n_total = 0
     total_loss = 0
 
     model_base_type = domain_model_config.model.model_base_type.lower()
@@ -280,6 +297,8 @@ def process_single_epoch(
         # Set model_configs
         domain_model_config.inputs = samples[data_key]
         domain_model_config.labels = samples[label_key]
+        if extra_feature_key is not None:
+            domain_model_config.extra_features = samples[extra_feature_key]
 
         batch_statistics = process_single_batch(
             domain_model_config=domain_model_config,
@@ -287,6 +306,7 @@ def process_single_epoch(
             phase=phase,
             device=device,
             model_base_type=model_base_type,
+            latent_clf_config=latent_clf_config,
         )
         if "recon_loss" in batch_statistics:
             recon_loss += batch_statistics["recon_loss"]
@@ -294,14 +314,20 @@ def process_single_epoch(
         if "clf_loss" in batch_statistics:
             clf_loss += batch_statistics["clf_loss"]
 
-        if "kl_loss" in batch_statistics:
-            kl_loss += batch_statistics["kl_loss"]
-
         if "n_correct" in batch_statistics:
             n_correct += batch_statistics["n_correct"]
 
         if "n_total" in batch_statistics:
             n_total += batch_statistics["n_total"]
+
+        if "latent_clf_loss" in batch_statistics:
+            latent_clf_loss += batch_statistics["latent_clf_loss"]
+
+        if "latent_n_correct" in batch_statistics:
+            latent_n_correct += batch_statistics["latent_n_correct"]
+
+        if "latent_n_total" in batch_statistics:
+            latent_n_total += batch_statistics["latent_n_total"]
 
         total_loss += batch_statistics["total_loss"]
 
@@ -312,7 +338,9 @@ def process_single_epoch(
         clf_accuracy = n_correct / n_total
     else:
         clf_accuracy = -1
-    kl_loss /= len(data_loader.dataset)
+    if latent_n_total != 0:
+        latent_clf_accuracy = latent_n_correct / latent_n_total
+
     total_loss /= len(data_loader.dataset)
 
     epoch_statistics = {
@@ -321,12 +349,13 @@ def process_single_epoch(
     if model_base_type in ["ae", "vae"]:
         epoch_statistics["recon_loss"] = recon_loss
 
-    if model_base_type == "vae":
-        epoch_statistics["kl_loss"] = kl_loss
-
     if model_base_type == "clf":
         epoch_statistics["clf_loss"] = clf_loss
         epoch_statistics["clf_accuracy"] = clf_accuracy
+
+    if latent_clf_config is not None:
+        epoch_statistics["latent_clf_loss"] = latent_clf_loss
+        epoch_statistics["latent_clf_accuracy"] = latent_clf_accuracy
 
     return epoch_statistics
 
@@ -334,21 +363,23 @@ def process_single_epoch(
 # Todo thin that function
 def process_single_batch(
     domain_model_config: DomainModelConfig,
-    lamb: float = 1e-8,
+    lamb: float = 1e-3,
     phase: str = "train",
     device: str = "cuda:0",
     model_base_type: str = None,
+    latent_clf_config: LatentClassifierConfig = None,
 ) -> dict:
     # Get all parameters of the configuration for domain i
     model = domain_model_config.model
     optimizer = domain_model_config.optimizer
     inputs = domain_model_config.inputs
     labels = domain_model_config.labels
+    extra_features = domain_model_config.extra_features
     train = domain_model_config.trainable
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True)
 
-    # Set model to train if defined in respective configuration
+    # Set classifier to train if defined in respective configuration
     model.to(device)
 
     if phase == "train" and train:
@@ -357,34 +388,35 @@ def process_single_batch(
     else:
         model.eval()
 
-    # Forward pass of the model
+    if latent_clf_config is not None:
+        latent_clf = latent_clf_config.classifier
+        latent_clf_loss_function = latent_clf_config.loss_function
+        latent_clf_optim = latent_clf_config.optimizer
+        latent_clf.to(device)
+        if phase == "train":
+            latent_clf.train()
+            latent_clf_optim.zero_grad()
+        else:
+            latent_clf.eval()
+
+    # Forward pass of the classifier
     inputs = torch.FloatTensor(inputs).to(device)
     labels = torch.LongTensor(labels).to(device)
 
-    outputs = model(inputs)
+    if extra_features is not None:
+        extra_features = extra_features.float().to(device)
 
-    if model_base_type is None or model_base_type not in ["ae", "vae", "clf"]:
-        raise RuntimeError("Unknown model given. No base type defined.")
+    outputs = model(inputs, extra_features)
 
-    if model_base_type == "vae":
+    if model_base_type is None or model_base_type not in ["ae", "clf"]:
+        raise RuntimeError("Unknown classifier given. No base type defined.")
+
+    if model_base_type == "ae":
         recons = outputs["recons"]
-        mu = outputs["mu"]
-        logvar = outputs["logvar"]
-
-        loss_dict = model.loss_function(
-            inputs=inputs, recons=recons, mu=mu, logvar=logvar
-        )
-
-        recon_loss = loss_dict["recon_loss"]
-        kld_loss = loss_dict["kld_loss"]
-
-        kl_loss = kld_loss
-        total_loss = recon_loss + kl_loss * lamb
-
-    elif model_base_type == "ae":
-        recons = outputs["recons"]
+        latents = outputs["latents"]
         recon_loss = domain_model_config.loss_function(inputs, recons)
         total_loss = recon_loss
+
     elif model_base_type == "clf":
         clf_outputs = outputs["outputs"]
         clf_loss = domain_model_config.loss_function(clf_outputs, labels)
@@ -393,7 +425,15 @@ def process_single_batch(
         n_correct = torch.sum(torch.eq(labels, preds)).item()
         total_loss = clf_loss
     else:
-        raise RuntimeError("Unknown model type: {}".format(model_base_type))
+        raise RuntimeError("Unknown classifier type: {}".format(model_base_type))
+
+    if latent_clf_config is not None:
+        latent_clf_outputs = latent_clf(latents, extra_features)
+        latent_clf_loss = latent_clf_loss_function(latent_clf_outputs, labels)
+        _, preds = torch.max(latent_clf_outputs, 1)
+        latent_n_total = preds.size(0)
+        latent_n_correct = torch.sum(torch.eq(labels, preds)).item()
+        total_loss += lamb * latent_clf_loss
 
     # Backpropagate loss and update parameters if we are in the training phase
     if phase == "train":
@@ -411,13 +451,14 @@ def process_single_batch(
 
     if model_base_type in ["ae", "vae"]:
         batch_statistics["recon_loss"] = recon_loss.item() * batch_size
-    if model_base_type == "vae":
-        batch_statistics["kl_loss"] = kl_loss.item()
-        total_loss_item += kl_loss.item() * lamb
     if model_base_type == "clf":
         batch_statistics["clf_loss"] = clf_loss.item() * batch_size
         batch_statistics["n_correct"] = n_correct
         batch_statistics["n_total"] = n_total
+    if latent_clf_config is not None:
+        batch_statistics["latent_clf_loss"] = latent_clf_loss.item() * batch_size
+        batch_statistics["latent_n_correct"] = latent_n_correct
+        batch_statistics["latent_n_total"] = latent_n_total
 
     batch_statistics["total_loss"] = total_loss_item
 

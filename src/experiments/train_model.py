@@ -52,6 +52,7 @@ class TrainModelExperiment(BaseExperiment):
         self.data_loader_dict = None
         self.data_key = None
         self.label_key = None
+        self.extra_feature_key = None
         self.domain_config = None
 
         self.trained_model = None
@@ -61,25 +62,11 @@ class TrainModelExperiment(BaseExperiment):
         self.device = get_device()
 
     def initialize_image_data_set(self):
-        # image_dir = self.data_config["image_dir"]
-        # metadata_file = self.data_config["metadata_file"]
-        # if "target_list" in self.data_config:
-        #     target_list = self.data_config["target_list"]
-        # else:
-        #     target_list = None
-        # if "n_control_samples" in self.data_config:
-        #     n_control_samples = self.data_config["n_control_samples"]
-        # else:
-        #     n_control_samples = None
-        # if "pseudo_rgb" in self.data_config:
-        #     pseudo_rgb = self.data_config["pseudo_rgb"]
-        # else:
-        #     pseudo_rgb = False
-
-        # self.data_set = init_image_dataset(image_dir=image_dir, metadata_file=metadata_file, target_list=target_list,
-        #                                    n_control_samples=n_control_samples, pseudo_rgb=pseudo_rgb, image_file_col)
         self.data_key = self.data_config.pop("data_key")
         self.label_key = self.data_config.pop("label_key")
+        if "extra_feature_key" in self.data_config:
+            self.extra_feature_key = self.data_config.pop("extra_feature_key")
+
         self.data_set = init_image_dataset(**self.data_config)
 
     def initialize_data_loader_dict(
@@ -124,12 +111,13 @@ class TrainModelExperiment(BaseExperiment):
             data_loader_dict=self.data_loader_dict,
             data_key=self.data_key,
             label_key=self.label_key,
+            extra_feature_key = self.extra_feature_key,
             optimizer_dict=optimizer_config,
             loss_fct_dict=loss_config,
         )
 
     def train_models(
-        self, lamb: float = 0.00000001,
+        self, lamb: float = 0.01,
     ):
         self.trained_model, self.loss_dict = model_train_val_test_loop(
             output_dir=self.output_dir,
@@ -143,7 +131,7 @@ class TrainModelExperiment(BaseExperiment):
 
     def load_model(self, weights_fname):
         weights = torch.load(weights_fname)
-        self.domain_config.domain_model_config.model.load_state_dict(weights)
+        self.domain_config.domain_model_config.classifier.load_state_dict(weights)
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
@@ -155,7 +143,7 @@ class TrainModelExperiment(BaseExperiment):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        if self.domain_config.domain_model_config.model.model_base_type not in [
+        if self.domain_config.domain_model_config.classifier.model_base_type not in [
             "ae",
             "vae",
         ]:

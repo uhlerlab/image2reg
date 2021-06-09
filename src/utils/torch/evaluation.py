@@ -66,7 +66,7 @@ def save_latents_to_csv_gz(
     dataset_type: str = "val",
     device: str = "cuda:0",
 ):
-    model = domain_config.domain_model_config.model
+    model = domain_config.domain_model_config.classifier
     try:
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
@@ -174,7 +174,7 @@ def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["
 
 def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"):
     device = get_device()
-    model = domain_config.domain_model_config.model.to(device).eval()
+    model = domain_config.domain_model_config.classifier.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]
     all_labels = []
     all_preds = []
@@ -201,7 +201,7 @@ def visualize_latent_space_pca_walk(
 
     device = get_device()
     dataset = domain_config.data_loader_dict[dataset_type].dataset
-    model = domain_config.domain_model_config.model.to(device)
+    model = domain_config.domain_model_config.classifier.to(device)
     model.eval()
     data_key = domain_config.data_key
     label_key = domain_config.label_key
