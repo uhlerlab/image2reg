@@ -115,7 +115,7 @@ def get_imagenet_extended_transformations_dict(input_size):
             [
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(90),
+                transforms.RandomRotation(180),
                 transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),

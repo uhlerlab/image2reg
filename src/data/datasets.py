@@ -112,6 +112,7 @@ class TorchImageDataset(LabeledDataset):
             "nuclei_density": self.nuclei_densities[idx],
             "elongation_ratio": self.elongation_ratios[idx],
         }
+        sample["nd_er"] = [sample["nuclei_density"], sample["elongation_ratio"]]
         return sample
 
     def set_transform_pipeline(

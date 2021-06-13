@@ -46,6 +46,8 @@ def get_latent_representations_for_model(
 
         if extra_feature_key is not None:
             extra_features = sample[extra_feature_key].float().to(device)
+        else:
+            extra_features = None
 
         output = model(input, extra_features)
         latents = output["latents"]
@@ -191,6 +193,8 @@ def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"
         labels = sample[domain_config.label_key]
         if domain_config.extra_feature_key is not None:
             extra_features = sample[domain_config.extra_feature_key].float().to(device)
+        else:
+            extra_features = None
         outputs = model(inputs, extra_features)["outputs"]
         _, preds = torch.max(outputs, 1)
 
