@@ -18,7 +18,7 @@ class SimpleConvClassifier(Module):
         input_channels: int = 1,
         hidden_dims: List[int] = [32, 64, 128, 256, 256],
         batchnorm: bool = True,
-        dropout_rate:float = 0,
+        dropout_rate: float = 0,
     ) -> None:
         super().__init__()
         self.in_channels = input_channels
@@ -61,7 +61,7 @@ class SimpleConvClassifier(Module):
             )
         self.encoder = nn.Sequential(*encoder_modules)
         self.dropout = nn.Dropout(p=self.dropout_rate)
-        self.output_layer = nn.Linear(self.hidden_dims[-1]*2*2, self.n_output_nodes)
+        self.output_layer = nn.Linear(self.hidden_dims[-1] * 2 * 2, self.n_output_nodes)
         self.device = get_device()
 
     def forward(self, inputs: Tensor, extra_features: Tensor = None) -> dict:
@@ -82,7 +82,7 @@ class CustomResNet(ResNet):
         layers: List[int],
         num_classes: int = 1000,
         zero_init_residual: bool = False,
-        dropout_rate:float=0,
+        dropout_rate: float = 0,
     ) -> None:
         super().__init__(
             block=block,
@@ -96,13 +96,10 @@ class CustomResNet(ResNet):
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         return super()._make_layer(
-            block=block,
-            planes=planes,
-            blocks=blocks,
-            stride=stride,
+            block=block, planes=planes, blocks=blocks, stride=stride,
         )
 
-    def forward(self, x: Tensor, extra_features:Tensor = None) -> dict:
+    def forward(self, x: Tensor, extra_features: Tensor = None) -> dict:
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -205,7 +202,7 @@ class SimpleDiscriminator(nn.Module, ABC):
         hidden_dims: List = [1024, 1024, 1024],
         n_classes: int = 2,
         trainable: bool = True,
-        extra_feature_dim :int= 0,
+        extra_feature_dim: int = 0,
     ):
         super().__init__()
         self.latent_dim = latent_dim
@@ -213,6 +210,7 @@ class SimpleDiscriminator(nn.Module, ABC):
         self.n_classes = n_classes
         self.trainable = trainable
         self.extra_feature_dim = extra_feature_dim
+        self.model_base_type = "clf"
 
         if hidden_dims is not None:
             model_modules = [
@@ -235,8 +233,45 @@ class SimpleDiscriminator(nn.Module, ABC):
         else:
             self.model = nn.Linear(self.latent_dim, self.n_classes)
 
-    def forward(self, input: Tensor, extra_features: Tensor = None) -> Tensor:
+    def forward(self, input: Tensor, extra_features: Tensor = None) -> dict:
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
-        output = self.model(input)
-        return output
+        outputs = self.model(input)
+        return {"outputs": outputs, "latents": None}
+
+
+class SimpleClassifier(nn.Module):
+    def __init__(self, input_dim: int, n_output_nodes, hidden_dims: List = None):
+        super().__init__()
+        self.input_dim = input_dim
+        self.hidden_dims = hidden_dims
+        self.n_output_nodes = n_output_nodes
+        self.model_base_type = "clf"
+
+        modules = []
+        if self.hidden_dims is not None and len(self.hidden_dims) > 0:
+            modules.append(
+                nn.Sequential(
+                    nn.Linear(self.input_dim, self.hidden_dims[0]),
+                    nn.ReLU(),
+                    nn.BatchNorm1d(self.hidden_dims[0]),
+                )
+            )
+            for i in range(1, len(self.hidden_dims)):
+                modules.append(
+                    nn.Sequential(
+                        nn.Linear(self.hidden_dims[i - 1], self.hidden_dims[i]),
+                        nn.ReLU(),
+                        nn.BatchNorm1d(self.hidden_dims[i]),
+                    )
+                )
+            modules.append(nn.Linear(self.hidden_dims[-1], self.n_output_nodes))
+        else:
+            modules.append(nn.Linear(self.input_dim, self.n_output_nodes))
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, input: Tensor, extra_features: Tensor = None) -> dict:
+        if extra_features is not None:
+            input = torch.cat([input, extra_features], dim=1)
+        outputs = self.model(input)
+        return {"outputs": outputs, "latents": None}

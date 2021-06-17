@@ -37,6 +37,7 @@ pipeline:
       max_eccentricity: 1.0
       min_solidity: 0.1
       min_aspect_ratio: 0.1
+      n_jobs: 15
 
   - method: save_padded_images
     params:

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from imblearn.under_sampling import RandomUnderSampler
-from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import LabelEncoder, StandardScaler
 from torch import Tensor
 from torch.utils.data import Dataset, Subset
 from torchvision import transforms
@@ -24,6 +24,67 @@ class LabeledDataset(Dataset):
         super(LabeledDataset, self).__init__()
         self.labels = None
         self.transform_pipeline = None
+
+
+class TorchProfileDataset(LabeledDataset):
+    def __init__(
+        self,
+        feature_label_file: str,
+        label_col: str = "label",
+        n_control_samples: int = None,
+        target_list: List = None,
+        exclude_features:List = None
+    ):
+        super().__init__()
+        self.feature_labels = pd.read_csv(feature_label_file, index_col=0)
+        self.feature_labels = self.feature_labels.drop(columns=exclude_features)
+        #logging.debug(list(self.feature_labels.columns))
+        self.label_col = label_col
+        self.n_control_samples = n_control_samples
+        self.target_list = target_list
+
+        if target_list is not None:
+            self.feature_labels = self.feature_labels.loc[
+                self.feature_labels[label_col].isin(target_list), :
+            ]
+        if n_control_samples is not None and "EMPTY" in target_list:
+            idc = np.array(list(range(len(self.feature_labels)))).reshape(-1, 1)
+            labels = self.feature_labels[self.label_col]
+            target_n_samples = dict(Counter(labels))
+            target_n_samples["EMPTY"] = n_control_samples
+            idc, _ = RandomUnderSampler(
+                sampling_strategy=target_n_samples, random_state=1234
+            ).fit_resample(idc, labels)
+            self.feature_labels = self.features.iloc[idc.flatten(), :]
+
+        logging.debug(
+            "Label counts: %s",
+            dict(Counter(np.array(self.feature_labels[self.label_col]))),
+        )
+        self.labels = np.array(self.feature_labels.loc[:, label_col])
+        le = LabelEncoder().fit(self.labels)
+        self.labels = le.transform(self.labels)
+
+        self.label_weights = (
+            len(self.labels) / np.unique(self.labels, return_counts=True)[1]
+        )
+        self.label_weights /= np.sum(self.label_weights)
+        le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
+        logging.debug("Classes are coded as follows: %s", le_name_mapping)
+
+        self.features = np.array(self.feature_labels.drop(columns=label_col))
+        sc = StandardScaler()
+        self.features = sc.fit_transform(self.features)
+
+    def __len__(self):
+        return len(self.features)
+
+    def __getitem__(self, idx):
+        sample = {
+            "profile": torch.FloatTensor(self.features[idx]),
+            "label": self.labels[idx],
+        }
+        return sample
 
 
 class TorchImageDataset(LabeledDataset):
@@ -112,7 +173,9 @@ class TorchImageDataset(LabeledDataset):
             "nuclei_density": self.nuclei_densities[idx],
             "elongation_ratio": self.elongation_ratios[idx],
         }
-        sample["nd_er"] = [sample["nuclei_density"], sample["elongation_ratio"]]
+        sample["nd_er"] = torch.FloatTensor(
+            [sample["nuclei_density"], sample["elongation_ratio"]]
+        )
         return sample
 
     def set_transform_pipeline(

@@ -4,7 +4,7 @@ import torch
 
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
-from src.utils.torch.data import init_image_dataset
+from src.utils.torch.data import init_image_dataset, init_profile_dataset
 from src.utils.torch.evaluation import visualize_latent_space_pca_walk
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
@@ -69,10 +69,20 @@ class TrainModelExperiment(BaseExperiment):
 
         self.data_set = init_image_dataset(**self.data_config)
 
+    def initialize_profile_data_set(self):
+        self.data_key = self.data_config.pop("data_key")
+        self.label_key = self.data_config.pop("label_key")
+        if "extra_feature_key" in self.data_config:
+            self.extra_feature_key = self.data_config.pop("extra_feature_key")
+
+        self.data_set = init_profile_dataset(**self.data_config)
+
     def initialize_data_loader_dict(
         self, drop_last_batch: bool = False, data_transform_pipeline: str = None
     ):
-        if data_transform_pipeline == "imagenet_random":
+        if data_transform_pipeline is None:
+            self.data_transform_pipeline_dict = None
+        elif data_transform_pipeline == "imagenet_random":
             self.data_transform_pipeline_dict = get_image_net_transformations_dict(224)
         elif data_transform_pipeline == "imagenet_nonrandom":
             self.data_transform_pipeline_dict = get_image_net_nonrandom_transformations_dict(
@@ -111,7 +121,7 @@ class TrainModelExperiment(BaseExperiment):
             data_loader_dict=self.data_loader_dict,
             data_key=self.data_key,
             label_key=self.label_key,
-            extra_feature_key = self.extra_feature_key,
+            extra_feature_key=self.extra_feature_key,
             optimizer_dict=optimizer_config,
             loss_fct_dict=loss_config,
         )

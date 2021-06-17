@@ -19,6 +19,7 @@ from src.models.clf import (
     resnet101,
     resnet152,
     SimpleConvClassifier,
+    SimpleClassifier,
 )
 from src.utils.torch.general import get_device
 
@@ -42,7 +43,7 @@ def get_domain_configuration(
     data_loader_dict: dict,
     data_key: str,
     label_key: str,
-    extra_feature_key:str=None,
+    extra_feature_key: str = None,
     train_model: bool = True,
 ) -> DomainConfig:
 
@@ -53,6 +54,8 @@ def get_domain_configuration(
         model = initialize_imagenet_model(model_name=model_type, **model_dict)
     elif model_type.lower() == "simpleconvclf":
         model = SimpleConvClassifier(**model_dict)
+    elif model_type.lower() == "simpleclassifier":
+        model = SimpleClassifier(**model_dict)
     else:
         raise NotImplementedError('Unknown classifier type "{}"'.format(model_type))
 
@@ -220,8 +223,8 @@ def initialize_imagenet_model(
     fix_feature_extractor: bool = False,
     pretrained: bool = True,
     fix_first_k_layers=None,
-    n_extra_features:int = 0,
-    dropout_rate:float = 0,
+    n_extra_features: int = 0,
+    dropout_rate: float = 0,
 ):
     r""" Method to get an initialized a Imagenet CNN classifier.
 
@@ -350,7 +353,7 @@ def initialize_imagenet_model(
 
 
 def set_parameter_requires_grad(
-    model, fix_feature_extractor: bool = False, fix_first_k_layers:int=None
+    model, fix_feature_extractor: bool = False, fix_first_k_layers: int = None
 ):
     r""" Method to set prevent the update of certain parameters in a given classifier.
 

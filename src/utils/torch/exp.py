@@ -246,12 +246,15 @@ def model_train_val_test_loop(
             logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
             plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
 
-        save_latents_from_model(
-            output_dir=test_dir,
-            domain_config=domain_config,
-            dataset_types=["train", "val", "test"],
-            device=device,
-        )
+        try:
+            save_latents_from_model(
+                output_dir=test_dir,
+                domain_config=domain_config,
+                dataset_types=["train", "val", "test"],
+                device=device,
+            )
+        except AttributeError:
+            pass
 
         torch.save(
             domain_config.domain_model_config.model.state_dict(),
