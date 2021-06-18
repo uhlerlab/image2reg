@@ -5,7 +5,7 @@ import torch
 from src.experiments.base import BaseExperiment
 from src.helper.data import DataHandler
 from src.utils.torch.data import init_image_dataset, init_profile_dataset
-from src.utils.torch.evaluation import visualize_latent_space_pca_walk
+from src.utils.torch.evaluation import visualize_latent_space_pca_walk, save_latents_to_csv_gz
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
 from src.utils.torch.model import (
@@ -64,8 +64,11 @@ class TrainModelExperiment(BaseExperiment):
     def initialize_image_data_set(self):
         self.data_key = self.data_config.pop("data_key")
         self.label_key = self.data_config.pop("label_key")
-        if "extra_feature_key" in self.data_config:
-            self.extra_feature_key = self.data_config.pop("extra_feature_key")
+        if (
+            "extra_features" in self.data_config
+            and len(self.data_config["extra_features"]) > 0
+        ):
+            self.extra_feature_key = "extra_features"
 
         self.data_set = init_image_dataset(**self.data_config)
 
@@ -142,6 +145,12 @@ class TrainModelExperiment(BaseExperiment):
     def load_model(self, weights_fname):
         weights = torch.load(weights_fname)
         self.domain_config.domain_model_config.classifier.load_state_dict(weights)
+
+    def extract_and_save_latents(self, save_path:str):
+        device = get_device()
+        for dataset_type in self.data_loader_dict.keys():
+            save_latents_to_csv_gz(domain_config=self.domain_config, save_path=save_path,
+                                   dataset_type=dataset_type, device=device)
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()

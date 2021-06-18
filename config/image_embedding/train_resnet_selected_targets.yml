@@ -3,7 +3,7 @@ module: src.experiments.train_model
 class: TrainModelExperiment
 run_params:
   data_config: {'image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
-                      'metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv',
+                      'metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
                       'data_key':'image', 'label_key':'label',
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'pseudo_rgb':True}

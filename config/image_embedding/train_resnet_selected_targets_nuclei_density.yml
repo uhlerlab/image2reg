@@ -4,7 +4,8 @@ class: TrainModelExperiment
 run_params:
   data_config: {'image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
                       'metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv',
-                      'data_key':'image', 'label_key':'label', 'extra_feature_key':'nuclei_density',
+                      'extra_features':["nuclear_density"]
+                      'data_key':'image', 'label_key':'label',
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'pseudo_rgb':True}
 

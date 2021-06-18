@@ -33,12 +33,12 @@ class TorchProfileDataset(LabeledDataset):
         label_col: str = "label",
         n_control_samples: int = None,
         target_list: List = None,
-        exclude_features:List = None
+        exclude_features: List = None,
     ):
         super().__init__()
         self.feature_labels = pd.read_csv(feature_label_file, index_col=0)
         self.feature_labels = self.feature_labels.drop(columns=exclude_features)
-        #logging.debug(list(self.feature_labels.columns))
+        # logging.debug(list(self.feature_labels.columns))
         self.label_col = label_col
         self.n_control_samples = n_control_samples
         self.target_list = target_list
@@ -95,12 +95,14 @@ class TorchImageDataset(LabeledDataset):
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
+        extra_features: List = None,
         nuclei_density_col: str = "nuclei_count_image",
         elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
         target_list: List = None,
         n_control_samples: int = None,
         transform_pipeline: transforms.Compose = None,
         pseudo_rgb: bool = False,
+        nmco_feature_file: str = None,
     ):
         super().__init__()
         self.image_dir = image_dir
@@ -109,6 +111,8 @@ class TorchImageDataset(LabeledDataset):
         self.plate_col = plate_col
         self.label_col = label_col
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
+        self.extra_features = extra_features
+
         if target_list is not None:
             self.metadata = self.metadata.loc[
                 self.metadata[label_col].isin(target_list), :
@@ -142,6 +146,23 @@ class TorchImageDataset(LabeledDataset):
             raise RuntimeError(
                 "Number of image samples does not match the given metadata."
             )
+
+        if nmco_feature_file is not None:
+            self.nmco_feature_file = nmco_feature_file
+            self.nmco_features = pd.read_csv(self.nmco_feature_file, index_col=0)
+            # Ensure that metadata and additional features are aligned
+            self.nmco_features.index = np.array(
+                self.nmco_features.loc[:, image_file_col]
+            )
+            self.nmco_features = self.nmco_features.loc[list(self.metadata.loc[:,image_file_col])]
+            self.nmco_features = self.nmco_features.drop(
+                columns=[image_file_col, label_col]
+            )
+
+            self.nmco_features = StandardScaler().fit_transform(self.nmco_features)
+        else:
+            self.nmco_features = None
+
         self.labels = np.array(self.metadata.loc[:, label_col])
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
@@ -170,12 +191,19 @@ class TorchImageDataset(LabeledDataset):
             "id": image_loc,
             "image": image,
             "label": gene_label,
-            "nuclei_density": self.nuclei_densities[idx],
-            "elongation_ratio": self.elongation_ratios[idx],
         }
-        sample["nd_er"] = torch.FloatTensor(
-            [sample["nuclei_density"], sample["elongation_ratio"]]
-        )
+
+        if self.extra_features is not None:
+            extra_feature_vec = []
+            if "nuclear_density" in self.extra_features:
+                extra_feature_vec.append(self.nuclei_densities[idx])
+            if "elongation_ratio" in self.extra_features:
+                extra_feature_vec.append(self.elongation_ratios[idx])
+            if "nmco" in self.extra_features:
+                extra_feature_vec.extend(list(self.nmco_features[idx]))
+            extra_feature_vec = torch.FloatTensor(np.array(extra_feature_vec).flatten())
+            sample["extra_features"] = extra_feature_vec
+
         return sample
 
     def set_transform_pipeline(

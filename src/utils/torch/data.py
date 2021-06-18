@@ -13,6 +13,8 @@ def init_image_dataset(
     target_list: List = None,
     n_control_samples=None,
     pseudo_rgb: bool = False,
+    extra_features: List = None,
+    nmco_feature_file: str = None,
 ) -> TorchImageDataset:
     logging.debug(
         "Load image data set from {} and label information from {}.".format(
@@ -28,6 +30,8 @@ def init_image_dataset(
         target_list=target_list,
         n_control_samples=n_control_samples,
         pseudo_rgb=pseudo_rgb,
+        nmco_feature_file=nmco_feature_file,
+        extra_features=extra_features,
     )
     logging.debug("Samples loaded: {}".format(len(image_dataset)))
     return image_dataset
@@ -38,7 +42,7 @@ def init_profile_dataset(
     label_col: str = "label",
     n_control_samples: int = None,
     target_list: List = None,
-    exclude_features:List=None
+    exclude_features: List = None,
 ):
     logging.debug("Load image data set from {}.".format(feature_label_file))
     profile_dataset = TorchProfileDataset(

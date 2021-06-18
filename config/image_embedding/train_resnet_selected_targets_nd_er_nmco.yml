@@ -4,13 +4,14 @@ class: TrainModelExperiment
 run_params:
   data_config: {'image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
                       'metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
-                      'extra_features': ["nuclear_density", "elongation_ratio"],
+                      'extra_features':["nuclear_density", "elongation_ratio", "nmco"],
+                      'nmco_feature_file': "data/experiments/image_preprocessing/full_pipeline/nuclei_ncmo_features.csv.gz",
                       'data_key':'image', 'label_key':'label',
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'pseudo_rgb':True}
 
   model_config: {'model_config':{'type':'ResNet18', 'pretrained':True, 'n_output_nodes':9,
-                                 'fix_feature_extractor': False, 'n_extra_features': 2, 'dropout_rate':0.0},
+                                 'fix_feature_extractor': False, 'n_extra_features': 178, 'dropout_rate':0.0},
                        'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
                        'loss_config':{'type':'ce'}}
 

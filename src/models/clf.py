@@ -6,7 +6,7 @@ from torch.hub import load_state_dict_from_url
 from torch.nn import Module
 from torch import nn
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck, model_urls
-from typing import Type, List, Union, Optional, Callable, Any
+from typing import Type, List, Union, Any
 
 from src.utils.torch.general import get_device
 
@@ -18,7 +18,6 @@ class SimpleConvClassifier(Module):
         input_channels: int = 1,
         hidden_dims: List[int] = [32, 64, 128, 256, 256],
         batchnorm: bool = True,
-        dropout_rate: float = 0,
     ) -> None:
         super().__init__()
         self.in_channels = input_channels
@@ -27,7 +26,6 @@ class SimpleConvClassifier(Module):
         self.updated = False
         self.n_output_nodes = n_output_nodes
         self.model_base_type = "clf"
-        self.dropout_rate = dropout_rate
 
         # Build encoder
         encoder_modules = [
@@ -60,17 +58,15 @@ class SimpleConvClassifier(Module):
                 )
             )
         self.encoder = nn.Sequential(*encoder_modules)
-        self.dropout = nn.Dropout(p=self.dropout_rate)
         self.output_layer = nn.Linear(self.hidden_dims[-1] * 2 * 2, self.n_output_nodes)
         self.device = get_device()
 
     def forward(self, inputs: Tensor, extra_features: Tensor = None) -> dict:
         latents = self.encoder(inputs.to(self.device))
         latents = torch.flatten(latents, 1)
-        x = self.dropout(latents)
         if extra_features is not None:
-            x = torch.cat([x, extra_features], dim=1)
-        outputs = self.output_layer(x)
+            latents = torch.cat([latents, extra_features], dim=1)
+        outputs = self.output_layer(latents)
         output = {"outputs": outputs, "latents": latents}
         return output
 
@@ -82,7 +78,6 @@ class CustomResNet(ResNet):
         layers: List[int],
         num_classes: int = 1000,
         zero_init_residual: bool = False,
-        dropout_rate: float = 0,
     ) -> None:
         super().__init__(
             block=block,
@@ -90,8 +85,6 @@ class CustomResNet(ResNet):
             num_classes=num_classes,
             zero_init_residual=zero_init_residual,
         )
-        self.dropout_rate = dropout_rate
-        self.dropout = nn.Dropout(self.dropout_rate)
         self.model_base_type = "clf"
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
@@ -112,10 +105,11 @@ class CustomResNet(ResNet):
 
         x = self.avgpool(x)
         latents = torch.flatten(x, 1)
-        x = self.dropout(latents)
         if extra_features is not None:
-            x = torch.cat([x, extra_features.view(latents.size(0), -1)], dim=1)
-        outputs = self.fc(x)
+            latents = torch.cat(
+                [latents, extra_features.view(latents.size(0), -1)], dim=1
+            )
+        outputs = self.fc(latents)
 
         output = {"outputs": outputs, "latents": latents}
         return output

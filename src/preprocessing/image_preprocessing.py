@@ -197,7 +197,6 @@ class ImageDatasetPreprocessor:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-
         def get_nuclear_crops_for_single_image(i, extract_ncmo_features):
             slide_image_names = []
             widths = []
@@ -320,94 +319,6 @@ class ImageDatasetPreprocessor:
         if extract_ncmo_features:
             all_nmco_features = pd.concat(all_nmco_features)
 
-        # for i in tqdm(range(len(self.metadata)), desc="Save nuclear crops"):
-        # nuclei_count = 0
-        # plate = str(self.metadata.iloc[i, :][self.plate_col_name])
-        #
-        # image_file_name = self.metadata.iloc[i, :][self.illum_image_col_name]
-        # label_image_file_name = image_file_name
-        #
-        # image_file_path = os.path.join(self.image_input_dir, plate, image_file_name)
-        # label_image_file_path = os.path.join(
-        #     label_image_input_dir, plate, label_image_file_name
-        # )
-        #
-        # image = tifffile.imread(image_file_path)
-        # label_image = tifffile.imread(label_image_file_path)
-        #
-        # image_metadata.iloc[i, metadata_cols.index(nuclei_count_col_name)] = len(
-        #     np.unique(label_image)
-        # )
-        #
-        # regions = regionprops(label_image=label_image, intensity_image=image)
-        # if extract_ncmo_features:
-        #     nmco_features = compute_nuclear_chromatin_features(
-        #         label_image=label_image, intensity_image=image
-        #     )
-        #
-        # for region in regions:
-        #     width, height = region.image.shape
-        #
-        #     fname_start = image_file_name[: image_file_name.index(".")]
-        #     fname_ending = image_file_name[image_file_name.index(".") :]
-        #     plate_output_dir = os.path.join(output_dir, plate)
-        #
-        #     if not os.path.exists(plate_output_dir):
-        #         os.makedirs(plate_output_dir)
-        #
-        #     if (
-        #         (min_area is None or region.area >= min_area)
-        #         and (max_area is None or region.area <= max_area)
-        #         and (
-        #             max_eccentricity is None
-        #             or region.eccentricity <= max_eccentricity
-        #         )
-        #         and (max_bbarea is None or width * height <= max_bbarea)
-        #         and (min_solidity is None or region.solidity >= min_solidity)
-        #         and (
-        #             min_aspect_ratio is None
-        #             or (region.minor_axis_length / region.major_axis_length)
-        #             >= min_aspect_ratio
-        #         )
-        #     ):
-        #         nuclei_widths.append(width)
-        #         nuclei_heights.append(height)
-        #
-        #         nuclei_minor_axis_lengths.append(region.minor_axis_length)
-        #         nuclei_major_axis_lengths.append(region.major_axis_length)
-        #
-        #         output_file_name = os.path.join(
-        #             plate_output_dir,
-        #             fname_start + "_{}".format(region.label) + fname_ending,
-        #         )
-        #
-        #         # returns convex crop of the segmented object.
-        #         if convex_crop:
-        #             xmin, ymin, xmax, ymax = region.bbox
-        #             cropped = image[xmin:xmax, ymin:ymax] * region.convex_image
-        #         else:
-        #             cropped = region.intensity_image
-        #
-        #         tifffile.imsave(output_file_name, cropped)
-        #         nucleus_metadata = list(self.metadata.iloc[i, :])
-        #         nucleus_metadata[
-        #             metadata_cols.index(self.illum_image_col_name)
-        #         ] = os.path.split(output_file_name)[1]
-        #         slide_image_names.append(fname_start + fname_ending)
-        #         nuclei_metadata.append(nucleus_metadata)
-        #
-        #         nuclei_count += 1
-        #     else:
-        #         if extract_ncmo_features:
-        #             nmco_features = nmco_features.loc[
-        #                 nmco_features["label"] != region.label
-        #             ]
-        #
-        # if extract_ncmo_features:
-        #     all_nmco_features.append(nmco_features)
-        # nuclei_counts.append(nuclei_count)
-        # nuclei_counts_rep.extend([nuclei_count] * nuclei_count)
-
         nuclei_metadata = pd.DataFrame(np.array(nuclei_metadata), columns=metadata_cols)
         selected_cols = [
             "Image_Metadata_Plate",
@@ -479,15 +390,19 @@ class ImageDatasetPreprocessor:
 
         if extract_ncmo_features:
             # all_nmco_features = pd.concat(all_nmco_features)
-            all_nmco_features["image_file"] = np.array(nuclei_metadata.loc[:, "image_file"])
-            all_nmco_features["gene_id"] = np.array(nuclei_metadata.loc[:, "gene_id"])
-            all_nmco_features["gene_symbol"] = np.array(nuclei_metadata.loc[:, "gene_symbol"])
+            all_nmco_features["image_file"] = np.array(
+                nuclei_metadata.loc[:, "image_file"]
+            )
+            all_nmco_features["gene_symbol"] = np.array(
+                nuclei_metadata.loc[:, "gene_symbol"]
+            )
             all_nmco_features = all_nmco_features.drop(columns="label")
 
             # Remove invariant and na features
             all_nmco_features = all_nmco_features.dropna(axis=1)
-            all_nmco_features = all_nmco_features.loc[:, (all_nmco_features != all_nmco_features.iloc[0]).any()]
-
+            all_nmco_features = all_nmco_features.loc[
+                :, (all_nmco_features != all_nmco_features.iloc[0]).any()
+            ]
 
         slide_image_names = list(np.unique(slide_image_names))
         for slide_image_name in tqdm(

@@ -8,8 +8,8 @@ run_params:
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'exclude_features':['image_file', 'gene_id', 'centroid-0', 'centroid-1', 'weighted_centroid-0', 'weighted_centroid-1', 'orientation']}
 
-  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 176, 'hidden_dims': [256, 256, 256]},
-                       'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.005},
+  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 176},
+                       'optimizer_config':{'type':'adam','lr':0.0001, 'weight_decay':0.0005},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'morph_profile'
