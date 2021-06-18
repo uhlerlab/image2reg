@@ -154,7 +154,9 @@ class TorchImageDataset(LabeledDataset):
             self.nmco_features.index = np.array(
                 self.nmco_features.loc[:, image_file_col]
             )
-            self.nmco_features = self.nmco_features.loc[list(self.metadata.loc[:,image_file_col])]
+            self.nmco_features = self.nmco_features.loc[
+                list(self.metadata.loc[:, image_file_col])
+            ]
             self.nmco_features = self.nmco_features.drop(
                 columns=[image_file_col, label_col]
             )
