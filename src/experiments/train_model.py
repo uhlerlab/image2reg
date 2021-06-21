@@ -152,7 +152,9 @@ class TrainModelExperiment(BaseExperiment):
     def extract_and_save_latents(self):
         device = get_device()
         for dataset_type in self.data_loader_dict.keys():
-            save_path = os.path.join(self.output_dir, "{}_latents.csv.gz".format(str(dataset_type)))
+            save_path = os.path.join(
+                self.output_dir, "{}_latents.csv.gz".format(str(dataset_type))
+            )
             save_latents_to_csv_gz(
                 domain_config=self.domain_config,
                 save_path=save_path,

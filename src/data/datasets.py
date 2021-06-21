@@ -19,14 +19,30 @@ from src.utils.basic.general import combine_path
 from src.utils.basic.io import get_file_list
 
 
-class LabeledDataset(Dataset):
+class LabeledSlideDataset(Dataset):
     def __init__(self):
-        super(LabeledDataset, self).__init__()
+        super(LabeledSlideDataset, self).__init__()
         self.labels = None
         self.transform_pipeline = None
+        self.slide_image_labels = None
+        self.slide_image_nuclei_dict = None
+        self.slide_image_names = None
+
+    def create_slide_image_nuclei_dict_labels(self):
+        self.slide_image_nuclei_dict = dict()
+        for i in range(len(self.slide_image_names)):
+            slide_image_name = self.slide_image_names[i]
+            if slide_image_name in self.slide_image_nuclei_dict:
+                self.slide_image_nuclei_dict[slide_image_name].append(i)
+            else:
+                self.slide_image_nuclei_dict[slide_image_name] = [i]
+
+        self.slide_image_labels = np.array(
+            dict(zip(self.slide_image_names, self.labels)).items()
+        )
 
 
-class TorchProfileDataset(LabeledDataset):
+class TorchProfileSlideDataset(LabeledSlideDataset):
     def __init__(
         self,
         feature_label_file: str,
@@ -34,14 +50,15 @@ class TorchProfileDataset(LabeledDataset):
         n_control_samples: int = None,
         target_list: List = None,
         exclude_features: List = None,
+        slide_image_name_col: str = "slide_image_name",
     ):
         super().__init__()
         self.feature_labels = pd.read_csv(feature_label_file, index_col=0)
         self.feature_labels = self.feature_labels.drop(columns=exclude_features)
-        # logging.debug(list(self.feature_labels.columns))
         self.label_col = label_col
         self.n_control_samples = n_control_samples
         self.target_list = target_list
+        self.slide_image_name_col = slide_image_name_col
 
         if target_list is not None:
             self.feature_labels = self.feature_labels.loc[
@@ -72,7 +89,14 @@ class TorchProfileDataset(LabeledDataset):
         le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
 
-        self.features = np.array(self.feature_labels.drop(columns=label_col))
+        self.slide_image_names = np.array(
+            self.feature_labels.loc[:, self.slide_image_name_col]
+        )
+        super().create_slide_image_nuclei_dict_labels()
+
+        self.features = np.array(
+            self.feature_labels.drop(columns=[label_col, self.slide_image_name_col])
+        )
         sc = StandardScaler()
         self.features = sc.fit_transform(self.features)
 
@@ -87,7 +111,7 @@ class TorchProfileDataset(LabeledDataset):
         return sample
 
 
-class TorchImageDataset(LabeledDataset):
+class TorchImageSlideDataset(LabeledSlideDataset):
     def __init__(
         self,
         image_dir,
@@ -95,6 +119,7 @@ class TorchImageDataset(LabeledDataset):
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
+        slide_image_name_col: str = "slide_image_name",
         extra_features: List = None,
         nuclei_density_col: str = "nuclei_count_image",
         elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
@@ -112,6 +137,7 @@ class TorchImageDataset(LabeledDataset):
         self.label_col = label_col
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
         self.extra_features = extra_features
+        self.slide_image_name_col = slide_image_name_col
 
         if target_list is not None:
             self.metadata = self.metadata.loc[
@@ -169,7 +195,9 @@ class TorchImageDataset(LabeledDataset):
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
 
-        self.nuclei_densities = np.array(self.metadata.loc[:, nuclei_density_col]).astype(float)
+        self.nuclei_densities = np.array(
+            self.metadata.loc[:, nuclei_density_col]
+        ).astype(float)
         self.nuclei_densities -= self.nuclei_densities.mean()
         self.nuclei_densities /= self.nuclei_densities.std()
 
@@ -183,6 +211,11 @@ class TorchImageDataset(LabeledDataset):
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
         self.set_transform_pipeline(transform_pipeline)
         self.pseudo_rgb = pseudo_rgb
+
+        self.slide_image_names = np.array(
+            self.metadata.loc[:, self.slide_image_name_col]
+        )
+        super().create_slide_image_nuclei_dict_labels()
 
     def __len__(self):
         return len(self.image_locs)
@@ -236,7 +269,7 @@ class TorchImageDataset(LabeledDataset):
 
 
 class TorchTransformableSubset(Subset):
-    def __init__(self, dataset: LabeledDataset, indices):
+    def __init__(self, dataset: LabeledSlideDataset, indices):
         super().__init__(dataset=dataset, indices=indices)
         # Hacky way to create a independent dataset instance such changes to the dataset of the subset instance are not
         # passed through --> might increase CPU/GPU memory usage linearly

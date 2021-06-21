@@ -77,8 +77,9 @@ def save_latents_to_csv_gz(
         dataset = domain_config.data_loader_dict[dataset_type].dataset
     except KeyError:
         raise RuntimeError(
-            "Unknown dataset_type: {}, expected one of the following: train, val, test"
-            .format(dataset_type)
+            "Unknown dataset_type: {}, expected one of the following: train, val, test".format(
+                dataset_type
+            )
         )
     save_latents_and_labels_to_csv_gz(
         model=model,

@@ -5,13 +5,13 @@ import torch
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 
-from src.data.datasets import LabeledDataset, TorchTransformableSubset
+from src.data.datasets import LabeledSlideDataset, TorchTransformableSubset
 
 
 class BaseDataHandler(object):
     def __init__(
         self,
-        dataset: LabeledDataset,
+        dataset: LabeledSlideDataset,
         batch_size: int = 64,
         num_workers: int = 0,
         transformation_dict: dict = None,
@@ -29,12 +29,13 @@ class BaseDataHandler(object):
 class DataHandler(BaseDataHandler):
     def __init__(
         self,
-        dataset: LabeledDataset,
+        dataset: LabeledSlideDataset,
         batch_size: int = 64,
         num_workers: int = 0,
         transformation_dict: dict = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
+        split_on_slide_level: bool = True,
     ):
         super().__init__(
             dataset=dataset,
@@ -46,11 +47,19 @@ class DataHandler(BaseDataHandler):
         )
         self.train_val_test_datasets_dict = None
         self.data_loader_dict = None
+        self.split_on_slide_level = split_on_slide_level
 
     def stratified_train_val_test_split(self, splits: Iterable) -> None:
-        indices = np.array(list(range(len(self.dataset))))
-        labels = np.array(self.dataset.labels)
         train_portion, val_portion, test_portion = splits[0], splits[1], splits[2]
+
+        if not self.split_on_slide_level:
+            indices = np.array(list(range(len(self.dataset))))
+            labels = np.array(self.dataset.labels)
+        else:
+            indices = np.array(
+                list(range(len(self.dataset.slide_image_nuclei_dict.keys())))
+            )
+            labels = np.array(self.dataset.slide_image_labels)
 
         train_and_val_idc, test_idc = train_test_split(
             indices,
@@ -65,6 +74,23 @@ class DataHandler(BaseDataHandler):
             stratify=labels[train_and_val_idc],
             random_state=self.random_state,
         )
+
+        if self.split_on_slide_level:
+            train_idc = [
+                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                for i in train_idc
+            ]
+            train_idc = np.array(train_idc).flatten()
+            val_idc = [
+                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                for i in val_idc
+            ]
+            val_idc = np.array(val_idc).flatten()
+            test_idc = [
+                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                for i in test_idc
+            ]
+            test_idc = np.array(test_idc).flatten()
 
         train_dataset = TorchTransformableSubset(
             dataset=self.dataset, indices=train_idc
@@ -100,7 +126,7 @@ class DataHandler(BaseDataHandler):
 class DataHandlerCV(BaseDataHandler):
     def __init__(
         self,
-        dataset: LabeledDataset,
+        dataset: LabeledSlideDataset,
         n_folds: int = 4,
         train_val_split: List = [0.8, 0.2],
         batch_size: int = 64,

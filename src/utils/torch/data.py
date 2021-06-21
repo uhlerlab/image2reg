@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from src.data.datasets import TorchImageDataset, TorchProfileDataset
+from src.data.datasets import TorchImageSlideDataset, TorchProfileSlideDataset
 
 
 def init_image_dataset(
@@ -15,13 +15,13 @@ def init_image_dataset(
     pseudo_rgb: bool = False,
     extra_features: List = None,
     nmco_feature_file: str = None,
-) -> TorchImageDataset:
+) -> TorchImageSlideDataset:
     logging.debug(
         "Load image data set from {} and label information from {}.".format(
             image_dir, metadata_file
         )
     )
-    image_dataset = TorchImageDataset(
+    image_dataset = TorchImageSlideDataset(
         image_dir=image_dir,
         metadata_file=metadata_file,
         image_file_col=image_file_col,
@@ -45,7 +45,7 @@ def init_profile_dataset(
     exclude_features: List = None,
 ):
     logging.debug("Load image data set from {}.".format(feature_label_file))
-    profile_dataset = TorchProfileDataset(
+    profile_dataset = TorchProfileSlideDataset(
         feature_label_file=feature_label_file,
         label_col=label_col,
         target_list=target_list,
