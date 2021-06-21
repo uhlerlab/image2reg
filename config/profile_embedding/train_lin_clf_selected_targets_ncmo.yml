@@ -6,7 +6,7 @@ run_params:
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'gene_symbol',
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
-                      'exclude_features':['image_file', 'gene_id', 'centroid-0', 'centroid-1', 'weighted_centroid-0', 'weighted_centroid-1', 'orientation']}
+                      'exclude_features':['image_file']}
 
   model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 176},
                        'optimizer_config':{'type':'adam','lr':0.0001, 'weight_decay':0.0005},

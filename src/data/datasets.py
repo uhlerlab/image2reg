@@ -169,7 +169,10 @@ class TorchImageDataset(LabeledDataset):
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
 
-        self.nuclei_densities = np.array(self.metadata.loc[:, nuclei_density_col])
+        self.nuclei_densities = np.array(self.metadata.loc[:, nuclei_density_col]).astype(float)
+        self.nuclei_densities -= self.nuclei_densities.mean()
+        self.nuclei_densities /= self.nuclei_densities.std()
+
         self.elongation_ratios = np.array(self.metadata.loc[:, elongation_ratio_col])
 
         self.label_weights = (

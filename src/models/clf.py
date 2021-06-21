@@ -231,7 +231,7 @@ class SimpleDiscriminator(nn.Module, ABC):
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
         outputs = self.model(input)
-        return {"outputs": outputs, "latents": None}
+        return {"outputs": outputs, "latents": input}
 
 
 class SimpleClassifier(nn.Module):
@@ -268,4 +268,4 @@ class SimpleClassifier(nn.Module):
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
         outputs = self.model(input)
-        return {"outputs": outputs, "latents": None}
+        return {"outputs": outputs, "latents": input}

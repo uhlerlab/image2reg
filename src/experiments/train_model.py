@@ -145,13 +145,14 @@ class TrainModelExperiment(BaseExperiment):
             save_freq=self.save_freq,
         )
 
-    def load_model(self, weights_fname):
+    def load_models(self, weights_fname):
         weights = torch.load(weights_fname)
-        self.domain_config.domain_model_config.classifier.load_state_dict(weights)
+        self.domain_config.domain_model_config.model.load_state_dict(weights)
 
-    def extract_and_save_latents(self, save_path: str):
+    def extract_and_save_latents(self):
         device = get_device()
         for dataset_type in self.data_loader_dict.keys():
+            save_path = os.path.join(self.output_dir, "{}_latents.csv.gz".format(str(dataset_type)))
             save_latents_to_csv_gz(
                 domain_config=self.domain_config,
                 save_path=save_path,
