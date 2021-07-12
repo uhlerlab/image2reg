@@ -5,10 +5,21 @@ run_params:
   data_config: {'feature_label_file':'data/images/metadata/nuclei_profiles_hoechst_cleaned.csv',
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'labels',
-                      'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"]}
+                      'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
+                      'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",
+                          "Nuclei_Location_CenterMassIntensity_X_Hoechst",
+                          "Nuclei_Location_CenterMassIntensity_Y_Hoechst",
+                          "Nuclei_Location_Center_X", "Nuclei_Location_Center_Y",
+                          "Nuclei_Location_MaxIntensity_X_Hoechst", "Nuclei_Location_MaxIntensity_X_Hoechst",
+                          "Nuclei_Neighbors_FirstClosestObjectNumber_1",
+                          "Nuclei_Neighbors_SecondClosestObjectNumber_1",
+                          "Nuclei_AreaShape_Orientation", "Nuclei_Neighbors_AngleBetweenNeighbors_1",
+                          "Nuclei_Neighbors_FirstClosestDistance_1", "Nuclei_Neighbors_SecondClosestDistance_1",
+                          "Nuclei_Neighbors_PercentTouching_1"],
+                      'slide_image_name_col': "ImageNumber"}
 
-  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 135},
-                       'optimizer_config':{'type':'adam','lr':0.0001, 'weight_decay':0.0005},
+  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 121},
+                       'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'morph_profile'

@@ -7,7 +7,7 @@ from src.helper.data import DataHandler
 from src.utils.torch.data import init_image_dataset, init_profile_dataset
 from src.utils.torch.evaluation import (
     visualize_latent_space_pca_walk,
-    save_latents_to_csv_gz,
+    save_latents_to_hdf,
 )
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
@@ -53,9 +53,11 @@ class TrainModelExperiment(BaseExperiment):
         self.data_set = None
         self.data_transform_pipeline_dict = None
         self.data_loader_dict = None
+        self.data_set = None
         self.data_key = None
         self.label_key = None
         self.extra_feature_key = None
+        self.index_key = None
         self.domain_config = None
 
         self.trained_model = None
@@ -72,12 +74,16 @@ class TrainModelExperiment(BaseExperiment):
             and len(self.data_config["extra_features"]) > 0
         ):
             self.extra_feature_key = "extra_features"
+        if "index_key" in self.data_config:
+            self.index_key = self.data_config.pop("index_key")
 
         self.data_set = init_image_dataset(**self.data_config)
 
     def initialize_profile_data_set(self):
         self.data_key = self.data_config.pop("data_key")
         self.label_key = self.data_config.pop("label_key")
+        if "index_key" in self.data_config:
+            self.index_key = self.data_config.pop("index_key")
         if "extra_feature_key" in self.data_config:
             self.extra_feature_key = self.data_config.pop("extra_feature_key")
 
@@ -113,6 +119,7 @@ class TrainModelExperiment(BaseExperiment):
         dh.get_data_loader_dict(shuffle=True)
         self.data_loader_dict = dh.data_loader_dict
         self.label_weights = dh.dataset.label_weights
+        self.dataset = dh.dataset
 
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
@@ -127,6 +134,7 @@ class TrainModelExperiment(BaseExperiment):
             data_loader_dict=self.data_loader_dict,
             data_key=self.data_key,
             label_key=self.label_key,
+            index_key=self.index_key,
             extra_feature_key=self.extra_feature_key,
             optimizer_dict=optimizer_config,
             loss_fct_dict=loss_config,
@@ -151,16 +159,24 @@ class TrainModelExperiment(BaseExperiment):
 
     def extract_and_save_latents(self):
         device = get_device()
-        for dataset_type in self.data_loader_dict.keys():
+        for dataset_type in ["val","test"]:
             save_path = os.path.join(
-                self.output_dir, "{}_latents.csv.gz".format(str(dataset_type))
+                self.output_dir, "{}_latents.h5".format(str(dataset_type))
             )
-            save_latents_to_csv_gz(
+            save_latents_to_hdf(
                 domain_config=self.domain_config,
                 save_path=save_path,
                 dataset_type=dataset_type,
                 device=device,
             )
+        save_path = os.path.join(self.output_dir, "all_latents.h5")
+        self.dataset.set_transform_pipeline(self.data_transform_pipeline_dict["val"])
+        save_latents_to_hdf(
+            domain_config=self.domain_config,
+            save_path=save_path,
+            dataset=self.dataset,
+            device=device,
+        )
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()

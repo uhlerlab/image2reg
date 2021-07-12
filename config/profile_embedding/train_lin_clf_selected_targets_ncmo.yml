@@ -6,15 +6,16 @@ run_params:
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'gene_symbol',
                       'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
-                      'exclude_features':['image_file']}
+                      'exclude_features':['image_file'],
+                      'slide_image_name_col': "slide_image_name"}
 
   model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 176},
-                       'optimizer_config':{'type':'adam','lr':0.0001, 'weight_decay':0.0005},
+                       'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.00005},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'morph_profile'
   num_epochs: 2000
-  early_stopping: 20
+  early_stopping: 100
   train_val_test_split: [0.7, 0.2, 0.1]
   batch_size: 32
   random_state: 1234

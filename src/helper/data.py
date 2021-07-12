@@ -77,20 +77,20 @@ class DataHandler(BaseDataHandler):
 
         if self.split_on_slide_level:
             train_idc = [
-                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
                 for i in train_idc
             ]
-            train_idc = np.array(train_idc).flatten()
+            train_idc = np.concatenate(train_idc)
             val_idc = [
-                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
                 for i in val_idc
             ]
-            val_idc = np.array(val_idc).flatten()
+            val_idc = np.concatenate(val_idc)
             test_idc = [
-                np.array(list(self.dataset.slide_image_nuclei_dict.items())[i])
+                np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
                 for i in test_idc
             ]
-            test_idc = np.array(test_idc).flatten()
+            test_idc = np.concatenate(test_idc)
 
         train_dataset = TorchTransformableSubset(
             dataset=self.dataset, indices=train_idc
