@@ -10,6 +10,7 @@ def init_image_dataset(
     image_file_col: str = "image_file",
     label_col: str = "gene_symbol",
     plate_col: str = "plate",
+    slide_image_name_col: str = "slide_image_name",
     target_list: List = None,
     n_control_samples=None,
     pseudo_rgb: bool = False,
@@ -32,6 +33,7 @@ def init_image_dataset(
         pseudo_rgb=pseudo_rgb,
         nmco_feature_file=nmco_feature_file,
         extra_features=extra_features,
+        slide_image_name_col=slide_image_name_col,
     )
     logging.debug("Samples loaded: {}".format(len(image_dataset)))
     return image_dataset
@@ -43,6 +45,7 @@ def init_profile_dataset(
     n_control_samples: int = None,
     target_list: List = None,
     exclude_features: List = None,
+    slide_image_name_col: str = "slide_image_name",
 ):
     logging.debug("Load image data set from {}.".format(feature_label_file))
     profile_dataset = TorchProfileSlideDataset(
@@ -51,6 +54,7 @@ def init_profile_dataset(
         target_list=target_list,
         n_control_samples=n_control_samples,
         exclude_features=exclude_features,
+        slide_image_name_col=slide_image_name_col,
     )
     logging.debug("Samples loaded: {}".format(len(profile_dataset)))
     return profile_dataset

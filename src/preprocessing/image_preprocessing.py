@@ -396,6 +396,7 @@ class ImageDatasetPreprocessor:
             all_nmco_features["gene_symbol"] = np.array(
                 nuclei_metadata.loc[:, "gene_symbol"]
             )
+            all_nmco_features["slide_image_name"] = np.array(slide_image_names)
             all_nmco_features = all_nmco_features.drop(columns="label")
 
             # Remove invariant and na features

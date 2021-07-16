@@ -1,6 +1,7 @@
 import copy
 import logging
 import os
+from abc import ABC
 from collections import Counter
 from typing import List
 
@@ -19,7 +20,7 @@ from src.utils.basic.general import combine_path
 from src.utils.basic.io import get_file_list
 
 
-class LabeledSlideDataset(Dataset):
+class LabeledSlideDataset(Dataset, ABC):
     def __init__(self):
         super(LabeledSlideDataset, self).__init__()
         self.labels = None
@@ -38,7 +39,7 @@ class LabeledSlideDataset(Dataset):
                 self.slide_image_nuclei_dict[slide_image_name] = [i]
 
         self.slide_image_labels = np.array(
-            dict(zip(self.slide_image_names, self.labels)).items()
+            list(dict(zip(self.slide_image_names, self.labels)).values())
         )
 
 
@@ -50,6 +51,7 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
         n_control_samples: int = None,
         target_list: List = None,
         exclude_features: List = None,
+        image_name_col:str = "image_name",
         slide_image_name_col: str = "slide_image_name",
     ):
         super().__init__()
@@ -90,13 +92,12 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
 
         self.slide_image_names = np.array(
-            self.feature_labels.loc[:, self.slide_image_name_col]
+            self.feature_labels.loc[:, slide_image_name_col]
         )
         super().create_slide_image_nuclei_dict_labels()
 
         self.features = np.array(
-            self.feature_labels.drop(columns=[label_col, self.slide_image_name_col])
-        )
+            self.feature_labels.drop(columns=list(set([label_col, slide_image_name_col, image_name_col]).intersection(set(self.feature_labels.columns)))))
         sc = StandardScaler()
         self.features = sc.fit_transform(self.features)
 
@@ -184,7 +185,11 @@ class TorchImageSlideDataset(LabeledSlideDataset):
                 list(self.metadata.loc[:, image_file_col])
             ]
             self.nmco_features = self.nmco_features.drop(
-                columns=[image_file_col, label_col]
+                columns=list(
+                    set([image_file_col, label_col, slide_image_name_col]).intersection(
+                        set(list(self.nmco_features.columns))
+                    )
+                )
             )
 
             self.nmco_features = StandardScaler().fit_transform(self.nmco_features)
@@ -195,13 +200,17 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         le = LabelEncoder().fit(self.labels)
         self.labels = le.transform(self.labels)
 
-        self.nuclei_densities = np.array(
-            self.metadata.loc[:, nuclei_density_col]
-        ).astype(float)
-        self.nuclei_densities -= self.nuclei_densities.mean()
-        self.nuclei_densities /= self.nuclei_densities.std()
+        if nuclei_density_col in self.metadata.columns:
+            self.nuclei_densities = np.array(
+                self.metadata.loc[:, nuclei_density_col]
+            ).astype(float)
+            self.nuclei_densities -= self.nuclei_densities.mean()
+            self.nuclei_densities /= self.nuclei_densities.std()
 
-        self.elongation_ratios = np.array(self.metadata.loc[:, elongation_ratio_col])
+        if elongation_ratio_col in self.metadata.columns:
+            self.elongation_ratios = np.array(
+                self.metadata.loc[:, elongation_ratio_col]
+            )
 
         self.label_weights = (
             len(self.labels) / np.unique(self.labels, return_counts=True)[1]
@@ -212,9 +221,12 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         self.set_transform_pipeline(transform_pipeline)
         self.pseudo_rgb = pseudo_rgb
 
-        self.slide_image_names = np.array(
-            self.metadata.loc[:, self.slide_image_name_col]
-        )
+        if slide_image_name_col in self.metadata.columns:
+            self.slide_image_names = np.array(
+                self.metadata.loc[:, slide_image_name_col]
+            )
+        else:
+            self.slide_image_names = np.array(self.metadata.loc[:, image_file_col])
         super().create_slide_image_nuclei_dict_labels()
 
     def __len__(self):
@@ -229,6 +241,8 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             "id": image_loc,
             "image": image,
             "label": gene_label,
+            "image_file": os.path.split(image_loc)[1],
+            "slide_image_file": self.slide_image_names[idx],
         }
 
         if self.extra_features is not None:

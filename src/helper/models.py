@@ -38,6 +38,7 @@ class DomainConfig(object):
         data_loader_dict: dict,
         data_key: str,
         label_key: str,
+        index_key: str = None,
         train_model: bool = True,
         extra_feature_key: str = None,
     ):
@@ -52,6 +53,7 @@ class DomainConfig(object):
         self.data_key = data_key
         self.label_key = label_key
         self.extra_feature_key = extra_feature_key
+        self.index_key = index_key
 
 
 class LatentClassifierConfig(object):

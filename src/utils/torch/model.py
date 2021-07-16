@@ -43,6 +43,7 @@ def get_domain_configuration(
     data_loader_dict: dict,
     data_key: str,
     label_key: str,
+    index_key: str = None,
     extra_feature_key: str = None,
     train_model: bool = True,
 ) -> DomainConfig:
@@ -89,6 +90,7 @@ def get_domain_configuration(
         data_loader_dict=data_loader_dict,
         data_key=data_key,
         label_key=label_key,
+        index_key=index_key,
         extra_feature_key=extra_feature_key,
         train_model=train_model,
     )

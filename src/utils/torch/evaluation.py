@@ -13,7 +13,7 @@ from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig
-from src.utils.basic.export import dict_to_csv_gz
+from src.utils.basic.export import dict_to_hdf
 from src.utils.basic.visualization import plot_image_seq
 from src.utils.torch.general import get_device
 
@@ -66,38 +66,34 @@ def get_latent_representations_for_model(
     return latent_dict
 
 
-def save_latents_to_csv_gz(
+def save_latents_to_hdf(
     domain_config: DomainConfig,
     save_path: str,
     dataset_type: str = "val",
+    dataset: Dataset = None,
     device: str = "cuda:0",
 ):
     model = domain_config.domain_model_config.model
-    try:
-        dataset = domain_config.data_loader_dict[dataset_type].dataset
-    except KeyError:
-        raise RuntimeError(
-            "Unknown dataset_type: {}, expected one of the following: train, val, test".format(
-                dataset_type
+    if dataset is None:
+        try:
+            dataset = domain_config.data_loader_dict[dataset_type].dataset
+        except KeyError:
+            raise RuntimeError(
+                "Unknown dataset_type: {}, expected one of the following: train, val,"
+                " test".format(dataset_type)
             )
-        )
-    save_latents_and_labels_to_csv_gz(
-        model=model,
-        dataset=dataset,
-        save_path=save_path,
-        data_key=domain_config.data_key,
-        label_key=domain_config.label_key,
-        extra_feature_key=domain_config.extra_feature_key,
-        device=device,
-    )
+    save_latents_and_labels_to_hdf(model=model, dataset=dataset, save_path=save_path, data_key=domain_config.data_key,
+                                   label_key=domain_config.label_key, index_key=domain_config.index_key,
+                                   extra_feature_key=domain_config.extra_feature_key, device=device)
 
 
-def save_latents_and_labels_to_csv_gz(
+def save_latents_and_labels_to_hdf(
     model: Module,
     dataset: Dataset,
     save_path: str,
     data_key: str = "image",
     label_key: str = "label",
+    index_key: str = "id",
     extra_feature_key: str = None,
     device: str = "cuda:0",
 ):
@@ -106,6 +102,7 @@ def save_latents_and_labels_to_csv_gz(
         dataset=dataset,
         data_key=data_key,
         label_key=label_key,
+        index_key=index_key,
         extra_feature_key=extra_feature_key,
         device=device,
     )
@@ -115,14 +112,14 @@ def save_latents_and_labels_to_csv_gz(
         latents = data["latents"]
         for i in range(latents.shape[1]):
             expanded_data["zs_{}".format(i)] = latents[:, i]
-    if "ids" in data:
-        index = data["ids"]
+    if "index" in data:
+        index = data["index"]
     else:
         index = None
     if "labels" in data:
         expanded_data["labels"] = data["labels"]
 
-    dict_to_csv_gz(data=expanded_data, save_path=save_path, index=index)
+    dict_to_hdf(data=expanded_data, save_path=save_path, index=index)
 
 
 def save_latents_from_model(
@@ -137,7 +134,7 @@ def save_latents_from_model(
 
     domain_name = domain_config.name
     for dataset_type in dataset_types:
-        save_latents_to_csv_gz(
+        save_latents_to_hdf(
             domain_config=domain_config,
             save_path=output_dir
             + "/{}_latent_representations_{}.csv.gz".format(domain_name, dataset_type),
