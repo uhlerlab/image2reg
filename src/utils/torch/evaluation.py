@@ -82,9 +82,16 @@ def save_latents_to_hdf(
                 "Unknown dataset_type: {}, expected one of the following: train, val,"
                 " test".format(dataset_type)
             )
-    save_latents_and_labels_to_hdf(model=model, dataset=dataset, save_path=save_path, data_key=domain_config.data_key,
-                                   label_key=domain_config.label_key, index_key=domain_config.index_key,
-                                   extra_feature_key=domain_config.extra_feature_key, device=device)
+    save_latents_and_labels_to_hdf(
+        model=model,
+        dataset=dataset,
+        save_path=save_path,
+        data_key=domain_config.data_key,
+        label_key=domain_config.label_key,
+        index_key=domain_config.index_key,
+        extra_feature_key=domain_config.extra_feature_key,
+        device=device,
+    )
 
 
 def save_latents_and_labels_to_hdf(

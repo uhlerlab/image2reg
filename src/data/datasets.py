@@ -51,7 +51,7 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
         n_control_samples: int = None,
         target_list: List = None,
         exclude_features: List = None,
-        image_name_col:str = "image_name",
+        image_name_col: str = "image_name",
         slide_image_name_col: str = "slide_image_name",
     ):
         super().__init__()
@@ -97,7 +97,14 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
         super().create_slide_image_nuclei_dict_labels()
 
         self.features = np.array(
-            self.feature_labels.drop(columns=list(set([label_col, slide_image_name_col, image_name_col]).intersection(set(self.feature_labels.columns)))))
+            self.feature_labels.drop(
+                columns=list(
+                    set([label_col, slide_image_name_col, image_name_col]).intersection(
+                        set(self.feature_labels.columns)
+                    )
+                )
+            )
+        )
         sc = StandardScaler()
         self.features = sc.fit_transform(self.features)
 

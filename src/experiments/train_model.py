@@ -159,7 +159,7 @@ class TrainModelExperiment(BaseExperiment):
 
     def extract_and_save_latents(self):
         device = get_device()
-        for dataset_type in ["val","test"]:
+        for dataset_type in ["val", "test"]:
             save_path = os.path.join(
                 self.output_dir, "{}_latents.h5".format(str(dataset_type))
             )
