@@ -62,8 +62,34 @@ class SimpleConvClassifier(Module):
         self.device = get_device()
 
     def forward(self, inputs: Tensor, extra_features: Tensor = None) -> dict:
-        latents = self.encoder(inputs.to(self.device))
+        latents = self.encoder(inputs.float().to(self.device))
         latents = torch.flatten(latents, 1)
+        if extra_features is not None:
+            latents = torch.cat([latents, extra_features], dim=1)
+        outputs = self.output_layer(latents)
+        output = {"outputs": outputs, "latents": latents}
+        return output
+
+
+class ModelEnsemble(nn.Module):
+    def __init__(self, models, input_dim: int, latent_dim: int, n_output_nodes: int):
+        super().__init__()
+        self.models = nn.ModuleList(models)
+        self.encoder = nn.Linear(input_dim, latent_dim)
+        self.output_layer = nn.Sequential(
+            nn.PReLU(), nn.Linear(latent_dim, n_output_nodes)
+        )
+        self.device = get_device()
+        # self.models.to(self.device)
+        self.model_base_type = "clf"
+
+    def forward(self, inputs: List[Tensor], extra_features: Tensor = None) -> dict:
+        outputs = []
+
+        for i in range(len(self.models)):
+            output = self.models[i](inputs[i].to(self.device))
+            outputs.append(output["outputs"])
+        latents = self.encoder(torch.cat(outputs, dim=1))
         if extra_features is not None:
             latents = torch.cat([latents, extra_features], dim=1)
         outputs = self.output_layer(latents)
@@ -86,6 +112,7 @@ class CustomResNet(ResNet):
             zero_init_residual=zero_init_residual,
         )
         self.model_base_type = "clf"
+        self.device = get_device()
 
     def _make_layer(self, block, planes, blocks, stride=1, dilate=False):
         return super()._make_layer(
@@ -93,6 +120,7 @@ class CustomResNet(ResNet):
         )
 
     def forward(self, x: Tensor, extra_features: Tensor = None) -> dict:
+        x = x.float().to(self.device)
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -204,6 +232,7 @@ class SimpleDiscriminator(nn.Module, ABC):
         self.n_classes = n_classes
         self.trainable = trainable
         self.extra_feature_dim = extra_feature_dim
+        self.device = get_device()
         self.model_base_type = "clf"
 
         if hidden_dims is not None:
@@ -230,7 +259,7 @@ class SimpleDiscriminator(nn.Module, ABC):
     def forward(self, input: Tensor, extra_features: Tensor = None) -> dict:
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
-        outputs = self.model(input)
+        outputs = self.model(input.float().to(self.device))
         return {"outputs": outputs, "latents": input}
 
 
@@ -240,6 +269,7 @@ class SimpleClassifier(nn.Module):
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
         self.n_output_nodes = n_output_nodes
+        self.device = get_device()
         self.model_base_type = "clf"
 
         modules = []
@@ -267,5 +297,5 @@ class SimpleClassifier(nn.Module):
     def forward(self, input: Tensor, extra_features: Tensor = None) -> dict:
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
-        outputs = self.model(input)
+        outputs = self.model(input.float().to(self.device))
         return {"outputs": outputs, "latents": input}

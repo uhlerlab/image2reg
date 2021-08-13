@@ -140,7 +140,7 @@ def plot_edge_weight_dist_nodes(graph, nodes, figsize=[8, 6], title="", bins=50)
         source = edge[0]
         target = edge[1]
         cost = edge[-1]["cost"]
-        if source in nodes:
+        if source in nodes or target in nodes:
             edge_costs.append(cost)
     g = sns.displot(
         edge_costs,

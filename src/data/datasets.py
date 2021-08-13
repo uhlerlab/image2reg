@@ -17,7 +17,6 @@ from torchvision import transforms
 from skimage.io import imread
 
 from src.utils.basic.general import combine_path
-from src.utils.basic.io import get_file_list
 
 
 class LabeledSlideDataset(Dataset, ABC):
@@ -287,6 +286,96 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             image = rgbimg
         image = self.transform_pipeline(image)
         return image
+
+
+class TorchMultiImageSlideDataset(TorchImageSlideDataset):
+    def __init__(
+        self,
+        nuclei_image_dir,
+        nuclei_metadata_file,
+        slide_image_dir,
+        image_file_col: str = "image_file",
+        plate_col: str = "plate",
+        label_col: str = "gene_symbol",
+        slide_image_name_col: str = "slide_image_name",
+        extra_features: List = None,
+        nuclei_density_col: str = "nuclei_count_image",
+        elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
+        target_list: List = None,
+        n_control_samples: int = None,
+        transform_pipeline: transforms.Compose = None,
+        pseudo_rgb: bool = False,
+        nmco_feature_file: str = None,
+    ):
+        super().__init__(
+            image_dir=nuclei_image_dir,
+            metadata_file=nuclei_metadata_file,
+            image_file_col=image_file_col,
+            plate_col=plate_col,
+            label_col=label_col,
+            slide_image_name_col=slide_image_name_col,
+            extra_features=extra_features,
+            nuclei_density_col=nuclei_density_col,
+            elongation_ratio_col=elongation_ratio_col,
+            target_list=target_list,
+            n_control_samples=n_control_samples,
+            transform_pipeline=transform_pipeline,
+            pseudo_rgb=pseudo_rgb,
+            nmco_feature_file=nmco_feature_file,
+        )
+        self.nuclei_image_dir = nuclei_image_dir
+        self.nuclei_metadata = self.metadata
+        self.slide_image_dir = slide_image_dir
+
+        self.nuclei_image_locs = self.image_locs
+        self.slide_image_locs = np.apply_along_axis(
+            combine_path,
+            0,
+            [
+                np.repeat(self.slide_image_dir, len(self.metadata)).astype(str),
+                np.array(self.metadata.loc[:, self.plate_col], dtype=str),
+                np.array(self.metadata.loc[:, self.slide_image_name_col], dtype=str),
+            ],
+        ).astype(object)
+
+    def __len__(self):
+        return super().__len__()
+
+    def __getitem__(self, idx):
+        nuclei_image_loc = self.nuclei_image_locs[idx]
+        slide_image_loc = self.slide_image_locs[idx]
+        nuclei_image = self.process_image(nuclei_image_loc)
+        slide_image = self.process_image(slide_image_loc)
+        gene_label = self.labels[idx]
+
+        sample = {
+            "id": nuclei_image_loc,
+            "images": [nuclei_image, slide_image],
+            "label": gene_label,
+            "image_file": os.path.split(nuclei_image_loc)[1],
+            "slide_image_file": os.path.split(slide_image_loc)[1],
+        }
+
+        if self.extra_features is not None:
+            extra_feature_vec = []
+            if "nuclear_density" in self.extra_features:
+                extra_feature_vec.append(self.nuclei_densities[idx])
+            if "elongation_ratio" in self.extra_features:
+                extra_feature_vec.append(self.elongation_ratios[idx])
+            if "nmco" in self.extra_features:
+                extra_feature_vec.extend(list(self.nmco_features[idx]))
+            extra_feature_vec = torch.FloatTensor(np.array(extra_feature_vec).flatten())
+            sample["extra_features"] = extra_feature_vec
+
+        return sample
+
+    def set_transform_pipeline(
+        self, transform_pipeline: transforms.Compose = None
+    ) -> None:
+        super().set_transform_pipeline(transform_pipeline)
+
+    def process_image(self, image_loc: str) -> Tensor:
+        return super().process_image(image_loc)
 
 
 class TorchTransformableSubset(Subset):

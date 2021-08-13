@@ -1,3 +1,5 @@
+from typing import List
+
 import torch
 from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
 from torch.optim import Adam, RMSprop
@@ -20,6 +22,7 @@ from src.models.clf import (
     resnet152,
     SimpleConvClassifier,
     SimpleClassifier,
+    ModelEnsemble,
 )
 from src.utils.torch.general import get_device
 
@@ -35,6 +38,39 @@ def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
     return optimizer
 
 
+def initialize_model_ensemble(
+    input_dim: int, n_output_nodes: int, latent_dim: int, component_dicts: List[dict]
+):
+    models = []
+    for component_dict in component_dicts:
+        models.append(get_model_from_model_dict(component_dict))
+    model = ModelEnsemble(
+        input_dim=input_dim,
+        latent_dim=latent_dim,
+        models=models,
+        n_output_nodes=n_output_nodes,
+    )
+    return model
+
+
+def get_model_from_model_dict(model_dict):
+    model_type = model_dict.pop("type")
+    if model_type.lower() == "vanillaconvae":
+        model = VanillaConvAE(**model_dict)
+    elif model_type == "ensemble":
+        model = initialize_model_ensemble(**model_dict)
+    elif "resnet" in model_type.lower():
+        model = initialize_imagenet_model(model_name=model_type, **model_dict)
+    elif model_type.lower() == "simpleconvclf":
+        model = SimpleConvClassifier(**model_dict)
+    elif model_type.lower() == "simpleclassifier":
+        model = SimpleClassifier(**model_dict)
+    else:
+        raise NotImplementedError('Unknown classifier type "{}"'.format(model_type))
+
+    return model
+
+
 def get_domain_configuration(
     name: str,
     model_dict: dict,
@@ -48,18 +84,7 @@ def get_domain_configuration(
     train_model: bool = True,
 ) -> DomainConfig:
 
-    model_type = model_dict.pop("type")
-    if model_type.lower() == "vanillaconvae":
-        model = VanillaConvAE(**model_dict)
-    elif "resnet" in model_type.lower():
-        model = initialize_imagenet_model(model_name=model_type, **model_dict)
-    elif model_type.lower() == "simpleconvclf":
-        model = SimpleConvClassifier(**model_dict)
-    elif model_type.lower() == "simpleclassifier":
-        model = SimpleClassifier(**model_dict)
-    else:
-        raise NotImplementedError('Unknown classifier type "{}"'.format(model_type))
-
+    model = get_model_from_model_dict(model_dict)
     optimizer = get_optimizer_for_model(optimizer_dict=optimizer_dict, model=model)
 
     loss_fct_type = loss_fct_dict.pop("type")

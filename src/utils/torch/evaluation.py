@@ -38,7 +38,7 @@ def get_latent_representations_for_model(
     for (idx, sample) in enumerate(
         tqdm(dataloader, desc="Compute latents for the evaluation")
     ):
-        input = sample[data_key].to(device)
+        input = sample[data_key]
         if label_key is not None:
             labels.extend(sample[label_key].detach().cpu().numpy())
         if index_key in sample:
@@ -194,7 +194,8 @@ def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"
     all_preds = []
 
     for i, sample in enumerate(dataloader):
-        inputs = sample[domain_config.data_key].to(device)
+        # inputs = sample[domain_config.data_key].to(device)
+        inputs = sample[domain_config.data_key]
         labels = sample[domain_config.label_key]
         if domain_config.extra_feature_key is not None:
             extra_features = sample[domain_config.extra_feature_key].float().to(device)

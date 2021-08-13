@@ -13,7 +13,7 @@ class BaseDataHandler(object):
         self,
         dataset: LabeledSlideDataset,
         batch_size: int = 64,
-        num_workers: int = 0,
+        num_workers: int = 10,
         transformation_dict: dict = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
@@ -31,7 +31,7 @@ class DataHandler(BaseDataHandler):
         self,
         dataset: LabeledSlideDataset,
         batch_size: int = 64,
-        num_workers: int = 0,
+        num_workers: int = 10,
         transformation_dict: dict = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
@@ -130,10 +130,11 @@ class DataHandlerCV(BaseDataHandler):
         n_folds: int = 4,
         train_val_split: List = [0.8, 0.2],
         batch_size: int = 64,
-        num_workers: int = 0,
+        num_workers: int = 10,
         transformation_dict: dict = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
+        split_on_slide_level: bool = True,
     ):
         super().__init__(
             dataset=dataset,
@@ -152,21 +153,25 @@ class DataHandlerCV(BaseDataHandler):
         # The test dataset will be the hold-out fold.
         self.train_val_test_datasets = None
         self.data_loader_dicts = None
+        self.split_on_slide_level = split_on_slide_level
 
     def stratified_kfold_split(self):
         splitter = StratifiedKFold(
-            n_splits=self.n_folds, shuffle=False, random_state=self.random_state
+            n_splits=self.n_folds, shuffle=True, random_state=self.random_state
         )
-        indices = np.array(list(range(len(self.dataset))))
-        labels = np.array(self.dataset.labels)
+        if not self.split_on_slide_level:
+            indices = np.array(list(range(len(self.dataset))))
+            labels = np.array(self.dataset.labels)
+        else:
+            indices = np.array(
+                list(range(len(self.dataset.slide_image_nuclei_dict.keys())))
+            )
+            labels = np.array(self.dataset.slide_image_labels)
 
         if self.train_val_test_datasets is None:
             self.train_val_test_datasets = []
 
         for train_fold_idc, test_fold_idc in splitter.split(X=indices, y=labels):
-            test_dataset = TorchTransformableSubset(
-                dataset=self.dataset, indices=test_fold_idc
-            )
 
             # Split train_fold into train and validation set
             train_idc, val_idc = train_test_split(
@@ -175,11 +180,35 @@ class DataHandlerCV(BaseDataHandler):
                 stratify=labels[train_fold_idc],
                 random_state=self.random_state,
             )
+
+            if self.split_on_slide_level:
+                train_idc = [
+                    np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
+                    for i in train_idc
+                ]
+                train_idc = np.concatenate(train_idc)
+
+                val_idc = [
+                    np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
+                    for i in val_idc
+                ]
+                val_idc = np.concatenate(val_idc)
+
+                test_idc = [
+                    np.array(list(self.dataset.slide_image_nuclei_dict.values())[i])
+                    for i in test_fold_idc
+                ]
+                test_idc = np.concatenate(test_idc)
+
             train_dataset = TorchTransformableSubset(
                 dataset=self.dataset, indices=train_idc
             )
             val_dataset = TorchTransformableSubset(
                 dataset=self.dataset, indices=val_idc
+            )
+
+            test_dataset = TorchTransformableSubset(
+                dataset=self.dataset, indices=test_idc
             )
 
             train_val_test_dataset_dict = {

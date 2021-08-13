@@ -35,7 +35,7 @@ def compute_node_prize(graph, node, terminals, alpha, k=None):
         else:
             try:
                 terminal_shortest_path_length = nx.shortest_path_length(
-                graph, source=node, target=terminal
+                    graph, source=node, target=terminal
                 )
             except NetworkXNoPath:
                 terminal_shortest_path_length = np.infty
@@ -128,7 +128,7 @@ def compute_minimum_terminal_distance(graph, terminals):
             else:
                 try:
                     terminal_shortest_path_length = nx.shortest_path_length(
-                    graph, source=node, target=terminal
+                        graph, source=node, target=terminal
                     )
                 except NetworkXNoPath:
                     terminal_shortest_path_length = np.infty
@@ -231,7 +231,7 @@ def run_pcsf_sensitivity_analyses(
                     graph.terminals = np.where(
                         graph.node_attributes["terminal"] == True
                     )[0]
-                    #graph.prizes = np.array(prizes_df.loc[:, "prize"])
+                    # graph.prizes = np.array(prizes_df.loc[:, "prize"])
                     vertex_indices, edge_indices = graph.pcsf()
                     tree, augmented_tree = output_tree_as_networkx(
                         graph, vertex_indices, edge_indices
@@ -261,9 +261,8 @@ def run_st_analyses(
     )
     return steiner_tree, augmented_steiner_tree
 
-def knn_expansion(
-    graph, steiner_tree, terminals, k=1
-):
+
+def knn_expansion(graph, steiner_tree, terminals, k=1):
     steiner_tree_edges = list(steiner_tree.edges(data=True))
     extended_edges = []
     for node in steiner_tree.nodes():
@@ -274,15 +273,15 @@ def knn_expansion(
                 if edge not in steiner_tree.edges():
                     edge_cost_dict[i] = edge[-1]["cost"]
             sorted_edge_cost_dict = {
-                    k: v
+                k: v
                 for k, v in sorted(edge_cost_dict.items(), key=lambda item: item[1])
-                }
+            }
             for i in range(min(k, len(sorted_edge_cost_dict))):
                 extended_edges.append(
-                        list(leaf_neighbor_connections)[
-                            list(sorted_edge_cost_dict.keys())[i]
-                        ]
-                    )
+                    list(leaf_neighbor_connections)[
+                        list(sorted_edge_cost_dict.keys())[i]
+                    ]
+                )
     extended_edges = extended_edges + steiner_tree_edges
     all_edges = []
     for edge in extended_edges:
@@ -317,7 +316,9 @@ def pcst_expansion(graph, steiner_tree, k=1):
         if steiner_tree.degree(node) == 1:
             selected_nodes = list(set(graph.nodes()) - set(st_nodes)) + [node]
             selected_subgraph = graph.subgraph(selected_nodes)
-            expanded_st_edge_list += get_pcst_expansion_edge_list(selected_subgraph, root=node, k=k)
+            expanded_st_edge_list += get_pcst_expansion_edge_list(
+                selected_subgraph, root=node, k=k
+            )
     expanded_steiner_tree = graph.edge_subgraph(expanded_st_edge_list)
     return expanded_steiner_tree
 
@@ -328,7 +329,9 @@ def expand_st_solution(
     if expansion_mode is None:
         pass
     elif expansion_mode == "knn":
-        steiner_tree = knn_expansion(graph=interactome_graph, steiner_tree=steiner_tree, terminals=terminals, k=k)
+        steiner_tree = knn_expansion(
+            graph=interactome_graph, steiner_tree=steiner_tree, terminals=terminals, k=k
+        )
     elif expansion_mode == "pcst":
         steiner_tree = pcst_expansion(interactome_graph, steiner_tree=steiner_tree, k=k)
 
@@ -391,7 +394,9 @@ def analyze_pcst_sensitivity_analyses_results(trees_dict, target_nodes):
         n_nodes = len(tree.nodes())
         n_edges = len(tree.edges())
         n_connected_components = nx.number_connected_components(tree)
-        n_louvain_clusters = len(np.unique(list(community.best_partition(tree).values())))
+        n_louvain_clusters = len(
+            np.unique(list(community.best_partition(tree).values()))
+        )
         node_degrees = []
         target_degrees = []
         leaf_nodes = []
@@ -464,7 +469,9 @@ def analyze_pcsf_sensitivity_analyses_results(trees_dict, target_nodes):
         n_nodes = len(tree.nodes())
         n_edges = len(tree.edges())
         n_connected_components = nx.number_connected_components(tree)
-        n_louvain_clusters = len(np.unique(list(community.best_partition(tree).values())))
+        n_louvain_clusters = len(
+            np.unique(list(community.best_partition(tree).values()))
+        )
         node_degrees = []
         target_degrees = []
         leaf_nodes = []
@@ -539,7 +546,9 @@ def analyze_st_sensitivity_analyses_results(trees_dict, target_nodes):
         n_nodes = len(tree.nodes())
         n_edges = len(tree.edges())
         n_connected_components = nx.number_connected_components(tree)
-        n_louvain_clusters = len(np.unique(list(community.best_partition(tree).values())))
+        n_louvain_clusters = len(
+            np.unique(list(community.best_partition(tree).values()))
+        )
         node_degrees = []
         target_degrees = []
         leaf_nodes = []
@@ -572,7 +581,6 @@ def analyze_st_sensitivity_analyses_results(trees_dict, target_nodes):
         data["n_target_leafs"].append(n_target_leafs)
         data["avg_target_degree"].append(avg_target_degree)
         data["std_target_degree"].append(std_target_degree)
-
 
     data = pd.DataFrame.from_dict(data)
     data.index = keys

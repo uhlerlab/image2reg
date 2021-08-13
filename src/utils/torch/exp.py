@@ -22,12 +22,12 @@ def model_train_val_test_loop(
     output_dir: str,
     domain_config: DomainConfig,
     num_epochs: int = 500,
-    lamb: float = 1e-3,
     early_stopping: int = 20,
+    lamb: float = 0.01,
     device: str = None,
     save_freq: int = -1,
     latent_clf_config: LatentClassifierConfig = None,
-) -> Tuple[dict, dict]:
+) -> Tuple[dict, dict, dict]:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -43,11 +43,12 @@ def model_train_val_test_loop(
     if early_stopping < 0:
         early_stopping = num_epochs
 
-    total_loss_dict = {"train": [], "val": []}
+    total_loss_dict = {"train": [], "val": [], "test": None}
 
     # Reserve space for best classifier weights
     best_model_weights = domain_config.domain_model_config.model.cpu().state_dict()
     best_total_loss = np.infty
+    best_epoch = -1
 
     model_base_type = domain_config.domain_model_config.model.model_base_type
 
@@ -138,6 +139,7 @@ def model_train_val_test_loop(
             if phase == "val":
                 # Save classifier states if current parameters give the best validation loss
                 if epoch_total_loss < best_total_loss:
+                    best_epoch = i
                     es_counter = 0
                     best_total_loss = epoch_total_loss
 
@@ -179,6 +181,9 @@ def model_train_val_test_loop(
             time_elapsed // 60, int(time_elapsed % 60)
         )
     )
+
+    logging.debug("Best model found at epoch {}".format(best_epoch + 1))
+    logging.debug("***" * 20)
 
     # Load best classifier
     domain_config.domain_model_config.model.load_state_dict(best_model_weights)
@@ -224,6 +229,18 @@ def model_train_val_test_loop(
                     domain_config.name, epoch_statistics["latent_clf_accuracy"]
                 )
             )
+        total_loss_dict["test"] = epoch_statistics["total_loss"]
+        best_total_loss_dict = {
+            "train": total_loss_dict["train"][best_epoch],
+            "val": total_loss_dict["val"][best_epoch],
+            "test": total_loss_dict["test"],
+        }
+        logging.debug(
+            "Total test loss for {} domain: {:.8f}".format(
+                domain_config.name, epoch_statistics["total_loss"]
+            )
+        )
+        logging.debug("***" * 20)
 
         logging.debug("***" * 20)
 
@@ -243,7 +260,7 @@ def model_train_val_test_loop(
             confusion_matrices = get_confusion_matrices(
                 domain_config=domain_config, dataset_types=["train", "val", "test"]
             )
-            logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
+            # logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
             plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
 
         try:
@@ -261,8 +278,11 @@ def model_train_val_test_loop(
             "{}/classifier.pth".format(test_dir),
         )
 
-        # Visualize performance
-    return domain_config.domain_model_config.model, total_loss_dict
+    return (
+        domain_config.domain_model_config.model,
+        total_loss_dict,
+        best_total_loss_dict,
+    )
 
 
 def process_single_epoch(
@@ -403,7 +423,7 @@ def process_single_batch(
             latent_clf.eval()
 
     # Forward pass of the classifier
-    inputs = torch.FloatTensor(inputs).to(device)
+    inputs = inputs
     labels = torch.LongTensor(labels).to(device)
 
     if extra_features is not None:
@@ -447,7 +467,7 @@ def process_single_batch(
         scheduler.step(total_loss)
 
     # Get summary statistics
-    batch_size = inputs.size(0)
+    batch_size = labels.size(0)
     total_loss_item = total_loss.item() * batch_size
 
     batch_statistics = dict()
