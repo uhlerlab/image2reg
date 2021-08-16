@@ -48,6 +48,7 @@ def model_train_val_test_loop(
     # Reserve space for best classifier weights
     best_model_weights = domain_config.domain_model_config.model.cpu().state_dict()
     best_total_loss = np.infty
+    best_accuracy = 0
     best_epoch = -1
 
     model_base_type = domain_config.domain_model_config.model.model_base_type
@@ -138,10 +139,14 @@ def model_train_val_test_loop(
 
             if phase == "val":
                 # Save classifier states if current parameters give the best validation loss
-                if epoch_total_loss < best_total_loss:
+
+                # TODO undo changes that triggers early stopping based on accuracy not loss (for single target vs control desired)
+                #if epoch_total_loss < best_total_loss:
+                if epoch_statistics["clf_accuracy"] > best_accuracy:
                     best_epoch = i
                     es_counter = 0
                     best_total_loss = epoch_total_loss
+                    best_accuracy = epoch_statistics["clf_accuracy"]
 
                     best_model_weights = copy.deepcopy(
                         domain_config.domain_model_config.model.cpu().state_dict()
@@ -263,15 +268,15 @@ def model_train_val_test_loop(
             # logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
             plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
 
-        try:
-            save_latents_from_model(
-                output_dir=test_dir,
-                domain_config=domain_config,
-                dataset_types=["train", "val", "test"],
-                device=device,
-            )
-        except AttributeError:
-            pass
+        # try:
+        #     save_latents_from_model(
+        #         output_dir=test_dir,
+        #         domain_config=domain_config,
+        #         dataset_types=["train", "val", "test"],
+        #         device=device,
+        #     )
+        # except AttributeError:
+        #     pass
 
         torch.save(
             domain_config.domain_model_config.model.state_dict(),

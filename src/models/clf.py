@@ -77,7 +77,7 @@ class ModelEnsemble(nn.Module):
         self.models = nn.ModuleList(models)
         self.encoder = nn.Linear(input_dim, latent_dim)
         self.output_layer = nn.Sequential(
-            nn.PReLU(), nn.Linear(latent_dim, n_output_nodes)
+            nn.BatchNorm1d(latent_dim), nn.PReLU(), nn.Linear(latent_dim, n_output_nodes)
         )
         self.device = get_device()
         # self.models.to(self.device)
