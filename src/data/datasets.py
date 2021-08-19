@@ -150,7 +150,7 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             self.metadata = self.metadata.loc[
                 self.metadata[label_col].isin(target_list), :
             ]
-        if n_control_samples is not None and "EMPTY" in target_list:
+        if n_control_samples is not None and "EMPTY" in list(self.metadata[label_col]):
             idc = np.array(list(range(len(self.metadata)))).reshape(-1, 1)
             labels = self.metadata[self.label_col]
             target_n_samples = dict(Counter(labels))

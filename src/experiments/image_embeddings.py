@@ -191,7 +191,7 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
             dataset=self.data_set,
             n_folds=self.n_folds,
             batch_size=self.batch_size,
-            num_workers=5,
+            num_workers=10,
             random_state=self.random_state,
             transformation_dict=self.data_transform_pipeline_dict,
             drop_last_batch=drop_last_batch,
@@ -292,7 +292,7 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
-            num_workers=5,
+            num_workers=10,
             random_state=self.random_state,
             transformation_dict=self.data_transform_pipeline_dict,
             drop_last_batch=drop_last_batch,
