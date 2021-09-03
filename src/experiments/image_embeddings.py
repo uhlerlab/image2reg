@@ -1,7 +1,7 @@
 import copy
 import logging
 import os
-from typing import List
+from typing import List, Any
 import torch
 
 from src.experiments.base import BaseExperiment, BaseExperimentCV
@@ -21,8 +21,8 @@ from src.utils.torch.model import (
     get_domain_configuration,
     get_image_net_transformations_dict,
     get_image_net_nonrandom_transformations_dict,
-    get_imagenet_extended_transformations_dict,
-    get_randomflips_transformation_dict,
+    get_nuclei_image_transformations_dict,
+    get_randomflips_transformation_dict, get_slide_image_transformations_dict,
 )
 
 
@@ -36,7 +36,7 @@ class BaseImageEmbeddingExperiment:
         pseudo_rgb: bool = False,
     ):
 
-        self.data_transform_pipeline_dict = None
+        self.data_transform_pipeline_dicts = []
         self.data_loader_dict = None
         self.data_set = None
         self.data_key = None
@@ -76,21 +76,24 @@ class BaseImageEmbeddingExperiment:
 
         self.data_set = init_profile_dataset(**self.data_config)
 
-    def initialize_data_transform_pipeline(self, data_transform_pipeline: str = None):
-        if data_transform_pipeline is None:
-            self.data_transform_pipeline_dict = None
-        elif data_transform_pipeline == "imagenet_random":
-            self.data_transform_pipeline_dict = get_image_net_transformations_dict(224)
-        elif data_transform_pipeline == "imagenet_nonrandom":
-            self.data_transform_pipeline_dict = get_image_net_nonrandom_transformations_dict(
+    def initialize_data_transform_pipeline(self, data_transform_pipelines: List[str] = None):
+        for data_transform_pipeline in data_transform_pipelines:
+            if data_transform_pipeline is None:
+                self.data_transform_pipeline_dicts.append(None)
+            elif data_transform_pipeline == "imagenet_random":
+                self.data_transform_pipeline_dicts.append(get_image_net_transformations_dict(224))
+            elif data_transform_pipeline == "imagenet_nonrandom":
+                self.data_transform_pipeline_dicts.append(get_image_net_nonrandom_transformations_dict(
                 224
-            )
-        elif data_transform_pipeline == "imagenet_extended_random":
-            self.data_transform_pipeline_dict = get_imagenet_extended_transformations_dict(
+            ))
+            elif data_transform_pipeline == "slide_image":
+                self.data_transform_pipeline_dicts.append(get_slide_image_transformations_dict(224))
+            elif data_transform_pipeline == "nuclei_image":
+                self.data_transform_pipeline_dicts.append(get_nuclei_image_transformations_dict(
                 224
-            )
-        elif data_transform_pipeline == "randomflips":
-            self.data_transform_pipeline_dict = get_randomflips_transformation_dict()
+            ))
+            elif data_transform_pipelines == "randomflips":
+                self.data_transform_pipeline_dicts.append(get_randomflips_transformation_dict())
 
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
@@ -181,11 +184,11 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
     def initialize_domain_config(self):
         super().initialize_domain_config()
 
-    def initialize_data_transform_pipeline(self, data_transform_pipeline: str = None):
-        super().initialize_data_transform_pipeline(data_transform_pipeline)
+    def initialize_data_transform_pipeline(self, data_transform_pipelines: str = None):
+        super().initialize_data_transform_pipeline(data_transform_pipelines)
 
     def initialize_data_loader_dict(
-        self, drop_last_batch: bool = False,
+        self, drop_last_batch: bool = True,
     ):
         dh = DataHandlerCV(
             dataset=self.data_set,
@@ -193,7 +196,7 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
             batch_size=self.batch_size,
             num_workers=10,
             random_state=self.random_state,
-            transformation_dict=self.data_transform_pipeline_dict,
+            transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,
         )
         dh.stratified_kfold_split()
@@ -276,25 +279,25 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         self.loss_dict = None
         self.label_weights = None
 
-    def initialize_image_data_set(self, multi_image: bool = False):
-        super().initialize_image_data_set(multi_image=multi_image)
+    def initialize_image_data_set(self, multi_image: bool = False,):
+        super().initialize_image_data_set(multi_image=multi_image,)
 
     def initialize_profile_data_set(self):
         super().initialize_profile_data_set()
 
-    def initialize_data_transform_pipeline(self, data_transform_pipeline: str = None):
+    def initialize_data_transform_pipeline(self, data_transform_pipelines: str = None):
         super().initialize_data_transform_pipeline(
-            data_transform_pipeline=data_transform_pipeline
+            data_transform_pipelines=data_transform_pipelines
         )
 
-    def initialize_data_loader_dict(self, drop_last_batch: bool = False):
+    def initialize_data_loader_dict(self, drop_last_batch: bool = True):
 
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
             num_workers=10,
             random_state=self.random_state,
-            transformation_dict=self.data_transform_pipeline_dict,
+            transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,
         )
         dh.stratified_train_val_test_split(splits=self.train_val_test_split)

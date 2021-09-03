@@ -138,15 +138,15 @@ def get_randomflips_transformation_dict():
     return data_transforms
 
 
-def get_imagenet_extended_transformations_dict(input_size):
+def get_nuclei_image_transformations_dict(input_size):
     data_transforms = {
         # In the original paper the random permutation were used to make models more general to diverse pictures.
         "train": transforms.Compose(
             [
+                transforms.Resize(input_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomRotation(180),
-                transforms.Resize(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -161,6 +161,36 @@ def get_imagenet_extended_transformations_dict(input_size):
         "test": transforms.Compose(
             [
                 transforms.Resize(input_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+    }
+    return data_transforms
+
+def get_slide_image_transformations_dict(input_size):
+    data_transforms = {
+        # In the original paper the random permutation were used to make models more general to diverse pictures.
+        "train": transforms.Compose(
+            [
+                transforms.RandomCrop(input_size),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transforms.RandomRotation(180),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "val": transforms.Compose(
+            [
+                transforms.CenterCrop(input_size),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "test": transforms.Compose(
+            [
+                transforms.CenterCrop(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]

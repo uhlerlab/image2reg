@@ -224,7 +224,7 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         self.label_weights /= np.sum(self.label_weights)
         le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
-        self.set_transform_pipeline(transform_pipeline)
+        #self.set_transform_pipeline(transform_pipeline)
         self.pseudo_rgb = pseudo_rgb
 
         if slide_image_name_col in self.metadata.columns:
@@ -272,7 +272,7 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         else:
             self.transform_pipeline = transform_pipeline
 
-    def process_image(self, image_loc: str) -> Tensor:
+    def process_image(self, image_loc: str, transform_pipeline:transforms.Compose=None) -> Tensor:
         image = imread(image_loc)
         if (image > 255).any():
             image = image - image.min()
@@ -284,7 +284,10 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             rgbimg.paste(image)
             ##rgbimg = torch.stack([image]*3)
             image = rgbimg
-        image = self.transform_pipeline(image)
+        if transform_pipeline is None:
+            image = self.transform_pipeline(image)
+        else:
+            image = transform_pipeline(image)
         return image
 
 
@@ -327,6 +330,9 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         self.nuclei_metadata = self.metadata
         self.slide_image_dir = slide_image_dir
 
+        self.nuclei_image_transform_pipeline = None
+        self.slide_image_transform_pipeline = None
+
         self.nuclei_image_locs = self.image_locs
         self.slide_image_locs = np.apply_along_axis(
             combine_path,
@@ -344,8 +350,8 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
     def __getitem__(self, idx):
         nuclei_image_loc = self.nuclei_image_locs[idx]
         slide_image_loc = self.slide_image_locs[idx]
-        nuclei_image = self.process_image(nuclei_image_loc)
-        slide_image = self.process_image(slide_image_loc)
+        nuclei_image = self.process_image(nuclei_image_loc, self.nuclei_image_transform_pipeline)
+        slide_image = self.process_image(slide_image_loc, self.slide_image_transform_pipeline)
         gene_label = self.labels[idx]
 
         sample = {
@@ -370,12 +376,20 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         return sample
 
     def set_transform_pipeline(
-        self, transform_pipeline: transforms.Compose = None
+        self, transform_pipelines: List[transforms.Compose] = None
     ) -> None:
-        super().set_transform_pipeline(transform_pipeline)
+        try:
+            self.nuclei_image_transform_pipeline = transform_pipelines[0]
+            self.slide_image_transform_pipeline = transform_pipelines[1]
+        except AttributeError as exception:
+            logging.error(
+                "Object must implement a subset of a dataset type that implements the "
+                "set_transform_pipeline method."
+            )
+            raise exception
 
-    def process_image(self, image_loc: str) -> Tensor:
-        return super().process_image(image_loc)
+    def process_image(self, image_loc: str, transform_pipeline:transforms.Compose=None) -> Tensor:
+        return super().process_image(image_loc, transform_pipeline=transform_pipeline)
 
 
 class TorchTransformableSubset(Subset):
@@ -386,9 +400,12 @@ class TorchTransformableSubset(Subset):
         self.dataset = copy.deepcopy(self.dataset)
         self.transform_pipeline = None
 
-    def set_transform_pipeline(self, transform_pipeline: transforms.Compose) -> None:
+    def set_transform_pipeline(self, transform_pipelines: List[transforms.Compose]) -> None:
         try:
-            self.dataset.set_transform_pipeline(transform_pipeline)
+            if len(transform_pipelines) == 1:
+                self.dataset.set_transform_pipeline(transform_pipelines[0])
+            else:
+                self.dataset.set_transform_pipeline(transform_pipelines)
         except AttributeError as exception:
             logging.error(
                 "Object must implement a subset of a dataset type that implements the "

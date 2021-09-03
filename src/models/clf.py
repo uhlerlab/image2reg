@@ -89,8 +89,8 @@ class ModelEnsemble(nn.Module):
         for i in range(len(self.models)):
             output = self.models[i](inputs[i].to(self.device))
             outputs.append(output["outputs"])
-        latents = torch.cat(outputs, dim=1)
-        #latents = self.encoder(torch.cat(outputs, dim=1))
+        #latents = torch.cat(outputs, dim=1)
+        latents = self.encoder(torch.cat(outputs, dim=1))
         if extra_features is not None:
             latents = torch.cat([latents, extra_features], dim=1)
         outputs = self.output_layer(latents)

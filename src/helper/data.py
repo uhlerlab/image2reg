@@ -14,14 +14,14 @@ class BaseDataHandler(object):
         dataset: LabeledSlideDataset,
         batch_size: int = 64,
         num_workers: int = 10,
-        transformation_dict: dict = None,
+        transformation_dicts: List[dict] = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
     ):
         self.dataset = dataset
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.transformation_dict = transformation_dict
+        self.transformation_dicts = transformation_dicts
         self.random_state = random_state
         self.drop_last_batch = drop_last_batch
 
@@ -32,7 +32,7 @@ class DataHandler(BaseDataHandler):
         dataset: LabeledSlideDataset,
         batch_size: int = 64,
         num_workers: int = 10,
-        transformation_dict: dict = None,
+        transformation_dicts: List[dict] = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
         split_on_slide_level: bool = True,
@@ -41,7 +41,7 @@ class DataHandler(BaseDataHandler):
             dataset=dataset,
             batch_size=batch_size,
             num_workers=num_workers,
-            transformation_dict=transformation_dict,
+            transformation_dicts=transformation_dicts,
             random_state=random_state,
             drop_last_batch=drop_last_batch,
         )
@@ -105,11 +105,11 @@ class DataHandler(BaseDataHandler):
         }
 
     def get_data_loader_dict(self, shuffle: bool = True,) -> None:
-        if self.transformation_dict is not None:
-            for k, transform_pipeline in self.transformation_dict.items():
-                self.train_val_test_datasets_dict[k].set_transform_pipeline(
-                    transform_pipeline
-                )
+        if self.transformation_dicts is not None:
+            if len(self.transformation_dicts) > 0:
+                for k in self.transformation_dicts[0].keys():
+                    self.train_val_test_datasets_dict[k].set_transform_pipeline(
+                        [self.transformation_dicts[i][k] for i in range(len(self.transformation_dicts))])
         data_loader_dict = {}
         for k, dataset in self.train_val_test_datasets_dict.items():
             data_loader_dict[k] = DataLoader(
@@ -131,7 +131,7 @@ class DataHandlerCV(BaseDataHandler):
         train_val_split: List = [0.8, 0.2],
         batch_size: int = 64,
         num_workers: int = 10,
-        transformation_dict: dict = None,
+        transformation_dicts: List[dict] = None,
         random_state: int = 42,
         drop_last_batch: bool = True,
         split_on_slide_level: bool = True,
@@ -140,7 +140,7 @@ class DataHandlerCV(BaseDataHandler):
             dataset=dataset,
             batch_size=batch_size,
             num_workers=num_workers,
-            transformation_dict=transformation_dict,
+            transformation_dicts=transformation_dicts,
             random_state=random_state,
             drop_last_batch=drop_last_batch,
         )
@@ -223,11 +223,9 @@ class DataHandlerCV(BaseDataHandler):
         if self.data_loader_dicts is None:
             self.data_loader_dicts = []
         for train_val_test_datasets_dict in self.train_val_test_datasets:
-            if self.transformation_dict is not None:
-                for k, transform_pipeline in self.transformation_dict.items():
-                    train_val_test_datasets_dict[k].set_transform_pipeline(
-                        transform_pipeline
-                    )
+            if len(self.transformation_dicts) > 0:
+                for k in self.transformation_dicts[0].keys():
+                    train_val_test_datasets_dict[k].set_transform_pipeline([self.transformation_dicts[i][k] for i in range(len(self.transformation_dicts))])
             data_loader_dict = {}
             for k, dataset in train_val_test_datasets_dict.items():
                 if shuffle and k == "train":
