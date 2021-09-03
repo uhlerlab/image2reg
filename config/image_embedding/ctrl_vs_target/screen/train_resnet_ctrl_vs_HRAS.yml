@@ -1,4 +1,4 @@
-output_dir: 'data/experiments/image_embeddings'
+output_dir: 'data/experiments/image_embeddings/specificity_screen/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperiment
 run_params:
@@ -23,7 +23,7 @@ run_params:
                                  fix_feature_extractor: False, 'dropout_rate':0.0}
                         ]
                  },
-                 'optimizer_config':{'type':'adam','lr':0.000001, 'weight_decay':0.0005},
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
                  'loss_config':{'type':'ce'}}
 
   domain_name: 'image'
@@ -40,7 +40,7 @@ pipeline:
       multi_image: True
   - method: initialize_data_transform_pipeline
     params:
-     data_transform_pipelines: ["nuclei_image", "nuclei_image"]
+     data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
   - method: train_models
