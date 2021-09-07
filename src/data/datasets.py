@@ -357,6 +357,8 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         sample = {
             "id": nuclei_image_loc,
             "images": [nuclei_image, slide_image],
+            "nuclei_image": nuclei_image,
+            "slide_image": slide_image,
             "label": gene_label,
             "image_file": os.path.split(nuclei_image_loc)[1],
             "slide_image_file": os.path.split(slide_image_loc)[1],

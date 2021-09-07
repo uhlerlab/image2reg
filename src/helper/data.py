@@ -1,3 +1,4 @@
+import logging
 from typing import Iterable, List
 
 import numpy as np
@@ -56,6 +57,7 @@ class DataHandler(BaseDataHandler):
             indices = np.array(list(range(len(self.dataset))))
             labels = np.array(self.dataset.labels)
         else:
+
             indices = np.array(
                 list(range(len(self.dataset.slide_image_nuclei_dict.keys())))
             )
@@ -74,6 +76,7 @@ class DataHandler(BaseDataHandler):
             stratify=labels[train_and_val_idc],
             random_state=self.random_state,
         )
+        logging.debug("Data split on FoV image level ( {} training images, {} validation images, {} test images).".format(len(train_idc), len(val_idc), len(test_idc)))
 
         if self.split_on_slide_level:
             train_idc = [
@@ -103,6 +106,9 @@ class DataHandler(BaseDataHandler):
             "val": val_dataset,
             "test": test_dataset,
         }
+        logging.debug(
+            "Training samples: {}, validation samples: {}, test samples: {}.".format(
+                len(train_idc), len(val_idc), len(test_idc)))
 
     def get_data_loader_dict(self, shuffle: bool = True,) -> None:
         if self.transformation_dicts is not None:

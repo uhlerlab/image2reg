@@ -170,7 +170,6 @@ def get_nuclei_image_transformations_dict(input_size):
 
 def get_slide_image_transformations_dict(input_size):
     data_transforms = {
-        # In the original paper the random permutation were used to make models more general to diverse pictures.
         "train": transforms.Compose(
             [
                 transforms.RandomCrop(input_size),
