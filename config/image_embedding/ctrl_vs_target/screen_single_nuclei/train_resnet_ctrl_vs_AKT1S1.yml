@@ -31,10 +31,10 @@ run_params:
 pipeline:
   - method: initialize_image_data_set
     params:
-      multi_image: False
+      multi_image: True
   - method: initialize_data_transform_pipeline
     params:
-      data_transform_pipelines: ["nuclei_image", "slide_image]
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
   - method: train_models

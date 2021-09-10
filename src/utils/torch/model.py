@@ -172,6 +172,7 @@ def get_slide_image_transformations_dict(input_size):
     data_transforms = {
         "train": transforms.Compose(
             [
+                transforms.Resize(2*input_size),
                 transforms.RandomCrop(input_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
@@ -182,6 +183,7 @@ def get_slide_image_transformations_dict(input_size):
         ),
         "val": transforms.Compose(
             [
+                transforms.Resize(2*input_size),
                 transforms.CenterCrop(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -189,6 +191,7 @@ def get_slide_image_transformations_dict(input_size):
         ),
         "test": transforms.Compose(
             [
+                transforms.Resize(2*input_size),
                 transforms.CenterCrop(input_size),
                 transforms.ToTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
