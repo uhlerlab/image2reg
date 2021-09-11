@@ -37,7 +37,10 @@ class GCNEncoder(torch.nn.Module):
         self.latent_dim=latent_dim
         self.gcn1 = GCNConv(in_channels=input_channels, out_channels=hidden_dims, cached=True)
         self.relu = nn.ReLU()
-        self.gcn2 = GCNConv(in_channels=hidden_dims, out_channels=latent_dim, cached=True)
+        # self.gcn2 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
+        # self.gcn3 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
+        # self.gcn4 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
+        self.gcn5 = GCNConv(in_channels=hidden_dims, out_channels=latent_dim, cached=True)
 
 
         # if len(hidden_dims) > 0:
@@ -52,7 +55,13 @@ class GCNEncoder(torch.nn.Module):
     def forward(self, x, edge_index):
         z = self.gcn1(x, edge_index)
         z = self.relu(z)
-        z = self.gcn2(z, edge_index)
+        # z = self.gcn2(z, edge_index)
+        # z = self.relu(z)
+        # z = self.gcn3(z, edge_index)
+        # z = self.relu(z)
+        # z = self.gcn4(z, edge_index)
+        # z = self.relu(z)
+        z = self.gcn5(z, edge_index)
         return z
         #return self.model(x, edge_index)
 
@@ -72,7 +81,7 @@ class GraphConvAE(nn.Module):
         return self.model.encode(x, edge_index)
 
     def forward(self, x, edge_index) -> dict:
-        latents = self.model.encode(x,edge_index)
+        latents = self.model.encode(x, edge_index)
         recons = self.model.decoder.forward_all(latents)
         return {"recons":recons, "latents":latents}
 
