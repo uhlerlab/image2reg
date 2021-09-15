@@ -120,12 +120,13 @@ class BaseImageEmbeddingExperiment:
 
     def extract_and_save_latents(self, output_dir):
         device = get_device()
-        for dataset_type in ["val", "test"]:
+        for dataset_type in ["train", "val", "test"]:
             save_path = os.path.join(
                 output_dir, "{}_latents.h5".format(str(dataset_type))
             )
             save_latents_to_hdf(
                 domain_config=self.domain_config,
+                data_loader_dict=self.data_loader_dict,
                 save_path=save_path,
                 dataset_type=dataset_type,
                 device=device,
@@ -133,6 +134,7 @@ class BaseImageEmbeddingExperiment:
         # save_path = os.path.join(output_dir, "all_latents.h5")
         # save_latents_to_hdf(
         #    domain_config=self.domain_config,
+        # data_loader_dict= None,
         #    save_path=save_path,
         #    dataset=self.data_set,
         #    device=device,

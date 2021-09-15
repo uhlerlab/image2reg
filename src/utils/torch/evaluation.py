@@ -28,7 +28,7 @@ def get_latent_representations_for_model(
     device: str = "cuda:0",
 ) -> dict:
     # create Dataloader
-    dataloader = DataLoader(dataset=dataset, batch_size=32, shuffle=False)
+    dataloader = DataLoader(dataset=dataset, batch_size=32, shuffle=False, num_workers=15)
 
     latent_representations = []
     labels = []
@@ -69,6 +69,7 @@ def get_latent_representations_for_model(
 def save_latents_to_hdf(
     domain_config: DomainConfig,
     save_path: str,
+    data_loader_dict: dict,
     dataset_type: str = "val",
     dataset: Dataset = None,
     device: str = "cuda:0",
@@ -76,7 +77,7 @@ def save_latents_to_hdf(
     model = domain_config.domain_model_config.model
     if dataset is None:
         try:
-            dataset = domain_config.data_loader_dict[dataset_type].dataset
+            dataset = data_loader_dict[dataset_type].dataset
         except KeyError:
             raise RuntimeError(
                 "Unknown dataset_type: {}, expected one of the following: train, val,"
