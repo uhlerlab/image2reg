@@ -16,13 +16,13 @@ run_params:
 
   model_config: {'model_config':{
                         'type':'ensemble',
-                        'input_dim': 1024,
-                        'latent_dim': 512,
+                        'input_dim': 160,
+                        'latent_dim': 128,
                         'n_output_nodes': 44,
                         'component_dicts':[
-                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':128,
                                  fix_feature_extractor: False, 'dropout_rate':0.0},
-                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':32,
                                  fix_feature_extractor: False, 'dropout_rate':0.0}
                         ]
                  },
