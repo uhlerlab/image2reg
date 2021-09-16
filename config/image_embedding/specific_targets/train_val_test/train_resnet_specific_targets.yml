@@ -1,0 +1,47 @@
+output_dir: 'data/experiments/image_embeddings/specific_targets/'
+module: src.experiments.image_embeddings
+class: ImageEmbeddingExperiment
+run_params:
+  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
+                      'nuclei_metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
+                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+                      'data_key':'nuclei_image', 'label_key':'label', 'index_key':'image_file',
+                      #'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
+                      'target_list':["AKT1", "AKT1S1", "ATF4", "ATG16L1", "ATG5", "BAMBI", "BAX", "BCL2L11", "BECN1",
+                                     "BRAF", "CASP8", "CDC42", "CDK2", "CDKN1A", "CEBPA", "CREB1", "CSNK1E", "CXXC4",
+                                     "DUSP1", "ELK1", "ERG", "GLI1", "HRAS", "IKBKB", "JAK2", "JUN", "KRAS", "MAP2K4",
+                                     "MAP3K2", "MAP3K8", "MAP3K9", "MLST8", "PDPK1", "PRKACA", "RAF1", "RELB", "RHOA",
+                                     "SMAD3", "SMAD4", "SMO", "SRC", "SREBF1", "TCF4", "TSC2"],
+                      'pseudo_rgb':True}
+
+  model_config: {'model_config':{
+                        'type':'ResNet18',
+                        'pretrained': True,
+                        'fix_feature_extractor': False,
+                        'n_output_nodes': 44,
+                 },
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                 'loss_config':{'type':'ce'}}
+
+  domain_name: 'image'
+  num_epochs: 300
+  early_stopping: 5
+  train_val_test_split: [0.7, 0.2, 0.1]
+  batch_size: 32
+  random_state: 1234
+  save_freq: 50
+
+pipeline:
+  - method: initialize_image_data_set
+    params:
+      multi_image: True
+  - method: initialize_data_transform_pipeline
+    params:
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: train_models
+  - method: evaluate_test_performance
+  - method: visualize_loss_evolution
+  - method: extract_and_save_latents
+
