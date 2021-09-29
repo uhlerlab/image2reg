@@ -274,22 +274,28 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             self.transform_pipeline = transform_pipeline
 
     def process_image(
-        self, image_loc: str, transform_pipeline: transforms.Compose = None, mask_loc=None
+        self,
+        image_loc: str,
+        transform_pipeline: transforms.Compose = None,
+        mask_loc=None,
     ) -> Tensor:
         image = imread(image_loc)
-        if mask_loc is not None:
-            mask = imread(mask_loc)
-            #image = (mask > 0).astype(np.uint8) * image
+        # if mask_loc is not None:
+        #     mask = imread(mask_loc)
+        #     image = (mask > 0) * image
         if (image > 255).any():
-            image_min = np.percentile(image, 0.01)
+            image_min = np.percentile(image, 0.1)
             image_max = np.percentile(image, 99.9)
-            #image_min = image.min()
-            #image_max = image.max()
+            # image_min = image.min()
+            # image_max = image.max()
+            # if image_max == 0:
+            #     print("image loc:", image_loc)
+            #     print("mask loc:", mask_loc)
             if image_max > 0:
                 image = image - image_min
                 image = image / image_max
             image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
-            #plt.imshow(image, cmap="inferno")
+            # plt.imshow(image, cmap="inferno")
         image = Image.fromarray(image)
         plt.show()
         if transform_pipeline is None:
@@ -376,7 +382,9 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             nuclei_image_loc, self.nuclei_image_transform_pipeline
         )
         slide_image = self.process_image(
-            slide_image_loc, self.slide_image_transform_pipeline,mask_loc=slide_mask_loc
+            slide_image_loc,
+            self.slide_image_transform_pipeline,
+            mask_loc=slide_mask_loc,
         )
         gene_label = self.labels[idx]
 
@@ -417,9 +425,14 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             raise exception
 
     def process_image(
-        self, image_loc: str, transform_pipeline: transforms.Compose = None, mask_loc=None
+        self,
+        image_loc: str,
+        transform_pipeline: transforms.Compose = None,
+        mask_loc=None,
     ) -> Tensor:
-        return super().process_image(image_loc, transform_pipeline=transform_pipeline, mask_loc=mask_loc)
+        return super().process_image(
+            image_loc, transform_pipeline=transform_pipeline, mask_loc=mask_loc
+        )
 
 
 class TorchTransformableSubset(Subset):

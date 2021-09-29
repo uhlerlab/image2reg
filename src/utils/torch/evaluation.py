@@ -180,23 +180,23 @@ def visualize_image_ae_performance(
         )
 
 
-def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["test"]):
+def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["test"], normalize=None):
     confusion_matrices = {}
     for dataset_type in dataset_types:
         confusion_matrices[dataset_type] = get_confusion_matrix(
-            domain_config, dataset_type
+            domain_config, dataset_type, normalize=normalize
         )
     return confusion_matrices
 
 
-def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"):
+def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test", normalize=None):
     device = get_device()
     model = domain_config.domain_model_config.model.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]
     all_labels = []
     all_preds = []
 
-    for i, sample in enumerate(dataloader):
+    for sample in tqdm(dataloader, desc="Compute confusion matrix"):
         # inputs = sample[domain_config.data_key].to(device)
         inputs = sample[domain_config.data_key]
         labels = sample[domain_config.label_key]
@@ -210,7 +210,7 @@ def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test"
         all_labels.extend(list(labels.detach().cpu().numpy()))
         all_preds.extend(list(preds.detach().cpu().numpy()))
 
-    return confusion_matrix(all_labels, all_preds)
+    return confusion_matrix(all_labels, all_preds, normalize=normalize)
 
 
 def visualize_latent_space_pca_walk(

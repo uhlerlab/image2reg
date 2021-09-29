@@ -289,9 +289,11 @@ def plot_image_seq(output_dir, image_seq, prefix: str = ""):
         )
 
 
-def plot_confusion_matrices(confusion_matrices_dict: dict, output_dir: str):
+def plot_confusion_matrices(confusion_matrices_dict: dict, output_dir: str, display_labels:np.ndarray=None):
     for k, cmatrix in confusion_matrices_dict.items():
-        cmd = ConfusionMatrixDisplay(cmatrix)
-        cmd.plot()
+        c = cmatrix.shape[0]//2
+        fig, ax = plt.subplots(figsize=[6+c, 4+c])
+        cmd = ConfusionMatrixDisplay(cmatrix, display_labels=display_labels)
+        cmd.plot(ax=ax, values_format=".2f", xticks_rotation="vertical")
         plt.savefig(os.path.join(output_dir, "confusion_matrix_{}.png".format(str(k))))
         plt.close()

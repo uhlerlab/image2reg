@@ -6,6 +6,7 @@ import torch
 
 from src.experiments.base import BaseExperiment, BaseExperimentCV
 from src.helper.data import DataHandler, DataHandlerCV
+from src.utils.basic.visualization import plot_confusion_matrices
 from src.utils.torch.data import (
     init_image_dataset,
     init_profile_dataset,
@@ -13,7 +14,7 @@ from src.utils.torch.data import (
 )
 from src.utils.torch.evaluation import (
     visualize_latent_space_pca_walk,
-    save_latents_to_hdf,
+    save_latents_to_hdf, get_confusion_matrices,
 )
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
@@ -148,6 +149,14 @@ class BaseImageEmbeddingExperiment:
         #    dataset=self.data_set,
         #    device=device,
         # )
+
+    def plot_confusion_matrices(self, normalize=None):
+        self.domain_config.data_loader_dict=self.data_loader_dict
+        confusion_matrices = get_confusion_matrices(
+                domain_config=self.domain_config, dataset_types=["train", "val", "test"], normalize=normalize
+            )
+        plot_confusion_matrices(confusion_matrices, output_dir=self.output_dir,
+                                display_labels=sorted(self.data_config["target_list"]))
 
 
 class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment):
