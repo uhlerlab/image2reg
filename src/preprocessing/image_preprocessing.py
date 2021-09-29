@@ -188,6 +188,8 @@ class ImageDatasetPreprocessor:
         nuclei_heights = []
         nuclei_minor_axis_lengths = []
         nuclei_major_axis_lengths = []
+        nuclei_centroids_0 = []
+        nuclei_centroids_1 = []
 
         metadata_cols = list(self.metadata.columns)
 
@@ -203,6 +205,8 @@ class ImageDatasetPreprocessor:
             heights = []
             minor_axis_lengths = []
             major_axis_lengths = []
+            centroids_0 = []
+            centroids_1 = []
             nuclei_metadata = []
             nuclei_count = 0
             plate = str(self.metadata.iloc[i, :][self.plate_col_name])
@@ -261,6 +265,9 @@ class ImageDatasetPreprocessor:
                     minor_axis_lengths.append(region.minor_axis_length)
                     major_axis_lengths.append(region.major_axis_length)
 
+                    centroids_0.append(region.centroid[0])
+                    centroids_1.append(region.centroid[1])
+
                     output_file_name = os.path.join(
                         plate_output_dir,
                         fname_start + "_{}".format(region.label) + fname_ending,
@@ -297,6 +304,8 @@ class ImageDatasetPreprocessor:
                 heights,
                 minor_axis_lengths,
                 major_axis_lengths,
+                centroids_0,
+                centroids_1,
                 nmco_features,
             )
 
@@ -314,8 +323,10 @@ class ImageDatasetPreprocessor:
             nuclei_heights.extend(item[4])
             nuclei_minor_axis_lengths.extend(item[5])
             nuclei_major_axis_lengths.extend(item[6])
-            if item[7] is not None:
-                all_nmco_features.append(item[7])
+            nuclei_centroids_0.extend(item[7])
+            nuclei_centroids_1.extend(item[8])
+            if item[9] is not None:
+                all_nmco_features.append(item[9])
         if extract_ncmo_features:
             all_nmco_features = pd.concat(all_nmco_features)
 
@@ -367,6 +378,9 @@ class ImageDatasetPreprocessor:
         nuclei_minor_axis_lengths = np.array(nuclei_minor_axis_lengths)
         nuclei_major_axis_lengths = np.array(nuclei_major_axis_lengths)
 
+        nuclei_centroids_0 = np.array(nuclei_centroids_0)
+        nuclei_centroids_1 = np.array(nuclei_centroids_1)
+
         nuclei_metadata = nuclei_metadata.loc[:, selected_cols]
         nuclei_metadata.columns = new_selected_cols
         nuclei_metadata["bb_width"] = nuclei_widths
@@ -387,6 +401,9 @@ class ImageDatasetPreprocessor:
         nuclei_metadata["aspect_ratio_cluster_ratio"] = np.repeat(
             np.nan, len(nuclei_metadata)
         )
+
+        nuclei_metadata["centroid_0"] = nuclei_centroids_0
+        nuclei_metadata["centroid_1"] = nuclei_centroids_1
 
         if extract_ncmo_features:
             # all_nmco_features = pd.concat(all_nmco_features)

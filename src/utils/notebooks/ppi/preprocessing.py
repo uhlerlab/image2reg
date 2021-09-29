@@ -155,7 +155,7 @@ def run_hub_node_cutoff_analyses(
         "avg_degree_largest_comp": [],
     }
     if specific_targets is not None:
-        results["specific_targets"] = []
+        results["n_specific_targets_largest_comp"] = []
     for cutoff in tqdm(cutoffs, desc="Screen cutoffs"):
         results["cutoff"].append(cutoff)
         selected_nodes = set(list(nodes[degrees <= np.quantile(degrees, cutoff)]))
@@ -176,7 +176,7 @@ def run_hub_node_cutoff_analyses(
             len(targets.intersection(largest_comp.nodes()))
         )
         if specific_targets is not None:
-            results["specific_targets"].append(
+            results["n_specific_targets_largest_comp"].append(
                 len(specific_targets.intersection(largest_comp.nodes()))
             )
     return pd.DataFrame(results)

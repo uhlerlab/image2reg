@@ -28,7 +28,9 @@ def get_latent_representations_for_model(
     device: str = "cuda:0",
 ) -> dict:
     # create Dataloader
-    dataloader = DataLoader(dataset=dataset, batch_size=32, shuffle=False, num_workers=15)
+    dataloader = DataLoader(
+        dataset=dataset, batch_size=32, shuffle=False, num_workers=15
+    )
 
     latent_representations = []
     labels = []

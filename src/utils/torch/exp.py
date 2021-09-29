@@ -141,7 +141,7 @@ def model_train_val_test_loop(
                 # Save classifier states if current parameters give the best validation loss
 
                 # TODO undo changes that triggers early stopping based on accuracy not loss (for single target vs control desired)
-                #if epoch_total_loss < best_total_loss:
+                # if epoch_total_loss < best_total_loss:
                 if epoch_statistics["clf_accuracy"] > best_accuracy:
                     best_epoch = i
                     es_counter = 0
@@ -306,7 +306,7 @@ def process_single_epoch(
     label_key = domain_config.label_key
     extra_feature_key = domain_config.extra_feature_key
 
-    # Initialize epoch statistics
+    # Initialize epoch statistics    recon_loss = 0
     recon_loss = 0
     clf_loss = 0
     n_correct = 0

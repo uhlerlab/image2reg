@@ -1,6 +1,7 @@
 from src.utils.basic.io import get_file_list
 import pandas as pd
 
+
 class LogAnalyzer(object):
     def __init__(self, logfile: str):
         self.logfile = logfile
@@ -56,12 +57,21 @@ class LogAnalyzer(object):
         self.best_val_loss = self.val_loss[self.best_epoch]
 
     def __str__(self):
-        return "LogAnalyzer(train_acc={}, val_acc={}, test_acc={})".format(self.best_train_acc, self.best_val_acc,
-                                                                           self.test_acc)
+        return "LogAnalyzer(train_acc={}, val_acc={}, test_acc={})".format(
+            self.best_train_acc, self.best_val_acc, self.test_acc
+        )
 
-def analyze_screen_results(screen_dir:str):
-    results = {"target":[], "train_loss":[], "val_loss":[], "test_loss":[],
-               "train_acc":[], "val_acc":[], "test_acc":[]}
+
+def analyze_screen_results(screen_dir: str):
+    results = {
+        "target": [],
+        "train_loss": [],
+        "val_loss": [],
+        "test_loss": [],
+        "train_acc": [],
+        "val_acc": [],
+        "test_acc": [],
+    }
     logfiles = get_file_list(screen_dir, file_type_filter=".log")
     for logfile in logfiles:
         results["target"].append(logfile.split("/")[-2])
@@ -74,6 +84,3 @@ def analyze_screen_results(screen_dir:str):
         results["val_acc"].append(la.best_val_acc)
         results["test_acc"].append(la.test_acc)
     return pd.DataFrame.from_dict(results)
-
-
-

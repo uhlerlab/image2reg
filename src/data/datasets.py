@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from imblearn.under_sampling import RandomUnderSampler
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from torch import Tensor
 from torch.utils.data import Dataset, Subset
@@ -224,7 +225,7 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         self.label_weights /= np.sum(self.label_weights)
         le_name_mapping = dict(zip(le.classes_, le.transform(le.classes_)))
         logging.debug("Classes are coded as follows: %s", le_name_mapping)
-        #self.set_transform_pipeline(transform_pipeline)
+        # self.set_transform_pipeline(transform_pipeline)
         self.pseudo_rgb = pseudo_rgb
 
         if slide_image_name_col in self.metadata.columns:
@@ -272,22 +273,31 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         else:
             self.transform_pipeline = transform_pipeline
 
-    def process_image(self, image_loc: str, transform_pipeline:transforms.Compose=None) -> Tensor:
+    def process_image(
+        self, image_loc: str, transform_pipeline: transforms.Compose = None, mask_loc=None
+    ) -> Tensor:
         image = imread(image_loc)
+        if mask_loc is not None:
+            mask = imread(mask_loc)
+            #image = (mask > 0).astype(np.uint8) * image
         if (image > 255).any():
-            image = image - image.min()
-            image = image / image.max()
+            image_min = np.percentile(image, 0.01)
+            image_max = np.percentile(image, 99.9)
+            #image_min = image.min()
+            #image_max = image.max()
+            if image_max > 0:
+                image = image - image_min
+                image = image / image_max
             image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
+            #plt.imshow(image, cmap="inferno")
         image = Image.fromarray(image)
-        if self.pseudo_rgb:
-            rgbimg = Image.new("RGB", image.size)
-            rgbimg.paste(image)
-            ##rgbimg = torch.stack([image]*3)
-            image = rgbimg
+        plt.show()
         if transform_pipeline is None:
             image = self.transform_pipeline(image)
         else:
             image = transform_pipeline(image)
+        if not self.pseudo_rgb:
+            image = image[0, :, :]
         return image
 
 
@@ -297,6 +307,7 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         nuclei_image_dir,
         nuclei_metadata_file,
         slide_image_dir,
+        slide_mask_dir,
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
@@ -329,6 +340,7 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         self.nuclei_image_dir = nuclei_image_dir
         self.nuclei_metadata = self.metadata
         self.slide_image_dir = slide_image_dir
+        self.slide_mask_dir = slide_mask_dir
 
         self.nuclei_image_transform_pipeline = None
         self.slide_image_transform_pipeline = None
@@ -343,6 +355,15 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
                 np.array(self.metadata.loc[:, self.slide_image_name_col], dtype=str),
             ],
         ).astype(object)
+        self.slide_mask_locs = np.apply_along_axis(
+            combine_path,
+            0,
+            [
+                np.repeat(self.slide_mask_dir, len(self.metadata)).astype(str),
+                np.array(self.metadata.loc[:, self.plate_col], dtype=str),
+                np.array(self.metadata.loc[:, self.slide_image_name_col], dtype=str),
+            ],
+        ).astype(object)
 
     def __len__(self):
         return super().__len__()
@@ -350,8 +371,13 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
     def __getitem__(self, idx):
         nuclei_image_loc = self.nuclei_image_locs[idx]
         slide_image_loc = self.slide_image_locs[idx]
-        nuclei_image = self.process_image(nuclei_image_loc, self.nuclei_image_transform_pipeline)
-        slide_image = self.process_image(slide_image_loc, self.slide_image_transform_pipeline)
+        slide_mask_loc = self.slide_mask_locs[idx]
+        nuclei_image = self.process_image(
+            nuclei_image_loc, self.nuclei_image_transform_pipeline
+        )
+        slide_image = self.process_image(
+            slide_image_loc, self.slide_image_transform_pipeline,mask_loc=slide_mask_loc
+        )
         gene_label = self.labels[idx]
 
         sample = {
@@ -390,8 +416,10 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             )
             raise exception
 
-    def process_image(self, image_loc: str, transform_pipeline:transforms.Compose=None) -> Tensor:
-        return super().process_image(image_loc, transform_pipeline=transform_pipeline)
+    def process_image(
+        self, image_loc: str, transform_pipeline: transforms.Compose = None, mask_loc=None
+    ) -> Tensor:
+        return super().process_image(image_loc, transform_pipeline=transform_pipeline, mask_loc=mask_loc)
 
 
 class TorchTransformableSubset(Subset):
@@ -402,7 +430,9 @@ class TorchTransformableSubset(Subset):
         self.dataset = copy.deepcopy(self.dataset)
         self.transform_pipeline = None
 
-    def set_transform_pipeline(self, transform_pipelines: List[transforms.Compose]) -> None:
+    def set_transform_pipeline(
+        self, transform_pipelines: List[transforms.Compose]
+    ) -> None:
         try:
             if len(transform_pipelines) == 1:
                 self.dataset.set_transform_pipeline(transform_pipelines[0])

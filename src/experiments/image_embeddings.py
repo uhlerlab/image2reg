@@ -22,7 +22,8 @@ from src.utils.torch.model import (
     get_image_net_transformations_dict,
     get_image_net_nonrandom_transformations_dict,
     get_nuclei_image_transformations_dict,
-    get_randomflips_transformation_dict, get_slide_image_transformations_dict,
+    get_randomflips_transformation_dict,
+    get_slide_image_transformations_dict,
 )
 
 
@@ -76,24 +77,32 @@ class BaseImageEmbeddingExperiment:
 
         self.data_set = init_profile_dataset(**self.data_config)
 
-    def initialize_data_transform_pipeline(self, data_transform_pipelines: List[str] = None):
+    def initialize_data_transform_pipeline(
+        self, data_transform_pipelines: List[str] = None
+    ):
         for data_transform_pipeline in data_transform_pipelines:
             if data_transform_pipeline is None:
                 self.data_transform_pipeline_dicts.append(None)
             elif data_transform_pipeline == "imagenet_random":
-                self.data_transform_pipeline_dicts.append(get_image_net_transformations_dict(224))
+                self.data_transform_pipeline_dicts.append(
+                    get_image_net_transformations_dict(224)
+                )
             elif data_transform_pipeline == "imagenet_nonrandom":
-                self.data_transform_pipeline_dicts.append(get_image_net_nonrandom_transformations_dict(
-                224
-            ))
+                self.data_transform_pipeline_dicts.append(
+                    get_image_net_nonrandom_transformations_dict(224)
+                )
             elif data_transform_pipeline == "slide_image":
-                self.data_transform_pipeline_dicts.append(get_slide_image_transformations_dict(224))
+                self.data_transform_pipeline_dicts.append(
+                    get_slide_image_transformations_dict(224)
+                )
             elif data_transform_pipeline == "nuclei_image":
-                self.data_transform_pipeline_dicts.append(get_nuclei_image_transformations_dict(
-                224
-            ))
+                self.data_transform_pipeline_dicts.append(
+                    get_nuclei_image_transformations_dict(224)
+                )
             elif data_transform_pipelines == "randomflips":
-                self.data_transform_pipeline_dicts.append(get_randomflips_transformation_dict())
+                self.data_transform_pipeline_dicts.append(
+                    get_randomflips_transformation_dict()
+                )
 
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
@@ -196,7 +205,7 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
             dataset=self.data_set,
             n_folds=self.n_folds,
             batch_size=self.batch_size,
-            num_workers=10,
+            num_workers=15,
             random_state=self.random_state,
             transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,
@@ -281,7 +290,9 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         self.loss_dict = None
         self.label_weights = None
 
-    def initialize_image_data_set(self, multi_image: bool = False,):
+    def initialize_image_data_set(
+        self, multi_image: bool = False,
+    ):
         super().initialize_image_data_set(multi_image=multi_image,)
 
     def initialize_profile_data_set(self):
@@ -297,7 +308,7 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
-            num_workers=10,
+            num_workers=15,
             random_state=self.random_state,
             transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,
