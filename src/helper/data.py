@@ -76,7 +76,10 @@ class DataHandler(BaseDataHandler):
             stratify=labels[train_and_val_idc],
             random_state=self.random_state,
         )
-        logging.debug("Data split on FoV image level ( {} training images, {} validation images, {} test images).".format(len(train_idc), len(val_idc), len(test_idc)))
+        logging.debug(
+            "Data split on FoV image level ( {} training images, {} validation images,"
+            " {} test images).".format(len(train_idc), len(val_idc), len(test_idc))
+        )
 
         if self.split_on_slide_level:
             train_idc = [
@@ -108,14 +111,20 @@ class DataHandler(BaseDataHandler):
         }
         logging.debug(
             "Training samples: {}, validation samples: {}, test samples: {}.".format(
-                len(train_idc), len(val_idc), len(test_idc)))
+                len(train_idc), len(val_idc), len(test_idc)
+            )
+        )
 
     def get_data_loader_dict(self, shuffle: bool = True,) -> None:
         if self.transformation_dicts is not None:
             if len(self.transformation_dicts) > 0:
                 for k in self.transformation_dicts[0].keys():
                     self.train_val_test_datasets_dict[k].set_transform_pipeline(
-                        [self.transformation_dicts[i][k] for i in range(len(self.transformation_dicts))])
+                        [
+                            self.transformation_dicts[i][k]
+                            for i in range(len(self.transformation_dicts))
+                        ]
+                    )
         data_loader_dict = {}
         for k, dataset in self.train_val_test_datasets_dict.items():
             data_loader_dict[k] = DataLoader(
@@ -231,7 +240,12 @@ class DataHandlerCV(BaseDataHandler):
         for train_val_test_datasets_dict in self.train_val_test_datasets:
             if len(self.transformation_dicts) > 0:
                 for k in self.transformation_dicts[0].keys():
-                    train_val_test_datasets_dict[k].set_transform_pipeline([self.transformation_dicts[i][k] for i in range(len(self.transformation_dicts))])
+                    train_val_test_datasets_dict[k].set_transform_pipeline(
+                        [
+                            self.transformation_dicts[i][k]
+                            for i in range(len(self.transformation_dicts))
+                        ]
+                    )
             data_loader_dict = {}
             for k, dataset in train_val_test_datasets_dict.items():
                 if shuffle and k == "train":

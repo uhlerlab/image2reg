@@ -25,6 +25,7 @@ from src.models.clf import (
     ModelEnsemble,
 )
 from src.utils.torch.general import get_device
+from src.utils.torch.transforms import ToRGBTensor
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
@@ -146,54 +147,57 @@ def get_nuclei_image_transformations_dict(input_size):
                 transforms.Resize(input_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(180),
-                transforms.ToTensor(),
+                transforms.RandomRotation(360),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "val": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                transforms.ToTensor(),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "test": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                transforms.ToTensor(),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
     }
     return data_transforms
 
+
 def get_slide_image_transformations_dict(input_size):
     data_transforms = {
         "train": transforms.Compose(
             [
-                transforms.Resize(2*input_size),
+                transforms.Resize(2 * input_size),
+                # RandomGamma(limit=[0.25,2]),
                 transforms.RandomCrop(input_size),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(180),
-                transforms.ToTensor(),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomVerticalFlip(p=0.5),
+                transforms.RandomRotation(360),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "val": transforms.Compose(
             [
-                transforms.Resize(2*input_size),
-                transforms.CenterCrop(input_size),
-                transforms.ToTensor(),
+                transforms.Resize(2 * input_size),
+                # RandomGamma(limit=[0.5, 1.5]),
+                transforms.RandomCrop(input_size),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "test": transforms.Compose(
             [
-                transforms.Resize(2*input_size),
-                transforms.CenterCrop(input_size),
-                transforms.ToTensor(),
+                transforms.Resize(2 * input_size),
+                transforms.RandomCrop(input_size),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
@@ -225,21 +229,21 @@ def get_image_net_transformations_dict(input_size):
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
                 transforms.RandomRotation(180),
-                transforms.ToTensor(),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "val": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                transforms.ToTensor(),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "test": transforms.Compose(
             [
                 transforms.Resize(input_size),
-                transforms.ToTensor(),
+                ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
@@ -269,7 +273,7 @@ def get_image_net_nonrandom_transformations_dict(input_size):
         [
             transforms.Resize(input_size),
             # transforms.CenterCrop(input_size),
-            transforms.ToTensor(),
+            ToRGBTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
         ]
     )

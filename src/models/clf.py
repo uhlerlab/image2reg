@@ -77,7 +77,9 @@ class ModelEnsemble(nn.Module):
         self.models = nn.ModuleList(models)
         self.encoder = nn.Linear(input_dim, latent_dim)
         self.output_layer = nn.Sequential(
-            nn.BatchNorm1d(latent_dim), nn.PReLU(), nn.Linear(latent_dim, n_output_nodes)
+            nn.BatchNorm1d(latent_dim),
+            nn.PReLU(),
+            nn.Linear(latent_dim, n_output_nodes),
         )
         self.device = get_device()
         # self.models.to(self.device)
@@ -89,7 +91,7 @@ class ModelEnsemble(nn.Module):
         for i in range(len(self.models)):
             output = self.models[i](inputs[i].to(self.device))
             outputs.append(output["outputs"])
-        #latents = torch.cat(outputs, dim=1)
+        # latents = torch.cat(outputs, dim=1)
         latents = self.encoder(torch.cat(outputs, dim=1))
         if extra_features is not None:
             latents = torch.cat([latents, extra_features], dim=1)

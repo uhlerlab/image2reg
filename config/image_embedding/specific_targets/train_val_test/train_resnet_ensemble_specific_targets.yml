@@ -5,8 +5,8 @@ run_params:
   data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
                       'nuclei_metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+                      'slide_mask_dir': 'data/experiments/image_preprocessing/unet_segmentation',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
-                      #'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'target_list':["AKT1", "AKT1S1", "ATF4", "ATG16L1", "ATG5", "BAMBI", "BAX", "BCL2L11", "BECN1",
                                      "BRAF", "CASP8", "CDC42", "CDK2", "CDKN1A", "CEBPA", "CREB1", "CSNK1E", "CXXC4",
                                      "DUSP1", "ELK1", "ERG", "GLI1", "HRAS", "IKBKB", "JAK2", "JUN", "KRAS", "MAP2K4",
@@ -16,24 +16,24 @@ run_params:
 
   model_config: {'model_config':{
                         'type':'ensemble',
-                        'input_dim': 160,
+                        'input_dim': 1024,
                         'latent_dim': 128,
                         'n_output_nodes': 44,
                         'component_dicts':[
-                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':128,
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
                                  fix_feature_extractor: False, 'dropout_rate':0.0},
-                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':32,
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
                                  fix_feature_extractor: False, 'dropout_rate':0.0}
                         ]
                  },
-                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0009},
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
                  'loss_config':{'type':'ce'}}
 
   domain_name: 'image'
   num_epochs: 300
   early_stopping: 10
   train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 32
+  batch_size: 64
   random_state: 1234
   save_freq: 50
 
