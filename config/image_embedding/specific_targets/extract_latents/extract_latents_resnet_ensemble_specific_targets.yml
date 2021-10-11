@@ -12,6 +12,7 @@ run_params:
                                      "DUSP1", "ELK1", "ERG", "GLI1", "HRAS", "IKBKB", "JAK2", "JUN", "KRAS", "MAP2K4",
                                      "MAP3K2", "MAP3K8", "MAP3K9", "MLST8", "PDPK1", "PRKACA", "RAF1", "RELB", "RHOA",
                                      "SMAD3", "SMAD4", "SMO", "SRC", "SREBF1", "TCF4", "TSC2"],
+                      #'n_control_samples': 7869,
                       'pseudo_rgb':True}
 
   model_config: {'model_config':{
@@ -48,9 +49,9 @@ pipeline:
   - method: initialize_domain_config
   - method: load_model
     params:
-      weights_fname: "data/experiments/image_embeddings/specific_targets/resnet_nuclei_fov/best_model_weights.pth"
-  - method: plot_confusion_matrices
-    params:
-      normalize: "true"
-#  - method: extract_and_save_latents
+      weights_fname: "data/experiments/image_embeddings/specific_targets/20211010_190648/best_model_weights.pth"
+#  - method: plot_confusion_matrices
+#    params:
+#      normalize: "true"
+  - method: extract_and_save_latents
 

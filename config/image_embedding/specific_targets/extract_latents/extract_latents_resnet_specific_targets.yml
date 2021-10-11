@@ -6,7 +6,7 @@ run_params:
                       'nuclei_metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'slide_mask_dir': 'data/experiments/image_preprocessing/unet_segmentation',
-                      'data_key':'slide_image', 'label_key':'label', 'index_key':'image_file',
+                      'data_key':'nuclei_image', 'label_key':'label', 'index_key':'image_file',
                       #'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
                       'target_list':["AKT1", "AKT1S1", "ATF4", "ATG16L1", "ATG5", "BAMBI", "BAX", "BCL2L11", "BECN1",
                                      "BRAF", "CASP8", "CDC42", "CDK2", "CDKN1A", "CEBPA", "CREB1", "CSNK1E", "CXXC4",
@@ -43,7 +43,7 @@ pipeline:
   - method: initialize_domain_config
   - method: load_model
     params:
-      weights_fname: "data/experiments/image_embeddings/specific_targets/resnet_fov/best_model_weights.pth"
+      weights_fname: "data/experiments/image_embeddings/specific_targets/resnet_nuclei/best_model_weights.pth"
   - method: plot_confusion_matrices
     params:
       normalize: "true"

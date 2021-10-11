@@ -1,4 +1,4 @@
-output_dir: 'data/experiments/image_embeddings/specificity_screen/'
+output_dir: 'data/experiments/image_embeddings/specificity_latents/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperiment
 run_params:
@@ -45,6 +45,6 @@ pipeline:
   - method: initialize_domain_config
   - method: load_model
     params:
-      weights_fname: "data/experiments/image_embeddings/nuclei_fov_screen/SMADD4/best_model_weights.pth"
+      weights_fname: "data/experiments/image_embeddings/nuclei_fov_screen/SMAD4/best_model_weights.pth"
   - method: extract_and_save_latents
 

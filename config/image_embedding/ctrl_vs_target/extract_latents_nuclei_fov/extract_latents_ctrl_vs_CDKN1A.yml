@@ -1,4 +1,4 @@
-output_dir: 'data/experiments/image_embeddings/specificity_screen/'
+output_dir: 'data/experiments/image_embeddings/specificity_latents/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperiment
 run_params:

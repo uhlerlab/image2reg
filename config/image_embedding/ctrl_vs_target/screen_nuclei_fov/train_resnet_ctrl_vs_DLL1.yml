@@ -46,4 +46,8 @@ pipeline:
   - method: train_models
   - method: evaluate_test_performance
   - method: visualize_loss_evolution
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true"
+  - method: extract_and_save_latents
 

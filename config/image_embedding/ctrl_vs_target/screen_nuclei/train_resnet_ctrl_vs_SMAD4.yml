@@ -40,4 +40,5 @@ pipeline:
   - method: train_models
   - method: evaluate_test_performance
   - method: visualize_loss_evolution
+  - method: extract_and_save_latents
 
