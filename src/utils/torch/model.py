@@ -25,7 +25,7 @@ from src.models.clf import (
     ModelEnsemble,
 )
 from src.utils.torch.general import get_device
-from src.utils.torch.transforms import ToRGBTensor
+from src.utils.torch.transforms import ToRGBTensor, CustomPad, CustomRandomRotation
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
@@ -141,19 +141,20 @@ def get_randomflips_transformation_dict():
 
 def get_nuclei_image_transformations_dict(input_size):
     data_transforms = {
-        # In the original paper the random permutation were used to make models more general to diverse pictures.
         "train": transforms.Compose(
             [
+                #CustomPad(128),
                 transforms.Resize(input_size),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomVerticalFlip(),
-                transforms.RandomRotation(360),
+                #transforms.RandomApply([transforms.RandomRotation(180, interpolation=transforms.F.InterpolationMode.BICUBIC)], p=0.8),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
         ),
         "val": transforms.Compose(
             [
+                #CustomPad(128),
                 transforms.Resize(input_size),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -161,6 +162,7 @@ def get_nuclei_image_transformations_dict(input_size):
         ),
         "test": transforms.Compose(
             [
+                #CustomPad(128),
                 transforms.Resize(input_size),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
@@ -175,11 +177,10 @@ def get_slide_image_transformations_dict(input_size):
         "train": transforms.Compose(
             [
                 transforms.Resize(2 * input_size),
-                # RandomGamma(limit=[0.25,2]),
-                transforms.RandomCrop(input_size),
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomVerticalFlip(p=0.5),
-                transforms.RandomRotation(360),
+                #transforms.RandomApply([transforms.RandomRotation(180, interpolation=transforms.F.InterpolationMode.BICUBIC)], p=0.8),
+                transforms.RandomCrop(input_size),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -187,8 +188,8 @@ def get_slide_image_transformations_dict(input_size):
         "val": transforms.Compose(
             [
                 transforms.Resize(2 * input_size),
-                # RandomGamma(limit=[0.5, 1.5]),
-                transforms.RandomCrop(input_size),
+                #transforms.RandomCrop(input_size),
+                transforms.CenterCrop(input_size),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]
@@ -196,7 +197,8 @@ def get_slide_image_transformations_dict(input_size):
         "test": transforms.Compose(
             [
                 transforms.Resize(2 * input_size),
-                transforms.RandomCrop(input_size),
+                transforms.CenterCrop(input_size),
+                #transforms.RandomCrop(input_size),
                 ToRGBTensor(),
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             ]

@@ -280,31 +280,21 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         mask_loc=None,
     ) -> Tensor:
         image = imread(image_loc)
-        # if mask_loc is not None:
-        #     mask = imread(mask_loc)
-        #     image = (mask > 0) * image
         if (image > 255).any():
             image_min = np.percentile(image, 0.1)
             image_max = np.percentile(image, 99.9)
-            # image_min = image.min()
-            # image_max = image.max()
-            # if image_max == 0:
-            #     print("image loc:", image_loc)
-            #     print("mask loc:", mask_loc)
             if image_max > 0:
                 image = image - image_min
                 image = image / image_max
             image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
-            # plt.imshow(image, cmap="inferno")
-        image = Image.fromarray(image)
-        plt.show()
+        pil_image = Image.fromarray(image)
         if transform_pipeline is None:
-            image = self.transform_pipeline(image)
+            tensor_image = self.transform_pipeline(pil_image)
         else:
-            image = transform_pipeline(image)
+            tensor_image = transform_pipeline(pil_image)
         if not self.pseudo_rgb:
-            image = image[0, :, :]
-        return image
+            tensor_image = image[0, :, :]
+        return tensor_image
 
 
 class TorchMultiImageSlideDataset(TorchImageSlideDataset):
@@ -313,7 +303,7 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         nuclei_image_dir,
         nuclei_metadata_file,
         slide_image_dir,
-        slide_mask_dir,
+        slide_mask_dir : str = None,
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
@@ -361,7 +351,8 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
                 np.array(self.metadata.loc[:, self.slide_image_name_col], dtype=str),
             ],
         ).astype(object)
-        self.slide_mask_locs = np.apply_along_axis(
+        if self.slide_mask_dir is not None:
+            self.slide_mask_locs = np.apply_along_axis(
             combine_path,
             0,
             [
@@ -370,6 +361,8 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
                 np.array(self.metadata.loc[:, self.slide_image_name_col], dtype=str),
             ],
         ).astype(object)
+        else:
+            self.slide_mask_locs = None
 
     def __len__(self):
         return super().__len__()
@@ -377,7 +370,10 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
     def __getitem__(self, idx):
         nuclei_image_loc = self.nuclei_image_locs[idx]
         slide_image_loc = self.slide_image_locs[idx]
-        slide_mask_loc = self.slide_mask_locs[idx]
+        if self.slide_mask_locs is not None:
+            slide_mask_loc = self.slide_mask_locs[idx]
+        else:
+            slide_mask_loc = None
         nuclei_image = self.process_image(
             nuclei_image_loc, self.nuclei_image_transform_pipeline
         )

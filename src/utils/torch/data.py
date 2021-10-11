@@ -47,7 +47,7 @@ def init_multi_image_dataset(
     nuclei_image_dir: str,
     nuclei_metadata_file: str,
     slide_image_dir: str,
-    slide_mask_dir: str,
+    slide_mask_dir: str = None,
     image_file_col: str = "image_file",
     label_col: str = "gene_symbol",
     plate_col: str = "plate",
