@@ -278,20 +278,29 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         image_loc: str,
         transform_pipeline: transforms.Compose = None,
         mask_loc=None,
+        centroid=None
     ) -> Tensor:
         image = imread(image_loc)
         if (image > 255).any():
-            image_min = np.percentile(image, 0.1)
-            image_max = np.percentile(image, 99.9)
-            if image_max > 0:
-                image = image - image_min
-                image = image / image_max
-            image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
+            image = np.clip(image / 256, 0, 255)
+            image = np.uint8(image)
+            #image_min = np.percentile(image, 0.1)
+            #image_max = np.percentile(image, 99.9)
+            #if image_max > 0:
+            #    image = image - image_min
+            #    image = image / image_max
+            #image = np.array(np.clip(image, 0, 1) * 255, dtype=np.uint8)
         pil_image = Image.fromarray(image)
         if transform_pipeline is None:
-            tensor_image = self.transform_pipeline(pil_image)
+            if centroid is not None:
+                tensor_image = self.transform_pipeline(pil_image, centroid)
+            else:
+                tensor_image = self.transform_pipeline(pil_image)
         else:
-            tensor_image = transform_pipeline(pil_image)
+            if centroid is not None:
+                tensor_image = transform_pipeline(pil_image, centroid=centroid)
+            else:
+                tensor_image = transform_pipeline(pil_image)
         if not self.pseudo_rgb:
             tensor_image = image[0, :, :]
         return tensor_image
@@ -364,12 +373,16 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         else:
             self.slide_mask_locs = None
 
+        self.centroids_0 = np.array(self.nuclei_metadata.loc[:, "centroid_0"])
+        self.centroids_1 = np.array(self.nuclei_metadata.loc[:, "centroid_1"])
+
     def __len__(self):
         return super().__len__()
 
     def __getitem__(self, idx):
         nuclei_image_loc = self.nuclei_image_locs[idx]
         slide_image_loc = self.slide_image_locs[idx]
+        centroid = [self.centroids_0[idx], self.centroids_1[idx]]
         if self.slide_mask_locs is not None:
             slide_mask_loc = self.slide_mask_locs[idx]
         else:
@@ -381,6 +394,7 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             slide_image_loc,
             self.slide_image_transform_pipeline,
             mask_loc=slide_mask_loc,
+            centroid = centroid
         )
         gene_label = self.labels[idx]
 
@@ -425,9 +439,10 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         image_loc: str,
         transform_pipeline: transforms.Compose = None,
         mask_loc=None,
+        centroid=None,
     ) -> Tensor:
         return super().process_image(
-            image_loc, transform_pipeline=transform_pipeline, mask_loc=mask_loc
+            image_loc, transform_pipeline=transform_pipeline, mask_loc=mask_loc, centroid=centroid
         )
 
 

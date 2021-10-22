@@ -141,14 +141,6 @@ class BaseImageEmbeddingExperiment:
                 dataset_type=dataset_type,
                 device=device,
             )
-        # save_path = os.path.join(output_dir, "all_latents.h5")
-        # save_latents_to_hdf(
-        #    domain_config=self.domain_config,
-        # data_loader_dict= None,
-        #    save_path=save_path,
-        #    dataset=self.data_set,
-        #    device=device,
-        # )
 
     def plot_confusion_matrices(self, normalize=None):
         self.domain_config.data_loader_dict=self.data_loader_dict

@@ -1,3 +1,4 @@
+import torchvision.transforms.functional
 from torchvision.transforms import functional as F
 import numpy as np
 import torch
@@ -8,9 +9,98 @@ from torch_geometric.typing import EdgeType
 import copy
 from torch import Tensor
 
-from torch_geometric.data import Data, HeteroData
+from torch_geometric.data import Data
 from torch_geometric.utils import negative_sampling, add_self_loops
-from torch_geometric.transforms import BaseTransform, RandomLinkSplit
+from torch_geometric.transforms import BaseTransform
+
+
+class CustomCompose(transforms.Compose):
+    def __init__(self, transforms):
+        super().__init__(transforms=transforms)
+
+    def __call__(self, img, **kwargs):
+        for t in self.transforms:
+            img = t(img, kwargs)
+        return img
+
+    def __repr__(self):
+        return super().__repr__()
+
+class CustomNormalize(transforms.Normalize):
+    def __init__(self, mean, std, inplace=False):
+        super().__init__(mean=mean, std=std, inplace=inplace)
+
+    def __call__(self, tensor, *args, **kwargs):
+        return super().__call__(tensor)
+
+    def __repr__(self):
+        return super().__repr__()
+
+class CustomRandomHorizontalFlip(transforms.RandomHorizontalFlip):
+    def __init__(self, p=0.5):
+        super().__init__(p=p)
+
+    def __call__(self, img, *args, **kwargs):
+        return super().__call__(img)
+
+    def __repr__(self):
+        return super().__repr__()
+
+
+class CustomRandomVerticalFlip(transforms.RandomVerticalFlip):
+    def __init__(self, p=0.5):
+        super().__init__(p=p)
+
+    def __call__(self, img, *args, **kwargs):
+        return super().__call__(img)
+
+    def __repr__(self):
+        return super().__repr__()
+
+
+class CustomResize(transforms.Resize):
+    def __init__(self, size, interpolation=F.InterpolationMode.BILINEAR):
+        super().__init__(size=size, interpolation=interpolation)
+
+    def __call__(self, img, *args, **kwargs):
+        return super().__call__(img)
+
+    def __repr__(self):
+        return super().__repr__()
+
+
+class ClearBorders(object):
+
+    def __init__(self, size):
+        self.size = size
+        self.cropper = transforms.CenterCrop(self.size)
+
+    def __call__(self, img):
+        img = self.cropper(img)
+        fill = int(np.percentile(np.array(img), 1))
+        img = transforms.Pad(self.size//2, fill=fill)
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(size={})".format(self.size)
+
+
+class CustomCenteredCrop(object):
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, img, kwargs):
+        centroid = kwargs["centroid"]
+        x, y = centroid[0], centroid[1]
+        fill = int(np.percentile(np.array(img), 1))
+        img = transforms.Pad(self.size, fill=fill)(img)
+        img = transforms.functional.crop(
+            img, int(x) + (self.size // 2), int(y) + (self.size // 2), self.size, self.size
+        )
+        return img
+
+    def __repr__(self):
+        return self.__class__.__name__ + "(size={})".format(self.size)
 
 
 class RandomGamma(object):
@@ -44,7 +134,7 @@ class CustomRandomRotation(object):
 class CustomPad(object):
 
     def __init__(self, size, fill=None):
-        self.size = size
+        self.size=size
         self.fill=fill
 
     def __call__(self, img):
@@ -62,7 +152,7 @@ class ToRGBTensor(torch.nn.Module):
     def __init__(self):
         super().__init__()
 
-    def forward(self, img):
+    def __call__(self, img, *args, **kwargs):
         return transforms.ToTensor()(img).repeat(3, 1, 1)
 
 

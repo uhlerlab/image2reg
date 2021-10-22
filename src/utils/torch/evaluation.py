@@ -7,7 +7,6 @@ import torch
 from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
-from torch import FloatTensor
 from torch.nn import Module
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm

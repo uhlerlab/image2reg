@@ -266,6 +266,7 @@ def compute_nuclear_chromatin_features(
             "weighted_moments_normalized",
             "weighted_moments_central",
             "weighted_moments_hu",
+            "centroid",
             "moments",
             "moments_normalized",
             "moments_central",
@@ -321,10 +322,6 @@ def compute_nuclear_chromatin_features(
         4 * np.pi * features["area"]
     )
     features["area_bbarea"] = features["area"] / features["bbox_area"]
-    features["center_mismatch"] = np.sqrt(
-        (features["weighted_centroid-0"] - features["centroid-0"]) ** 2
-        + (features["weighted_centroid-1"] - features["centroid-1"]) ** 2
-    )
     features["smallest_largest_calliper"] = (
         features["min_calliper"] / features["max_calliper"]
     )
