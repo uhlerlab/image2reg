@@ -1,11 +1,11 @@
-output_dir: 'data/experiments/morph_embeddings'
-module: src.experiments.train_model
-class: TrainModelExperiment
+output_dir: 'data/experiments/morph_embeddings/screen'
+module: src.experiments.profile_embeddings
+class: BaseProfileEmbeddingExperiment
 run_params:
   data_config: {'feature_label_file':'data/images/metadata/nuclei_profiles_hoechst_cleaned.csv',
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'labels',
-                      'target_list':["ACVR1B", "EMPTY"],
+                      'target_list':["H", "EMPTY"],
                       'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",
                           "Nuclei_Location_CenterMassIntensity_X_Hoechst",
                           "Nuclei_Location_CenterMassIntensity_Y_Hoechst",

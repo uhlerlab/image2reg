@@ -1,6 +1,6 @@
-output_dir: 'data/experiments/morph_embeddings'
-module: src.experiments.train_model
-class: TrainModelExperiment
+output_dir: 'data/experiments/morph_embeddings/screen'
+module: src.experiments.profile_embeddings
+class: BaseProfileEmbeddingExperiment
 run_params:
   data_config: {'feature_label_file':'data/images/metadata/nuclei_profiles_hoechst_cleaned.csv',
                       'data_key':'profile', 'label_key':'label',
@@ -16,7 +16,6 @@ run_params:
                           "Nuclei_Neighbors_SecondClosestObjectNumber_1",
                           "Nuclei_AreaShape_Orientation",
                           "Nuclei_Neighbors_AngleBetweenNeighbors_1",],
-                      'n_control_samples': 3176,
                       'slide_image_name_col': "ImageNumber"}
 
   model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':2, 'input_dim': 124},
