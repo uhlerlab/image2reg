@@ -179,7 +179,9 @@ def visualize_image_ae_performance(
         )
 
 
-def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["test"], normalize=None):
+def get_confusion_matrices(
+    domain_config: DomainConfig, dataset_types: List = ["test"], normalize=None
+):
     confusion_matrices = {}
     for dataset_type in dataset_types:
         confusion_matrices[dataset_type] = get_confusion_matrix(
@@ -188,7 +190,9 @@ def get_confusion_matrices(domain_config: DomainConfig, dataset_types: List = ["
     return confusion_matrices
 
 
-def get_confusion_matrix(domain_config: DomainConfig, dataset_type: str = "test", normalize=None):
+def get_confusion_matrix(
+    domain_config: DomainConfig, dataset_type: str = "test", normalize=None
+):
     device = get_device()
     model = domain_config.domain_model_config.model.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]

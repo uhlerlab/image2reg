@@ -25,8 +25,15 @@ from src.models.clf import (
     ModelEnsemble,
 )
 from src.utils.torch.general import get_device
-from src.utils.torch.transforms import ToRGBTensor, CustomCenteredCrop, CustomResize, CustomRandomHorizontalFlip, \
-    CustomRandomVerticalFlip, CustomCompose, CustomNormalize
+from src.utils.torch.transforms import (
+    ToRGBTensor,
+    CustomCenteredCrop,
+    CustomResize,
+    CustomRandomHorizontalFlip,
+    CustomRandomVerticalFlip,
+    CustomCompose,
+    CustomNormalize,
+)
 
 
 def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:

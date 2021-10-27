@@ -18,7 +18,7 @@ run_params:
   model_config: {'model_config':{
                         'type':'ensemble',
                         'input_dim': 1024,
-                        'latent_dim': 128,
+                        'latent_dim': 512,
                         'n_output_nodes': 45,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
@@ -32,7 +32,7 @@ run_params:
 
   domain_name: 'image'
   num_epochs: 300
-  early_stopping: 10
+  early_stopping: 5
   train_val_test_split: [0.7, 0.2, 0.1]
   batch_size: 64
   random_state: 1234

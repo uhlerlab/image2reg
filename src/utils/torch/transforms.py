@@ -26,6 +26,7 @@ class CustomCompose(transforms.Compose):
     def __repr__(self):
         return super().__repr__()
 
+
 class CustomNormalize(transforms.Normalize):
     def __init__(self, mean, std, inplace=False):
         super().__init__(mean=mean, std=std, inplace=inplace)
@@ -35,6 +36,7 @@ class CustomNormalize(transforms.Normalize):
 
     def __repr__(self):
         return super().__repr__()
+
 
 class CustomRandomHorizontalFlip(transforms.RandomHorizontalFlip):
     def __init__(self, p=0.5):
@@ -70,7 +72,6 @@ class CustomResize(transforms.Resize):
 
 
 class ClearBorders(object):
-
     def __init__(self, size):
         self.size = size
         self.cropper = transforms.CenterCrop(self.size)
@@ -78,7 +79,7 @@ class ClearBorders(object):
     def __call__(self, img):
         img = self.cropper(img)
         fill = int(np.percentile(np.array(img), 1))
-        img = transforms.Pad(self.size//2, fill=fill)
+        img = transforms.Pad(self.size // 2, fill=fill)
         return img
 
     def __repr__(self):
@@ -95,7 +96,11 @@ class CustomCenteredCrop(object):
         fill = int(np.percentile(np.array(img), 1))
         img = transforms.Pad(self.size, fill=fill)(img)
         img = transforms.functional.crop(
-            img, int(x) + (self.size // 2), int(y) + (self.size // 2), self.size, self.size
+            img,
+            int(x) + (self.size // 2),
+            int(y) + (self.size // 2),
+            self.size,
+            self.size,
         )
         return img
 
@@ -104,7 +109,6 @@ class CustomCenteredCrop(object):
 
 
 class RandomGamma(object):
-
     def __init__(self, limit=[0.5, 1.5]):
         self.limit = limit
 
@@ -115,38 +119,45 @@ class RandomGamma(object):
     def __repr__(self):
         return self.__class__.__name__ + "(gamma={})".format(self.limit)
 
-class CustomRandomRotation(object):
 
+class CustomRandomRotation(object):
     def __init__(self, degrees, fill=None):
         self.degrees = degrees
-        self.fill=fill
+        self.fill = fill
 
     def __call__(self, img):
         if self.fill is None:
             fill = int(np.percentile(np.array(img), 1))
         else:
             fill = self.fill
-        return transforms.RandomRotation(self.degrees, fill=fill, interpolation=F.InterpolationMode.BICUBIC)(img)
+        return transforms.RandomRotation(
+            self.degrees, fill=fill, interpolation=F.InterpolationMode.BICUBIC
+        )(img)
 
     def __repr__(self):
-        return self.__class__.__name__ + "(degrees={}, fill={})".format(self.degrees, self.fill)
+        return self.__class__.__name__ + "(degrees={}, fill={})".format(
+            self.degrees, self.fill
+        )
+
 
 class CustomPad(object):
-
     def __init__(self, size, fill=None):
-        self.size=size
-        self.fill=fill
+        self.size = size
+        self.fill = fill
 
     def __call__(self, img):
-        w , h = np.array(img).shape
+        w, h = np.array(img).shape
         if self.fill is None:
             fill = int(np.percentile(np.array(img), 1))
         else:
             fill = self.fill
-        return F.pad(img, padding=[(self.size-h)//2 + 1, (self.size-h)//2 + 1], fill=fill)
+        return F.pad(
+            img, padding=[(self.size - h) // 2 + 1, (self.size - h) // 2 + 1], fill=fill
+        )
 
     def __repr__(self):
         return self.__class__.__name__ + "(size={})".format(self.size)
+
 
 class ToRGBTensor(torch.nn.Module):
     def __init__(self):
@@ -207,12 +218,13 @@ class CustomRandomLinkSplit(BaseTransform):
         neg_sampling_ratio: (float, optional): The ratio of sampled negative
             edges to the number of positive edges. (default: :obj:`1.0`)
     """
+
     def __init__(
         self,
         num_val: Union[int, float] = 0.1,
         num_test: Union[int, float] = 0.2,
         is_undirected: bool = False,
-        key: str = 'edge_label',
+        key: str = "edge_label",
         split_labels: bool = False,
         add_negative_train_samples: bool = True,
         neg_sampling_ratio: float = 1.0,
@@ -241,9 +253,9 @@ class CustomRandomLinkSplit(BaseTransform):
             raise ValueError("Insufficient number of edges for training.")
 
         train_edges = perm[:num_train]
-        val_edges = perm[num_train:num_train + num_val]
-        test_edges = perm[num_train + num_val:]
-        train_val_edges = perm[:num_train + num_val]
+        val_edges = perm[num_train : num_train + num_val]
+        test_edges = perm[num_train + num_val :]
+        train_val_edges = perm[: num_train + num_val]
 
         # Create data splits:
         train_data = self._split_data(data, train_edges)
@@ -259,26 +271,26 @@ class CustomRandomLinkSplit(BaseTransform):
 
         num_neg = num_neg_train + num_neg_val + num_neg_test
         neg_edge_index = negative_sampling(
-            add_self_loops(data.edge_index)[0], num_nodes=data.num_nodes,
-            num_neg_samples=num_neg, method='sparse')
+            add_self_loops(data.edge_index)[0],
+            num_nodes=data.num_nodes,
+            num_neg_samples=num_neg,
+            method="sparse",
+        )
 
         # Create labels:
         self._create_label(
             data,
             train_edges,
-            neg_edge_index[:, num_neg_val + num_neg_test:],
+            neg_edge_index[:, num_neg_val + num_neg_test :],
             out=train_data,
         )
         self._create_label(
-            data,
-            val_edges,
-            neg_edge_index[:, :num_neg_val],
-            out=val_data,
+            data, val_edges, neg_edge_index[:, :num_neg_val], out=val_data,
         )
         self._create_label(
             data,
             test_edges,
-            neg_edge_index[:, num_neg_val:num_neg_val + num_neg_test],
+            neg_edge_index[:, num_neg_val : num_neg_val + num_neg_test],
             out=test_data,
         )
 
@@ -307,8 +319,9 @@ class CustomRandomLinkSplit(BaseTransform):
 
         return data
 
-    def _create_label(self, data: Data, index: Tensor, neg_edge_index: Tensor,
-                      out: Data):
+    def _create_label(
+        self, data: Data, index: Tensor, neg_edge_index: Tensor, out: Data
+    ):
 
         edge_index = data.edge_index[:, index]
 
@@ -324,21 +337,23 @@ class CustomRandomLinkSplit(BaseTransform):
             neg_edge_label = edge_label.new_zeros(neg_edge_index.size(1))
 
         if self.split_labels:
-            out[f'pos_{self.key}'] = edge_label
-            out[f'pos_{self.key}_index'] = edge_index
+            out[f"pos_{self.key}"] = edge_label
+            out[f"pos_{self.key}_index"] = edge_index
             if neg_edge_index.numel() > 0:
-                out[f'neg_{self.key}'] = neg_edge_label
-                out[f'neg_{self.key}_index'] = neg_edge_index
+                out[f"neg_{self.key}"] = neg_edge_label
+                out[f"neg_{self.key}_index"] = neg_edge_index
 
         else:
             if neg_edge_index.numel() > 0:
                 edge_label = torch.cat([edge_label, neg_edge_label], dim=0)
                 edge_index = torch.cat([edge_index, neg_edge_index], dim=-1)
             out[self.key] = edge_label
-            out[f'{self.key}_index'] = edge_index
+            out[f"{self.key}_index"] = edge_index
 
         return out
 
     def __repr__(self) -> str:
-        return (f'{self.__class__.__name__}(num_val={self.num_val}, '
-                f'num_test={self.num_test})')
+        return (
+            f"{self.__class__.__name__}(num_val={self.num_val}, "
+            f"num_test={self.num_test})"
+        )

@@ -1,7 +1,7 @@
 import copy
 import logging
 import os
-from typing import List, Any
+from typing import List
 import torch
 
 from src.experiments.base import BaseExperiment, BaseExperimentCV
@@ -14,7 +14,8 @@ from src.utils.torch.data import (
 )
 from src.utils.torch.evaluation import (
     visualize_latent_space_pca_walk,
-    save_latents_to_hdf, get_confusion_matrices,
+    save_latents_to_hdf,
+    get_confusion_matrices,
 )
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
@@ -67,16 +68,6 @@ class BaseImageEmbeddingExperiment:
             self.data_set = init_multi_image_dataset(**self.data_config)
         else:
             self.data_set = init_image_dataset(**self.data_config)
-
-    def initialize_profile_data_set(self):
-        self.data_key = self.data_config.pop("data_key")
-        self.label_key = self.data_config.pop("label_key")
-        if "index_key" in self.data_config:
-            self.index_key = self.data_config.pop("index_key")
-        if "extra_feature_key" in self.data_config:
-            self.extra_feature_key = self.data_config.pop("extra_feature_key")
-
-        self.data_set = init_profile_dataset(**self.data_config)
 
     def initialize_data_transform_pipeline(
         self, data_transform_pipelines: List[str] = None
@@ -143,12 +134,17 @@ class BaseImageEmbeddingExperiment:
             )
 
     def plot_confusion_matrices(self, normalize=None):
-        self.domain_config.data_loader_dict=self.data_loader_dict
+        self.domain_config.data_loader_dict = self.data_loader_dict
         confusion_matrices = get_confusion_matrices(
-                domain_config=self.domain_config, dataset_types=["train", "val", "test"], normalize=normalize
-            )
-        plot_confusion_matrices(confusion_matrices, output_dir=self.output_dir,
-                                display_labels=sorted(self.data_config["target_list"]))
+            domain_config=self.domain_config,
+            dataset_types=["train", "val", "test"],
+            normalize=normalize,
+        )
+        plot_confusion_matrices(
+            confusion_matrices,
+            output_dir=self.output_dir,
+            display_labels=sorted(self.data_config["target_list"]),
+        )
 
 
 class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment):

@@ -197,7 +197,9 @@ class ImageDatasetPreprocessor:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
 
-        def get_image_crops_for_single_image(i, extract_ncmo_features:bool=True, center_crop_slide_dir:bool=False):
+        def get_image_crops_for_single_image(
+            i, extract_ncmo_features: bool = True, center_crop_slide_dir: bool = False
+        ):
             slide_image_names = []
             widths = []
             heights = []
@@ -277,7 +279,7 @@ class ImageDatasetPreprocessor:
                         cropped = image[xmin:xmax, ymin:ymax] * region.convex_image
                     else:
                         cropped = region.intensity_image
-                        #cropped = image
+                        # cropped = image
 
                     tifffile.imsave(output_file_name, cropped)
                     nucleus_metadata = list(self.metadata.iloc[i, :])
