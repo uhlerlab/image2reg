@@ -87,9 +87,9 @@ class BaseProfileEmbeddingExperiment(BaseExperiment):
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
-            num_workers=15,
+            num_workers=0,
             random_state=self.random_state,
-            transformation_dicts=self.data_transform_pipeline_dicts,
+            transformation_dicts=None,
             drop_last_batch=drop_last_batch,
         )
         dh.stratified_train_val_test_split(splits=self.train_val_test_split)

@@ -66,15 +66,13 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
             self.feature_labels = self.feature_labels.loc[
                 self.feature_labels[label_col].isin(target_list), :
             ]
-        if n_control_samples is not None and "EMPTY" in target_list:
+        if "EMPTY" in target_list:
             idc = np.array(list(range(len(self.feature_labels)))).reshape(-1, 1)
             labels = self.feature_labels[self.label_col]
-            target_n_samples = dict(Counter(labels))
-            target_n_samples["EMPTY"] = n_control_samples
             idc, _ = RandomUnderSampler(
-                sampling_strategy=target_n_samples, random_state=1234
+                sampling_strategy='majority', random_state=1234
             ).fit_resample(idc, labels)
-            self.feature_labels = self.features.iloc[idc.flatten(), :]
+            self.feature_labels = self.feature_labels.iloc[idc.flatten(), :]
 
         logging.debug(
             "Label counts: %s",

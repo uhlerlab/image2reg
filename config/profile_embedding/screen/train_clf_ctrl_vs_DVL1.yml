@@ -5,7 +5,7 @@ run_params:
   data_config: {'feature_label_file':'data/images/metadata/nuclei_profiles_hoechst_cleaned.csv',
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'labels',
-                      'target_list':["DVL", "EMPTY"],
+                      'target_list':["DVL1", "EMPTY"],
                       'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",
                           "Nuclei_Location_CenterMassIntensity_X_Hoechst",
                           "Nuclei_Location_CenterMassIntensity_Y_Hoechst",

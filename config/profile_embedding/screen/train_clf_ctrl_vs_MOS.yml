@@ -1,4 +1,4 @@
-ooutput_dir: 'data/experiments/morph_embeddings/screen'
+output_dir: 'data/experiments/morph_embeddings/screen'
 module: src.experiments.profile_embeddings
 class: BaseProfileEmbeddingExperiment
 run_params:
