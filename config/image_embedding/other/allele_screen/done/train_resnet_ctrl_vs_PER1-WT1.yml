@@ -1,0 +1,53 @@
+output_dir: 'data/experiments/image_embeddings/specificity_screen_alleles/'
+module: src.experiments.image_embeddings
+class: ImageEmbeddingExperiment
+run_params:
+  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
+                      'nuclei_metadata_file':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
+                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+                      'label_col': 'allele_symbol',
+                      'data_key':'images', 'label_key':'label', 'index_key':'image_file',
+                      'target_list':["PER1_WT.1", "EMPTY_nan"],
+                      'n_control_samples': 2777,
+                      'pseudo_rgb':True}
+
+  model_config: {'model_config':{
+                        'type':'ensemble',
+                        'input_dim': 1024,
+                        'latent_dim': 512,
+                        'n_output_nodes': 2,
+                        'component_dicts':[
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0},
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0}
+                        ]
+                 },
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                 'loss_config':{'type':'ce'}}
+
+  domain_name: 'image'
+  num_epochs: 300
+  early_stopping: 10
+  train_val_test_split: [0.6, 0.2, 0.2]
+  batch_size: 32
+  random_state: 1234
+  save_freq: 50
+
+pipeline:
+  - method: initialize_image_data_set
+    params:
+      multi_image: True
+  - method: initialize_data_transform_pipeline
+    params:
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: train_models
+  - method: evaluate_test_performance
+  - method: visualize_loss_evolution
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true"
+  - method: extract_and_save_latents
+

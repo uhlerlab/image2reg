@@ -1,11 +1,13 @@
 from abc import abstractmethod, ABC
+from random import random
 from typing import Any, List, Tuple
 
 import torch
+from numba import np
 from torch import nn, Tensor
 
 from src.utils.torch.general import get_device
-from torch_geometric.nn import GAE, GCNConv
+from torch_geometric.nn import GCNConv, Sequential, GAE
 
 
 class BaseAE(nn.Module):
@@ -31,77 +33,60 @@ class BaseAE(nn.Module):
 
 
 class GCNEncoder(torch.nn.Module):
-    def __init__(self, input_channels: int, hidden_dims: int, latent_dim: int):
+    def __init__(self, in_channels, out_channels, hidden_dim, random_state: int = 1234):
         super().__init__()
-        self.input_channels = input_channels
-        self.hidden_dims = hidden_dims
-        self.latent_dim = latent_dim
-        self.gcn1 = GCNConv(
-            in_channels=input_channels, out_channels=hidden_dims, cached=True
+
+        # Ensure reproducibility
+        torch.manual_seed(random_state)
+        torch.backends.cudnn.deterministic = True
+        np.random.seed(random_state)
+
+        self.model = Sequential(
+            "x, edge_index, edge_weight",
+            [
+                (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
+                torch.nn.ReLU(),
+                (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
+            ],
         )
-        self.relu = nn.ReLU()
-        # self.gcn2 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
-        # self.gcn3 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
-        # self.gcn4 = GCNConv(in_channels=hidden_dims, out_channels=hidden_dims, cached=True)
-        self.gcn5 = GCNConv(
-            in_channels=hidden_dims, out_channels=latent_dim, cached=True
-        )
 
-        # if len(hidden_dims) > 0:
-        #     modules = [nn.Sequential(GCNConv(in_channels=input_channels, out_channels=hidden_dims[0], cached=True), nn.ReLU())]
-        #     for i in range(1,len(hidden_dims)):
-        #         modules.append(nn.Sequential(GCNConv(in_channels=self.hidden_dims[i-1], out_channels=self.hidden_dims[i], cached=True), nn.ReLU()))
-        #     modules.append(GCNConv(in_channels=self.hidden_dims[-1], out_channels=self.latent_dim))
-        # else:
-        #     modules = [nn.Sequential(GCNConv(in_channels=self.input_channels, out_channels=self.latent_dim))]
-        # self.model = nn.Sequential(*modules)
-
-    def forward(self, x, edge_index):
-        z = self.gcn1(x, edge_index)
-        z = self.relu(z)
-        # z = self.gcn2(z, edge_index)
-        # z = self.relu(z)
-        # z = self.gcn3(z, edge_index)
-        # z = self.relu(z)
-        # z = self.gcn4(z, edge_index)
-        # z = self.relu(z)
-        z = self.gcn5(z, edge_index)
-        return z
-        # return self.model(x, edge_index)
+    def forward(self, x, edge_index, edge_weight=None):
+        x = self.model(x, edge_index, edge_weight)
+        return x
 
 
-class GraphConvAE(nn.Module):
-    def __init__(self, input_channels: int, hidden_dims: List[int], latent_dim: int):
+class CustomGAE(torch.nn.Module):
+    def __init__(
+        self,
+        encoder: nn.Module,
+        adj_decoder: nn.Module,
+        feat_decoder: nn.Module,
+        feat_loss: nn.Module,
+        alpha: float = 1.0,
+    ):
         super().__init__()
-        self.input_channels = input_channels
-        self.hidden_dims = hidden_dims
-        self.latent_dim = latent_dim
-        self.model_base_type = "ae"
+        self.gae = GAE(encoder=encoder, decoder=adj_decoder)
+        self.feat_decoder = feat_decoder
+        self.feat_loss = feat_loss
+        self.alpha = alpha
 
-        self.encoder = GCNEncoder(
-            input_channels=self.input_channels,
-            hidden_dims=self.hidden_dims,
-            latent_dim=self.latent_dim,
+    def encode(self, x, edge_index, edge_weight=None):
+        return self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
+
+    def decode(self, z):
+        adj = self.gae.decode(z)
+        feat = self.feat_decoder(z)
+        return adj, feat
+
+    def recon_loss(self, x, z, pos_edge_index, neg_edge_index=None):
+        gae_loss = self.gae.recon_loss(
+            z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index
         )
-        self.model = GAE(encoder=self.encoder)
+        feat_loss = self.feat_loss(x, self.feat_decoder(z))
+        return gae_loss + self.alpha * feat_loss
 
-    def encode(self, x, edge_index) -> Tensor:
-        return self.model.encode(x, edge_index)
-
-    def forward(self, x, edge_index) -> dict:
-        latents = self.model.encode(x, edge_index)
-        recons = self.model.decoder.forward_all(latents)
-        return {"recons": recons, "latents": latents}
-
-    def loss_function(self, latents: Tensor, edge_index: Tensor) -> dict:
-        return self.model.recon_loss(latents, pos_edge_index=edge_index)
-
-    def test(
-        self, latents: Tensor, pos_edge_index: Tensor, neg_edge_index: Tensor
-    ) -> Tuple[Tensor]:
-        return self.model.test(
-            z=latents, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index
-        )
+    def test(self, z, pos_edge_index, neg_edge_index):
+        return self.gae.test(z, pos_edge_index, neg_edge_index)
 
 
 class VanillaConvAE(BaseAE, ABC):

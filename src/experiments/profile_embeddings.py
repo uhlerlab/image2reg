@@ -18,10 +18,10 @@ class BaseProfileEmbeddingExperiment(BaseExperiment):
     def __init__(
         self,
         output_dir,
-        data_config:dict,
-        model_config:dict,
-        domain_name:str,
-        save_freq:int=50,
+        data_config: dict,
+        model_config: dict,
+        domain_name: str,
+        save_freq: int = 50,
         train_val_test_split: List[float] = [0.7, 0.2, 0.1],
         batch_size: int = 64,
         num_epochs: int = 500,
@@ -47,7 +47,6 @@ class BaseProfileEmbeddingExperiment(BaseExperiment):
         self.model_config = model_config
         self.domain_name = domain_name
         self.save_freq = save_freq
-
 
     def initialize_profile_data_set(self):
         self.data_key = self.data_config.pop("data_key")

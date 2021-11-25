@@ -1,6 +1,8 @@
 import os
 from typing import List
 
+import pandas as pd
+
 
 def get_file_list(
     root_dir: str,
@@ -23,3 +25,12 @@ def get_file_list(
                 else:
                     list_of_data_locs.append(file)
     return sorted(list_of_data_locs)
+
+
+def get_genesets_from_gmt_file(file):
+    data = pd.read_csv(file, sep="\t", index_col=0, header=None)
+    data = data.iloc[:, 1:]
+    geneset_dict = {}
+    for i in data.index:
+        geneset_dict[i] = list(data.loc[i].loc[data.loc[i].notnull()])
+    return geneset_dict
