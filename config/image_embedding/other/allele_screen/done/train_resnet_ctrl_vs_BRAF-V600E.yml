@@ -7,7 +7,7 @@ run_params:
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'label_col': 'allele_symbol',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
-                      'target_list':["BRAF-V600E", "EMPTY_nan"],
+                      'target_list':["BRAF_V600E", "EMPTY_nan"],
                       'n_control_samples': 1573,
                       'pseudo_rgb':True}
 

@@ -3,11 +3,129 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_mutual_info_score
-from torch_geometric.nn import Node2Vec
+from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
 from tqdm import tqdm
 import seaborn as sns
+import torch_geometric.transforms as T
 
-from src.utils.torch.network import train_n2v_model
+from src.models.ae import FeatureDecoder, CustomGAE, GCNEncoder
+from src.utils.torch.general import get_device
+from src.utils.torch.network import train_n2v_model, train_gae
+
+
+def get_gae_latents_for_seed(
+    graph_data,
+    seeds,
+    input_dim,
+    node_feature_key,
+    link_pred=False,
+    reconstruct_features=False,
+    feature_decoder_params=None,
+    feat_loss=None,
+    alpha=1,
+    beta=1,
+    latent_dim=32,
+    hidden_dim=128,
+    lr=1e-3,
+    n_epochs=100,
+    early_stopping=50,
+    plot_loss=False,
+):
+    latents_dict = {}
+    for seed in seeds:
+
+        # Ensure reproducibility
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+
+        # No train-val-test split
+        if not link_pred:
+            modified_graph_data = graph_data
+            modified_graph_data.pos_edge_label_index = modified_graph_data.edge_index
+
+            data_dict = {
+                "train": modified_graph_data,
+                "val": modified_graph_data,
+                "test": modified_graph_data,
+            }
+        else:
+            random_link_splitter = T.RandomLinkSplit(
+                is_undirected=True,
+                add_negative_train_samples=False,
+                num_val=0.1,
+                num_test=0.2,
+                split_labels=True,
+            )
+            train_link_data, val_link_data, test_link_data = random_link_splitter(
+                graph_data
+            )
+            data_dict = {
+                "train": train_link_data,
+                "val": val_link_data,
+                "test": test_link_data,
+            }
+        if reconstruct_features:
+            feat_decoder = FeatureDecoder(**feature_decoder_params)
+            gae = CustomGAE(
+                encoder=GCNEncoder(
+                    in_channels=input_dim,
+                    hidden_dim=hidden_dim,
+                    out_channels=latent_dim,
+                ),
+                adj_decoder=InnerProductDecoder(),
+                feat_decoder=feat_decoder,
+                alpha=alpha,
+                beta=beta,
+                feat_loss=feat_loss,
+            )
+            optimizer = torch.optim.Adam(gae.parameters(), lr=lr)
+            gae, loss_hist = train_gae(
+                model=gae,
+                data_dict=data_dict,
+                node_feature_key=node_feature_key,
+                optimizer=optimizer,
+                n_epochs=n_epochs,
+                early_stopping=early_stopping,
+                link_pred=link_pred,
+                reconstruct_features=reconstruct_features,
+            )
+
+        else:
+            gae = GAE(
+                GCNEncoder(
+                    in_channels=input_dim,
+                    hidden_dim=latent_dim,
+                    out_channels=hidden_dim,
+                    random_state=seed,
+                )
+            )
+            optimizer = torch.optim.Adam(gae.parameters(), lr=lr)
+            gae, loss_hist = train_gae(
+                model=gae,
+                data_dict=data_dict,
+                node_feature_key=node_feature_key,
+                optimizer=optimizer,
+                n_epochs=n_epochs,
+                early_stopping=early_stopping,
+                link_pred=link_pred,
+            )
+
+        gae.eval()
+        inputs = getattr(graph_data, node_feature_key).float()
+        latents = gae.encode(inputs, graph_data.edge_index)
+        latents = latents.detach().cpu().numpy()
+
+        latents_dict[seed] = latents
+
+        if plot_loss:
+            fig, ax = plt.subplots(figsize=[6, 4])
+            ax.plot(np.arange(1, n_epochs + 1), loss_hist["train"])
+            fig.suptitle("Loss during training")
+            ax.set_xlabel("Epoch")
+            ax.set_ylabel("Loss")
+            plt.show()
+
+    return latents_dict
 
 
 def get_n2v_latents_for_seed(
@@ -25,8 +143,8 @@ def get_n2v_latents_for_seed(
     device=None,
 ):
     if device is None:
-        # device = get_device()
-        device = torch.device("cpu")
+        device = get_device()
+        # device = torch.device("cpu")
 
     latents_dict = {}
     for seed in seeds:
@@ -110,16 +228,25 @@ def compute_ami_matrix(latents_1, latents_2, affinity="euclidean", linkage="aver
     return ami
 
 
-def plot_amis_matrices(seeds, amis, figsize=[16, 16]):
-    fig, ax = plt.subplots(figsize=figsize, ncols=len(seeds), nrows=len(seeds))
+def plot_amis_matrices(names, amis, figsize=[30, 30]):
+    fig, ax = plt.subplots(figsize=figsize, ncols=len(names), nrows=len(names))
     ax = ax.flatten()
-    j = 0
-    for i in range(len(ax)):
-        if amis[i] is not None:
-            ax[i] = sns.heatmap(
-                amis[i], ax=ax[i], vmin=0, vmax=1, cbar=((i + 1) % (len(seeds)) == 0)
-            )
-        else:
-            ax[i].text(0.5, 0.5, seeds[j])
-            j += 1
+    for i in range(len(names)):
+        for j in range(len(names)):
+            if amis[i] is not None:
+                ax[j + i * len(names)] = sns.heatmap(
+                    amis[i * len(names) + j],
+                    ax=ax[i * len(names) + j],
+                    vmin=0,
+                    vmax=1,
+                    cbar=(j == len(names) - 1),
+                    cmap="seismic",
+                )
+                ax[j + i * len(names)].set_title(
+                    "max AMI: {:.2f}".format(np.max(amis[i * len(names) + j][1:, 1:])),
+                )
+            if i == j:
+                ax[i * len(names) + j].set_title(
+                    "Model: {}".format(names[j]), weight="bold", c="red"
+                )
     plt.show()

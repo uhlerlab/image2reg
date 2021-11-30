@@ -7,8 +7,8 @@ run_params:
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'label_col': 'allele_symbol',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
-                      'target_list':["SMO_WT.2", "EMPTY_nan"],
-                      'n_control_samples': 2803,
+                      'target_list':["HRAS_G12V", "EMPTY_nan"],
+                      'n_control_samples': 1562,
                       'pseudo_rgb':True}
 
   model_config: {'model_config':{

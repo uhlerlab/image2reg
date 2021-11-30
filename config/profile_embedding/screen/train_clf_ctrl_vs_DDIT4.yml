@@ -24,10 +24,10 @@ run_params:
 
   domain_name: 'morph_profile'
   num_epochs: 500
-  early_stopping: 20
+  early_stopping: 200
   train_val_test_split: [0.6, 0.2, 0.2]
   batch_size: 64
-  random_state: 1234
+  random_state: 0
   save_freq: 50
 
 pipeline:

@@ -61,14 +61,17 @@ def process_single_epoch_gae(
         model.eval()
         with torch.no_grad():
             latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight,)
-            loss = model.recon_loss(latents, data.pos_edge_label_index)
+            if reconstruct_features:
+                loss = model.recon_loss(inputs, latents, data.pos_edge_label_index)
+            else:
+                loss = model.recon_loss(latents, data.pos_edge_label_index)
 
     return loss.item()
 
 
 def test_link_pred(model, data, node_feature_key, edge_weight_key=None):
-    # device = get_device()
-    device = torch.device("cpu")
+    device = get_device()
+    # device = torch.device("cpu")
     model.eval().to(device)
     inputs = getattr(data, node_feature_key).float()
     if edge_weight_key is not None:
@@ -92,11 +95,11 @@ def train_gae(
     link_pred=False,
     reconstruct_features: bool = False,
 ):
-    # device = get_device()
-    device = torch.device("cpu")
+    device = get_device()
+    # device = torch.device("cpu")
     model.to(device)
     model.device = device
-    print("Using {}".format(device))
+    # print("Using {}".format(device))
     best_val_loss = np.infty
     loss_hist = {"train": [], "val": []}
     es_counter = 0
@@ -104,9 +107,9 @@ def train_gae(
     best_model_weights = None
     best_epoch = -1
 
-    for i in range(n_epochs):
-        print("---" * 20)
-        print("EPOCH {}/{}".format(i + 1, n_epochs))
+    for i in tqdm(range(n_epochs)):
+        # print("---" * 20)
+        # print("EPOCH {}/{}".format(i + 1, n_epochs))
         if es_counter < early_stopping:
             for mode in ["train", "val"]:
                 data = data_dict[mode].to(device)
@@ -119,7 +122,7 @@ def train_gae(
                     edge_weight_key=edge_weight_key,
                     reconstruct_features=reconstruct_features,
                 )
-                print("{} loss:".format(mode.upper()), loss)
+                # print("{} loss:".format(mode.upper()), loss)
                 loss_hist[mode].append(loss)
 
                 if mode == "val":
@@ -153,6 +156,7 @@ def train_gae(
         mode="test",
         optimizer=optimizer,
         edge_weight_key=edge_weight_key,
+        reconstruct_features=reconstruct_features,
     )
     logging.debug("TEST loss: {}".format(test_loss))
     if link_pred:

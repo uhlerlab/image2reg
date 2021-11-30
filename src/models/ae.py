@@ -39,7 +39,6 @@ class GCNEncoder(torch.nn.Module):
         # Ensure reproducibility
         torch.manual_seed(random_state)
         torch.backends.cudnn.deterministic = True
-        np.random.seed(random_state)
 
         self.model = Sequential(
             "x, edge_index, edge_weight",
@@ -55,6 +54,31 @@ class GCNEncoder(torch.nn.Module):
         return x
 
 
+class FeatureDecoder(torch.nn.Module):
+    def __init__(self, latent_dim, hidden_dims, output_dim):
+        super().__init__()
+        self.modules = [
+            torch.nn.Sequential(
+                torch.nn.Linear(latent_dim, hidden_dims[0]),
+                torch.nn.BatchNorm1d(hidden_dims[0]),
+                torch.nn.PReLU(),
+            )
+        ]
+        for i in range(1, len(hidden_dims)):
+            self.modules.append(
+                torch.nn.Sequential(
+                    torch.nn.Linear(hidden_dims[i - 1], hidden_dims[i]),
+                    torch.nn.BatchNorm1d(hidden_dims[i]),
+                    torch.nn.PReLU(),
+                )
+            )
+        self.modules.append(torch.nn.Linear(hidden_dims[-1], output_dim))
+        self.model = torch.nn.Sequential(*self.modules)
+
+    def forward(self, x):
+        return self.model(x)
+
+
 class CustomGAE(torch.nn.Module):
     def __init__(
         self,
@@ -63,12 +87,14 @@ class CustomGAE(torch.nn.Module):
         feat_decoder: nn.Module,
         feat_loss: nn.Module,
         alpha: float = 1.0,
+        beta: float = 1.0,
     ):
         super().__init__()
         self.gae = GAE(encoder=encoder, decoder=adj_decoder)
         self.feat_decoder = feat_decoder
         self.feat_loss = feat_loss
         self.alpha = alpha
+        self.beta = beta
 
     def encode(self, x, edge_index, edge_weight=None):
         return self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
@@ -83,7 +109,7 @@ class CustomGAE(torch.nn.Module):
             z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index
         )
         feat_loss = self.feat_loss(x, self.feat_decoder(z))
-        return gae_loss + self.alpha * feat_loss
+        return self.alpha * gae_loss + self.beta * feat_loss
 
     def test(self, z, pos_edge_index, neg_edge_index):
         return self.gae.test(z, pos_edge_index, neg_edge_index)

@@ -7,8 +7,8 @@ run_params:
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'label_col': 'allele_symbol',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
-                      'target_list':["ERBB2_WT", "EMPTY_nan"],
-                      'n_control_samples': 3050,
+                      'target_list':["BECN1_WT", "EMPTY_nan"],
+                      'n_control_samples': 2751,
                       'pseudo_rgb':True}
 
   model_config: {'model_config':{
