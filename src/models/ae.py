@@ -35,11 +35,6 @@ class BaseAE(nn.Module):
 class GCNEncoder(torch.nn.Module):
     def __init__(self, in_channels, out_channels, hidden_dim, random_state: int = 1234):
         super().__init__()
-
-        # Ensure reproducibility
-        torch.manual_seed(random_state)
-        torch.backends.cudnn.deterministic = True
-
         self.model = Sequential(
             "x, edge_index, edge_weight",
             [
