@@ -6,6 +6,7 @@ from typing import Tuple
 
 import torch
 import numpy as np
+from sklearn.metrics import balanced_accuracy_score
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig, LatentClassifierConfig
@@ -70,7 +71,7 @@ def model_train_val_test_loop(
         if es_counter > early_stopping:
             logging.debug(
                 "Training was stopped early due to no improvement of the validation"
-                " loss for {} epochs.".format(early_stopping)
+                " balanced accuracy for {} epochs.".format(early_stopping)
             )
             break
         if i % save_freq == 0:
@@ -113,6 +114,13 @@ def model_train_val_test_loop(
                     )
                 )
 
+            if "clf_balanced_accuracy" in epoch_statistics:
+                logging.debug(
+                    "Classification balanced accuracy for domain {}: {:.8f}".format(
+                        domain_config.name, epoch_statistics["clf_balanced_accuracy"]
+                    )
+                )
+
             if "latent_clf_loss" in epoch_statistics:
                 logging.debug(
                     "Latent classification loss for {} domain: {:.8f}".format(
@@ -124,6 +132,13 @@ def model_train_val_test_loop(
                 logging.debug(
                     "Latent classification accuracy for domain {}: {:.8f}".format(
                         domain_config.name, epoch_statistics["latent_clf_accuracy"]
+                    )
+                )
+
+            if "latent_clf_balanced_accuracy" in epoch_statistics:
+                logging.debug(
+                    "Latent classification balanced accuracy for domain {}: {:.8f}".format(
+                        domain_config.name, epoch_statistics["latent_clf_balanced_accuracy"]
                     )
                 )
 
@@ -142,11 +157,11 @@ def model_train_val_test_loop(
 
                 # TODO undo changes that triggers early stopping based on accuracy not loss (for single target vs control desired)
                 # if epoch_total_loss < best_total_loss:
-                if epoch_statistics["clf_accuracy"] > best_accuracy:
+                if epoch_statistics["clf_balanced_accuracy"] > best_accuracy:
                     best_epoch = i
                     es_counter = 0
                     best_total_loss = epoch_total_loss
-                    best_accuracy = epoch_statistics["clf_accuracy"]
+                    best_accuracy = epoch_statistics["clf_balanced_accuracy"]
 
                     best_model_weights = copy.deepcopy(
                         domain_config.domain_model_config.model.cpu().state_dict()
@@ -221,6 +236,13 @@ def model_train_val_test_loop(
                 )
             )
 
+        if "clf_balanced_accuracy" in epoch_statistics:
+            logging.debug(
+                "Test classification balanced accuracy for domain {}: {:.8f}".format(
+                    domain_config.name, epoch_statistics["clf_balanced_accuracy"]
+                )
+            )
+
         if "latent_clf_loss" in epoch_statistics:
             logging.debug(
                 "Latent classification loss for {} domain: {:.8f}".format(
@@ -234,6 +256,13 @@ def model_train_val_test_loop(
                     domain_config.name, epoch_statistics["latent_clf_accuracy"]
                 )
             )
+        if "latent_clf_balanced_accuracy" in epoch_statistics:
+            logging.debug(
+                "Latent classification balanced accuracy for domain {}: {:.8f}".format(
+                    domain_config.name, epoch_statistics["latent_clf_balanced_accuracy"]
+                )
+            )
+
         total_loss_dict["test"] = epoch_statistics["total_loss"]
         best_total_loss_dict = {
             "train": total_loss_dict["train"][best_epoch],
@@ -262,21 +291,13 @@ def model_train_val_test_loop(
                 phase="test",
             )
         elif model_base_type == "clf":
-            confusion_matrices = get_confusion_matrices(
-                domain_config=domain_config, dataset_types=["train", "val", "test"]
-            )
-            # logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
-            plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
+            pass
+            # confusion_matrices = get_confusion_matrices(
+            #     domain_config=domain_config, dataset_types=["train", "val", "test"]
+            # )
+            # # logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
+            # plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
 
-        # try:
-        #     save_latents_from_model(
-        #         output_dir=test_dir,
-        #         domain_config=domain_config,
-        #         dataset_types=["train", "val", "test"],
-        #         device=device,
-        #     )
-        # except AttributeError:
-        #     pass
 
         torch.save(
             domain_config.domain_model_config.model.state_dict(),
@@ -315,6 +336,9 @@ def process_single_epoch(
     latent_n_correct = 0
     latent_n_total = 0
     total_loss = 0
+    labels = np.array([])
+    preds = np.array([])
+    latent_preds = np.array([])
 
     model_base_type = domain_model_config.model.model_base_type.lower()
 
@@ -348,6 +372,15 @@ def process_single_epoch(
         if "n_total" in batch_statistics:
             n_total += batch_statistics["n_total"]
 
+        if "preds" in batch_statistics:
+            preds = np.append(preds, batch_statistics["preds"])
+
+        if "labels" in batch_statistics:
+            labels = np.append(labels, batch_statistics["labels"])
+
+        if "latent_preds" in batch_statistics:
+            latent_preds = np.append(latent_preds, batch_statistics["latent_preds"])
+
         if "latent_clf_loss" in batch_statistics:
             latent_clf_loss += batch_statistics["latent_clf_loss"]
 
@@ -366,8 +399,20 @@ def process_single_epoch(
         clf_accuracy = n_correct / n_total
     else:
         clf_accuracy = -1
+    if len(preds) > 0:
+        clf_bac = balanced_accuracy_score(labels, preds)
+    else:
+        clf_bac = -1
+
     if latent_n_total != 0:
         latent_clf_accuracy = latent_n_correct / latent_n_total
+    else:
+        latent_clf_accuracy = -1
+
+    if len(latent_preds) > 0:
+        latent_clf_bac = balanced_accuracy_score(labels, latent_preds)
+    else:
+        latent_clf_bac = -1
 
     total_loss /= len(data_loader.dataset)
 
@@ -380,10 +425,12 @@ def process_single_epoch(
     if model_base_type == "clf":
         epoch_statistics["clf_loss"] = clf_loss
         epoch_statistics["clf_accuracy"] = clf_accuracy
+        epoch_statistics["clf_balanced_accuracy"] = clf_bac
 
     if latent_clf_config is not None:
         epoch_statistics["latent_clf_loss"] = latent_clf_loss
         epoch_statistics["latent_clf_accuracy"] = latent_clf_accuracy
+        epoch_statistics["latent_clf_balanced_accuracy"] = latent_clf_bac
 
     return epoch_statistics
 
@@ -458,7 +505,7 @@ def process_single_batch(
     if latent_clf_config is not None:
         latent_clf_outputs = latent_clf(latents, extra_features)
         latent_clf_loss = latent_clf_loss_function(latent_clf_outputs, labels)
-        _, preds = torch.max(latent_clf_outputs, 1)
+        _, latent_preds = torch.max(latent_clf_outputs, 1)
         latent_n_total = preds.size(0)
         latent_n_correct = torch.sum(torch.eq(labels, preds)).item()
         total_loss += lamb * latent_clf_loss
@@ -483,10 +530,14 @@ def process_single_batch(
         batch_statistics["clf_loss"] = clf_loss.item() * batch_size
         batch_statistics["n_correct"] = n_correct
         batch_statistics["n_total"] = n_total
+        batch_statistics["preds"] = preds.detach().cpu().numpy()
+        batch_statistics["labels"] = labels.detach().cpu().numpy()
     if latent_clf_config is not None:
         batch_statistics["latent_clf_loss"] = latent_clf_loss.item() * batch_size
         batch_statistics["latent_n_correct"] = latent_n_correct
         batch_statistics["latent_n_total"] = latent_n_total
+        batch_statistics["latent_preds"] = latent_preds.detach().cpu().numpy()
+        batch_statistics["labels"] = labels.detach().cpu().numpy()
 
     batch_statistics["total_loss"] = total_loss_item
 

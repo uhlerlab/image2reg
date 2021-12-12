@@ -4,12 +4,12 @@ import os
 from typing import List
 import torch
 
+from src.data.datasets import TorchTransformableSuperset
 from src.experiments.base import BaseExperiment, BaseExperimentCV
 from src.helper.data import DataHandler, DataHandlerCV
 from src.utils.basic.visualization import plot_confusion_matrices
 from src.utils.torch.data import (
     init_image_dataset,
-    init_profile_dataset,
     init_multi_image_dataset,
 )
 from src.utils.torch.evaluation import (
@@ -143,7 +143,7 @@ class BaseImageEmbeddingExperiment:
         plot_confusion_matrices(
             confusion_matrices,
             output_dir=self.output_dir,
-            display_labels=sorted(self.data_config["target_list"]),
+            display_labels=sorted(self.target_list),
         )
 
 
@@ -292,9 +292,6 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
     ):
         super().initialize_image_data_set(multi_image=multi_image,)
 
-    def initialize_profile_data_set(self):
-        super().initialize_profile_data_set()
-
     def initialize_data_transform_pipeline(self, data_transform_pipelines: str = None):
         super().initialize_data_transform_pipeline(
             data_transform_pipelines=data_transform_pipelines
@@ -363,6 +360,136 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
                 n_components=n_components,
                 n_steps=n_steps,
             )
+
+    def evaluate_test_performance(self):
+        super().evaluate_test_performance()
+
+
+class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
+    def __init__(
+        self,
+        output_dir: str,
+        data_config: dict,
+        model_config: dict,
+        domain_name: str,
+        batch_size: int = 64,
+        num_epochs: int = 64,
+        early_stopping: int = -1,
+        random_state: int = 42,
+        save_freq: int = -1,
+        pseudo_rgb: bool = False,
+    ):
+        super().__init__(
+            output_dir=output_dir,
+            data_config=data_config,
+            model_config=model_config,
+            domain_name=domain_name,
+            train_val_test_split=None,
+            batch_size=batch_size,
+            num_epochs=num_epochs,
+            early_stopping=early_stopping,
+            random_state=random_state,
+            save_freq=save_freq,
+            pseudo_rgb=pseudo_rgb,
+        )
+
+        self.test_nuclei_metadata_file = None
+        self.val_nuclei_metadata_file = None
+        self.train_nuclei_metadata_file = None
+        self.test_data_set = None
+        self.val_data_set = None
+        self.train_data_set = None
+
+    def initialize_image_data_set(
+        self, multi_image: bool = False,
+    ):
+        self.data_key = self.data_config.pop("data_key")
+        self.label_key = self.data_config.pop("label_key")
+        if (
+            "extra_features" in self.data_config
+            and len(self.data_config["extra_features"]) > 0
+        ):
+            self.extra_feature_key = "extra_features"
+        if "index_key" in self.data_config:
+            self.index_key = self.data_config.pop("index_key")
+
+        self.train_nuclei_metadata_file = self.data_config.pop(
+            "train_nuclei_metadata_file"
+        )
+        self.val_nuclei_metadata_file = self.data_config.pop("val_nuclei_metadata_file")
+        self.test_nuclei_metadata_file = self.data_config.pop(
+            "test_nuclei_metadata_file"
+        )
+
+        self.data_config["nuclei_metadata_file"] = self.train_nuclei_metadata_file
+        if multi_image:
+            self.train_data_set = init_multi_image_dataset(**self.data_config)
+        else:
+            self.train_data_set = init_image_dataset(**self.data_config)
+
+        self.data_config["nuclei_metadata_file"] = self.val_nuclei_metadata_file
+        if multi_image:
+            self.val_data_set = init_multi_image_dataset(**self.data_config)
+        else:
+            self.val_data_set = init_image_dataset(**self.data_config)
+
+        self.data_config["nuclei_metadata_file"] = self.test_nuclei_metadata_file
+        if multi_image:
+            self.test_data_set = init_multi_image_dataset(**self.data_config)
+        else:
+            self.test_data_set = init_image_dataset(**self.data_config)
+
+        self.data_set = TorchTransformableSuperset(
+            datasets=[self.train_data_set, self.val_data_set, self.test_data_set]
+        )
+
+    def initialize_data_transform_pipeline(self, data_transform_pipelines: str = None):
+        super().initialize_data_transform_pipeline(
+            data_transform_pipelines=data_transform_pipelines
+        )
+
+    def initialize_data_loader_dict(self, drop_last_batch: bool = True):
+        dh = DataHandler(
+            dataset=self.data_set,
+            batch_size=self.batch_size,
+            num_workers=15,
+            random_state=self.random_state,
+            transformation_dicts=self.data_transform_pipeline_dicts,
+            drop_last_batch=drop_last_batch,
+        )
+
+        dh.train_val_test_datasets_dict = {
+            "train": self.train_data_set,
+            "val": self.val_data_set,
+            "test": self.test_data_set,
+        }
+        dh.get_data_loader_dict(shuffle=True)
+        self.data_loader_dict = dh.data_loader_dict
+        self.label_weights = dh.dataset.label_weights
+        self.data_set = dh.dataset
+        self.target_list = self.data_set.target_list
+
+    def initialize_domain_config(self):
+        super().initialize_domain_config()
+
+    def train_models(self):
+        super().train_models()
+
+    def load_model(self, weights_fname):
+        super().load_model(weights_fname=weights_fname)
+
+    def extract_and_save_latents(self):
+        super().extract_and_save_latents()
+
+    def visualize_loss_evolution(self):
+        super().visualize_loss_evolution()
+
+    def visualize_latent_space_pca_walk(
+        self, dataset_type: str = "test", n_components: int = 2, n_steps: int = 11
+    ):
+        super().visualize_latent_space_pca_walk(
+            dataset_type=dataset_type, n_components=n_components, n_steps=n_steps
+        )
 
     def evaluate_test_performance(self):
         super().evaluate_test_performance()

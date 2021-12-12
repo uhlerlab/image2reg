@@ -3,7 +3,7 @@ import logging
 import os
 from abc import ABC
 from collections import Counter
-from typing import List
+from typing import List, Iterable
 
 import torch
 import numpy as np
@@ -13,7 +13,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from torch import Tensor
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset, Subset, ConcatDataset
 from torchvision import transforms
 from skimage.io import imread
 
@@ -144,11 +144,15 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
         self.extra_features = extra_features
         self.slide_image_name_col = slide_image_name_col
+        self.target_list=target_list
 
-        if target_list is not None:
+        if self.target_list is not None:
             self.metadata = self.metadata.loc[
                 self.metadata[label_col].isin(target_list), :
             ]
+            self.target_list = sorted(self.target_list)
+        else:
+            self.target_list = sorted(list(set(self.metadata[label_col])))
         if n_control_samples is not None and "EMPTY_nan" in list(
             self.metadata[label_col]
         ):
@@ -471,4 +475,28 @@ class TorchTransformableSubset(Subset):
                 "Object must implement a subset of a dataset type that implements the "
                 "set_transform_pipeline method."
             )
+            raise exception
+
+
+class TorchTransformableSuperset(ConcatDataset):
+    def __init__(self, datasets: Iterable[LabeledSlideDataset]):
+        super().__init__(datasets=datasets)
+        self.tranform_pipeline = None
+        self.datasets = copy.deepcopy(self.datasets)
+        self.label_weights = self.datasets[0].label_weights
+        self.target_list = self.datasets[0].target_list
+
+    def set_transform_pipeline(self, transform_pipelines: List[transforms.Compose]):
+        for dataset in self.datasets:
+            try:
+                if len(transform_pipelines) == 1:
+                    dataset.set_transform_pipeline(transform_pipelines[0])
+                else:
+                    dataset.set_transform_pipeline(transform_pipelines)
+
+            except AttributeError as exception:
+                logging.error(
+                    "Object must implement a subset of a dataset type that implements"
+                    " the set_transform_pipeline method."
+                )
             raise exception

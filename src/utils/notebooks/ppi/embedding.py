@@ -228,6 +228,7 @@ def compute_ami_matrix(latents_1, latents_2, affinity="euclidean", linkage="aver
     return ami
 
 
+
 def plot_amis_matrices(names, amis, figsize=[30, 30]):
     fig, ax = plt.subplots(figsize=figsize, ncols=len(names), nrows=len(names))
     ax = ax.flatten()
