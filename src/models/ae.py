@@ -2,7 +2,9 @@ from abc import abstractmethod, ABC
 from typing import Any, List
 
 import torch
+import torch_geometric.nn
 from torch import nn, Tensor
+from torch.nn import BatchNorm1d
 
 from src.utils.torch.general import get_device
 from torch_geometric.nn import GCNConv, Sequential, GAE
@@ -38,13 +40,39 @@ class GCNEncoder(torch.nn.Module):
             [
                 (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
                 torch.nn.ReLU(),
+                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
+                # torch.nn.ReLU(),
+                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
+                # torch.nn.ReLU(),
+                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
+                # torch.nn.PReLU(),
                 (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
+                #BatchNorm1d(out_channels)
             ],
         )
 
     def forward(self, x, edge_index, edge_weight=None):
         x = self.model(x, edge_index, edge_weight)
         return x
+
+# class GCNEncoder(torch.nn.Module):
+#     def __init__(self, in_channels, out_channels, hidden_dim, random_state: int = 1234):
+#         super().__init__()
+#         self.model1 = Sequential(
+#             "x, edge_index, edge_weight",
+#             [
+#                 (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
+#                 torch.nn.ReLU(),
+#             ],
+#         )
+#         self.bn = torch.nn.BatchNorm1d(hidden_dim)
+#         self.model2 = GCNConv(hidden_dim, out_channels)
+#
+#     def forward(self, x, edge_index, edge_weight=None):
+#         x = self.model1(x, edge_index, edge_weight)
+#         x = self.bn(x)
+#         x = self.model2(x, edge_index, edge_weight)
+#         return x
 
 
 class FeatureDecoder(torch.nn.Module):

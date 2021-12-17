@@ -3,6 +3,7 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_mutual_info_score
+from sklearn.preprocessing import StandardScaler
 from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
 from tqdm import tqdm
 import seaborn as sns
@@ -14,22 +15,22 @@ from src.utils.torch.network import train_n2v_model, train_gae
 
 
 def get_gae_latents_for_seed(
-    graph_data,
-    seeds,
-    input_dim,
-    node_feature_key,
-    link_pred=False,
-    reconstruct_features=False,
-    feature_decoder_params=None,
-    feat_loss=None,
-    alpha=1,
-    beta=1,
-    latent_dim=32,
-    hidden_dim=128,
-    lr=1e-3,
-    n_epochs=100,
-    early_stopping=50,
-    plot_loss=False,
+        graph_data,
+        seeds,
+        input_dim,
+        node_feature_key,
+        link_pred=False,
+        reconstruct_features=False,
+        feature_decoder_params=None,
+        feat_loss=None,
+        alpha=1,
+        beta=1,
+        latent_dim=32,
+        hidden_dim=128,
+        lr=1e-3,
+        n_epochs=100,
+        early_stopping=50,
+        plot_loss=False,
 ):
     latents_dict = {}
     for seed in seeds:
@@ -94,8 +95,8 @@ def get_gae_latents_for_seed(
             gae = GAE(
                 GCNEncoder(
                     in_channels=input_dim,
-                    hidden_dim=latent_dim,
-                    out_channels=hidden_dim,
+                    hidden_dim=hidden_dim,
+                    out_channels=latent_dim,
                     random_state=seed,
                 )
             )
@@ -119,28 +120,28 @@ def get_gae_latents_for_seed(
 
         if plot_loss:
             fig, ax = plt.subplots(figsize=[6, 4])
-            ax.plot(np.arange(1, n_epochs + 1), loss_hist["train"])
-            fig.suptitle("Loss during training")
+            ax.plot(np.arange(1, len(loss_hist["train"]) + 1), loss_hist["train"])
             ax.set_xlabel("Epoch")
             ax.set_ylabel("Loss")
+            ax.set_title("Minimal loss: {:.4f}".format(np.min(loss_hist["train"])))
             plt.show()
 
     return latents_dict
 
 
 def get_n2v_latents_for_seed(
-    graph_data,
-    seeds,
-    latent_dim=64,
-    walk_length=30,
-    context_size=10,
-    walks_per_node=50,
-    batch_size=128,
-    num_workers=10,
-    lr=0.01,
-    n_epochs=100,
-    plot_loss=False,
-    device=None,
+        graph_data,
+        seeds,
+        latent_dim=64,
+        walk_length=30,
+        context_size=10,
+        walks_per_node=50,
+        batch_size=128,
+        num_workers=10,
+        lr=0.01,
+        n_epochs=100,
+        plot_loss=False,
+        device=None,
 ):
     if device is None:
         device = get_device()
@@ -180,9 +181,9 @@ def get_n2v_latents_for_seed(
         fitted_n2v_model.eval()
         latents = (
             fitted_n2v_model(torch.arange(graph_data.num_nodes, device=device))
-            .cpu()
-            .detach()
-            .numpy()
+                .cpu()
+                .detach()
+                .numpy()
         )
 
         latents_dict[seed] = latents
@@ -213,20 +214,28 @@ def stability_cocluster_screen(latents_dict, affinity="euclidean", linkage="aver
 
 def compute_ami_matrix(latents_1, latents_2, affinity="euclidean", linkage="average"):
     ami = np.zeros([15, 15])
+    if isinstance(affinity, str):
+        affinity_1 = affinity_2 = affinity
+    else:
+        affinity_1, affinity_2 = affinity[0], affinity[1]
+    if isinstance(linkage, str):
+        linkage_1 = linkage_2 = linkage
+    else:
+        linkage_1, linkage_2 = linkage[0], linkage[1]
+
     for i in range(0, 15):
         cluster_sol1 = AgglomerativeClustering(
-            affinity=affinity, n_clusters=i + 1, linkage=linkage
+            affinity=affinity_1, n_clusters=i + 1, linkage=linkage_1
         ).fit_predict(latents_1)
         #             cluster_sol1 = KMeans(random_state=0, n_clusters=i+1).fit_predict(latents_2)
         for j in range(0, 15):
             #                 cluster_sol2 = KMeans(random_state=0, n_clusters=j+1).fit_predict(latents_2)
             cluster_sol2 = AgglomerativeClustering(
-                affinity=affinity, n_clusters=j + 1, linkage=linkage
+                affinity=affinity_2, n_clusters=j + 1, linkage=linkage_2
             ).fit_predict(latents_2)
 
             ami[i, j] = adjusted_mutual_info_score(cluster_sol1, cluster_sol2)
     return ami
-
 
 
 def plot_amis_matrices(names, amis, figsize=[30, 30]):
@@ -250,4 +259,6 @@ def plot_amis_matrices(names, amis, figsize=[30, 30]):
                 ax[i * len(names) + j].set_title(
                     "Model: {}".format(names[j]), weight="bold", c="red"
                 )
+            ax[j + i * len(names)].set_xticklabels([k + 1 for k in range(len(amis[i * len(names) + j]))])
+            ax[j + i * len(names)].set_yticklabels([k + 1 for k in range(len(amis[i * len(names) + j]))])
     plt.show()

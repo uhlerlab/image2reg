@@ -120,6 +120,13 @@ all_genes <- rownames(steiner_tree_selected_nodes)
 ```
 
 ```{r}
+all_genes <- c('AKT1S1', 'ATF2', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDC42', 'CDKN1A', 'CEBPA', 'CREB1', 'CXXC4', 'DIABLO', 'E2F1', 'EIF4EBP1', 'ELK1', 'EMPTY', 'ERG', 'HRAS', 'IKBKB', 'IRAK4', 'JUN', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7', 'MKNK1', 'MYD88', 'PKIA', 'PRKACA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'SDHA', 'SMAD4', 'SRC', 'SREBF1', 'STK3', 'TSC2', 'WWTR1')
+
+selected_genes <- c('CEBPA', 'ERG', 'JUN')
+```
+
+
+```{r}
 steiner_go_results <-  topGOterms(fg.genes = selected_genes,
                       bg.genes = all_genes,
                       organism = "Human",
@@ -128,7 +135,7 @@ steiner_go_results <-  topGOterms(fg.genes = selected_genes,
                       algorithm.use = "weight01",
                       num.char = 100)
 steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
-head(steiner_go_results$res.table[,c("GO.ID", "Term", "FDR")], 10)
+head(steiner_go_results$res.table, 10)
 ```
 
 ## 2b. PC Steiner tree solution
