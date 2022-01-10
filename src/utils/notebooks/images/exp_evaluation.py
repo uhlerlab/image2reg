@@ -8,6 +8,7 @@ from tqdm import tqdm
 from sklearn.manifold import TSNE
 import seaborn as sns
 
+
 class LogAnalyzer(object):
     def __init__(self, logfile: str):
         self.logfile = logfile
@@ -78,8 +79,16 @@ class LogAnalyzer(object):
         self.best_val_loss = self.val_loss[self.best_epoch]
 
     def __str__(self):
-        return "LogAnalyzer(train_acc={}, val_acc={}, test_acc={}, train_bacc={}, val_bacc={}, test_bacc={})".format(
-            self.best_train_acc, self.best_val_acc, self.test_acc, self.best_train_bacc, self.best_val_bacc, self.test_bacc
+        return (
+            "LogAnalyzer(train_acc={}, val_acc={}, test_acc={}, train_bacc={},"
+            " val_bacc={}, test_bacc={})".format(
+                self.best_train_acc,
+                self.best_val_acc,
+                self.test_acc,
+                self.best_train_bacc,
+                self.best_val_bacc,
+                self.test_bacc,
+            )
         )
 
 
@@ -92,9 +101,9 @@ def analyze_screen_results(screen_dir: str):
         "train_acc": [],
         "val_acc": [],
         "test_acc": [],
-        "train_bacc":[],
-        "val_bacc":[],
-        "test_bacc":[]
+        "train_bacc": [],
+        "val_bacc": [],
+        "test_bacc": [],
     }
     logfiles = get_file_list(screen_dir, file_type_filter=".log")
     for logfile in logfiles:

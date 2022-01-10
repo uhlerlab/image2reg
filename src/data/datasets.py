@@ -144,7 +144,7 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
         self.extra_features = extra_features
         self.slide_image_name_col = slide_image_name_col
-        self.target_list=target_list
+        self.target_list = target_list
 
         if self.target_list is not None:
             self.metadata = self.metadata.loc[

@@ -7,19 +7,20 @@ run_params:
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'slide_mask_dir': 'data/experiments/image_preprocessing/unet_segmentation',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
-                      'target_list':['AKT1S1', 'ATF2', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDC42', 'CDKN1A',
-                                     'CEBPA', 'CREB1', 'CXXC4', 'DIABLO', 'E2F1', 'EIF4EBP1', 'ELK1', 'ERG',
-                                     'HRAS', 'IKBKB', 'IRAK4', 'JUN', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7',
-                                     'MKNK1', 'MYD88', 'PKIA', 'PRKACA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'SDHA',
-                                     'SMAD4', 'SRC', 'SREBF1', 'STK3', 'TSC2', 'WWTR1'],
+                      'target_list':['AKT1S1', 'APC', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDC42', 'CDKN1A',
+                                     'CEBPA', 'CREB1', 'CSNK1E', 'CXXC4', 'DIABLO', 'E2F1', 'ELK1', 'EMPTY', 'ERG',
+                                     'FGFR3', 'FOXO1', 'GLI1', 'HRAS', 'IRAK4', 'JUN', 'KRAS', 'MAP2K3', 'MAP3K2',
+                                     'MAP3K5', 'MAP3K9', 'MAPK7', 'MOS', 'MYD88', 'PIK3R2', 'PKIA', 'PRKACA', 'PRKCE',
+                                     'RAF1', 'RELB', 'RHOA', 'SMAD3', 'SMAD4', 'SMO', 'SRC', 'SREBF1', 'TRAF2', 'TSC2',
+                                     'WWTR1'],
                       'n_control_samples': 10612,
                       'pseudo_rgb':True}
 
   model_config: {'model_config':{
                         'type':'ensemble',
                         'input_dim': 1024,
-                        'latent_dim': 1024,
-                        'n_output_nodes': 41,
+                        'latent_dim': 512,
+                        'n_output_nodes': 47,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
                                  fix_feature_extractor: False, 'dropout_rate':0.0},
@@ -33,7 +34,7 @@ run_params:
   domain_name: 'image'
   num_epochs: 300
   early_stopping: 10
-  train_val_test_split: [0.6, 0.2, 0.2]
+  train_val_test_split: [0.4, 0.1, 0.5]
   batch_size: 64
   random_state: 1234
   save_freq: 50

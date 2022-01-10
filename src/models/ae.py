@@ -47,13 +47,14 @@ class GCNEncoder(torch.nn.Module):
                 # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
                 # torch.nn.PReLU(),
                 (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
-                #BatchNorm1d(out_channels)
+                # BatchNorm1d(out_channels)
             ],
         )
 
     def forward(self, x, edge_index, edge_weight=None):
         x = self.model(x, edge_index, edge_weight)
         return x
+
 
 # class GCNEncoder(torch.nn.Module):
 #     def __init__(self, in_channels, out_channels, hidden_dim, random_state: int = 1234):

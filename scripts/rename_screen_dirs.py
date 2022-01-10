@@ -23,7 +23,7 @@ if __name__ == "__main__":
         file_type_filter=".yml",
     ):
         dir, file = os.path.split(config_file)
-        #target = file.split("_")[-1]
+        # target = file.split("_")[-1]
         target = file
         os.rename(dir, os.path.join(root_dir, target))
     sys.exit(0)

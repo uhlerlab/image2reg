@@ -137,8 +137,10 @@ def model_train_val_test_loop(
 
             if "latent_clf_balanced_accuracy" in epoch_statistics:
                 logging.debug(
-                    "Latent classification balanced accuracy for domain {}: {:.8f}".format(
-                        domain_config.name, epoch_statistics["latent_clf_balanced_accuracy"]
+                    "Latent classification balanced accuracy for domain {}: {:.8f}"
+                    .format(
+                        domain_config.name,
+                        epoch_statistics["latent_clf_balanced_accuracy"],
                     )
                 )
 
@@ -297,7 +299,6 @@ def model_train_val_test_loop(
             # )
             # # logging.debug("Confusion matrices for classifier: %s", confusion_matrices)
             # plot_confusion_matrices(confusion_matrices, output_dir=output_dir)
-
 
         torch.save(
             domain_config.domain_model_config.model.state_dict(),
