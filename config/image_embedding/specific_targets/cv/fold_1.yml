@@ -13,7 +13,7 @@ run_params:
   model_config: {'model_config':{
                         'type':'ensemble',
                         'input_dim': 1024,
-                        'latent_dim': 1024,
+                        'latent_dim': 2048,
                         'n_output_nodes': 47,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
