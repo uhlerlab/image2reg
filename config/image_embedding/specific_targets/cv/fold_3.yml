@@ -1,11 +1,11 @@
-output_dir: 'data/experiments/image_embeddings/specificity_target_emb_cv/fold_3/'
+output_dir: 'data/experiments/image_embeddings/specificity_target_emb_cv_strat/fold_3/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperimentCustomSplit
 run_params:
   data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
-                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv/nuclei_md_train_fold_3.csv',
-                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv/nuclei_md_val_fold_3.csv',
-                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv/nuclei_md_test_fold_3.csv',
+                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_train_fold_3.csv',
+                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_val_fold_3.csv',
+                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_test_fold_3.csv',
                       'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
                       'pseudo_rgb':True}
@@ -13,7 +13,7 @@ run_params:
   model_config: {'model_config':{
                         'type':'ensemble',
                         'input_dim': 1024,
-                        'latent_dim': 2048,
+                        'latent_dim': 1024,
                         'n_output_nodes': 47,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,

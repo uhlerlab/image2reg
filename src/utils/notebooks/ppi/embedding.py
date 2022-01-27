@@ -19,6 +19,7 @@ def get_gae_latents_for_seed(
     seeds,
     input_dim,
     node_feature_key,
+    data_dict=None,
     link_pred=False,
     reconstruct_features=False,
     feature_decoder_params=None,
@@ -40,31 +41,34 @@ def get_gae_latents_for_seed(
         torch.backends.cudnn.deterministic = True
 
         # No train-val-test split
-        if not link_pred:
-            modified_graph_data = graph_data
-            modified_graph_data.pos_edge_label_index = modified_graph_data.edge_index
+        if data_dict is None:
+            if not link_pred:
+                modified_graph_data = graph_data
+                modified_graph_data.pos_edge_label_index = (
+                    modified_graph_data.edge_index
+                )
 
-            data_dict = {
-                "train": modified_graph_data,
-                "val": modified_graph_data,
-                "test": modified_graph_data,
-            }
-        else:
-            random_link_splitter = T.RandomLinkSplit(
-                is_undirected=True,
-                add_negative_train_samples=False,
-                num_val=0.1,
-                num_test=0.2,
-                split_labels=True,
-            )
-            train_link_data, val_link_data, test_link_data = random_link_splitter(
-                graph_data
-            )
-            data_dict = {
-                "train": train_link_data,
-                "val": val_link_data,
-                "test": test_link_data,
-            }
+                data_dict = {
+                    "train": modified_graph_data,
+                    "val": modified_graph_data,
+                    "test": modified_graph_data,
+                }
+            else:
+                random_link_splitter = T.RandomLinkSplit(
+                    is_undirected=True,
+                    add_negative_train_samples=False,
+                    num_val=0.1,
+                    num_test=0.2,
+                    split_labels=True,
+                )
+                train_link_data, val_link_data, test_link_data = random_link_splitter(
+                    graph_data
+                )
+                data_dict = {
+                    "train": train_link_data,
+                    "val": val_link_data,
+                    "test": test_link_data,
+                }
         if reconstruct_features:
             feat_decoder = FeatureDecoder(**feature_decoder_params)
             gae = CustomGAE(
@@ -112,6 +116,7 @@ def get_gae_latents_for_seed(
             )
 
         gae.eval()
+        graph_data = graph_data.to(gae.device)
         inputs = getattr(graph_data, node_feature_key).float()
         latents = gae.encode(inputs, graph_data.edge_index)
         latents = latents.detach().cpu().numpy()
@@ -120,10 +125,18 @@ def get_gae_latents_for_seed(
 
         if plot_loss:
             fig, ax = plt.subplots(figsize=[6, 4])
-            ax.plot(np.arange(1, len(loss_hist["train"]) + 1), loss_hist["train"])
+            ax.plot(
+                np.arange(1, len(loss_hist["train"]) + 1),
+                loss_hist["train"],
+                label="train",
+            )
+            ax.plot(
+                np.arange(1, len(loss_hist["val"]) + 1), loss_hist["val"], label="val"
+            )
             ax.set_xlabel("Epoch")
             ax.set_ylabel("Loss")
-            ax.set_title("Minimal loss: {:.4f}".format(np.min(loss_hist["train"])))
+            # ax.set_title("Train loss: {:.4f}".format(np.min(loss_hist["train"][np.argmin(loss_hist["val"])])))
+            ax.set_title("Test loss: {:.4f}".format(loss_hist["test"]))
             plt.show()
 
     return latents_dict

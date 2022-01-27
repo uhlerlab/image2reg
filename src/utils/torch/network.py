@@ -1,6 +1,8 @@
 import logging
 
+import networkx as nx
 import torch
+from sklearn.model_selection import train_test_split
 
 from src.utils.torch.general import get_device
 import numpy as np
@@ -46,26 +48,45 @@ def process_single_epoch_gae(
     else:
         edge_weight = None
 
+    if hasattr(data, "pos_edge_index"):
+        pos_edge_index = data.pos_edge_index
+        neg_edge_index = data.neg_edge_index
+    else:
+        pos_edge_index = data.pos_edge_label_index
+        neg_edge_index = None
+
     if mode == "train":
         model.train()
         optimizer.zero_grad()
-        latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight,)
+        latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight)
         # Negative edges created via negative sampling
         if reconstruct_features:
-            loss = model.recon_loss(inputs, latents, data.pos_edge_label_index)
+            loss = model.recon_loss(inputs, latents, pos_edge_index=pos_edge_index)
         else:
-            loss = model.recon_loss(latents, data.pos_edge_label_index)
+            loss = model.recon_loss(latents, pos_edge_index=pos_edge_index)
         loss.backward()
         optimizer.step()
     else:
         model.eval()
-        with torch.no_grad():
-            latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight,)
-            if reconstruct_features:
-                loss = model.recon_loss(inputs, latents, data.pos_edge_label_index)
-            else:
-                loss = model.recon_loss(latents, data.pos_edge_label_index)
 
+        with torch.no_grad():
+            latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight)
+            if hasattr(data, "node_mask"):
+                inputs = inputs[data.node_mask]
+                latents = latents[data.node_mask]
+            if reconstruct_features:
+                loss = model.recon_loss(
+                    inputs,
+                    latents,
+                    pos_edge_index=pos_edge_index,
+                    neg_edge_index=neg_edge_index,
+                )
+            else:
+                loss = model.recon_loss(
+                    latents,
+                    pos_edge_index=pos_edge_index,
+                    neg_edge_index=neg_edge_index,
+                )
     return loss.item()
 
 
@@ -142,8 +163,8 @@ def train_gae(
                         )
                         logging.debug("VAL AUC: {} \t AP: {}".format(auc, ap))
         else:
-            logging.debug("Training stopped after {} epochs".format(i + 1))
-            logging.debug("Best model found at epoch {}".format(best_epoch))
+            print("Training stopped after {} epochs".format(i + 1))
+            print("Best model found at epoch {}".format(best_epoch))
             break
 
     print("---" * 20)
@@ -158,7 +179,9 @@ def train_gae(
         edge_weight_key=edge_weight_key,
         reconstruct_features=reconstruct_features,
     )
-    logging.debug("TEST loss: {}".format(test_loss))
+    print("TRAIN loss: {}".format(loss_hist["train"][best_epoch]))
+    print("VAL loss: {}".format(loss_hist["val"][best_epoch]))
+    print("TEST loss: {}".format(test_loss))
     if link_pred:
         auc, ap = test_link_pred(
             model=model,
@@ -167,4 +190,57 @@ def train_gae(
             edge_weight_key=edge_weight_key,
         )
         print("TEST AUC: {} \t AP: {}".format(auc, ap))
+    loss_hist["test"] = test_loss
     return model, loss_hist
+
+
+def add_pos_negative_edge_indices(graph_data, add_pos_edges=True):
+    selected_nodes = torch.LongTensor(list(range(graph_data.num_nodes)))[
+        graph_data.node_mask
+    ]
+    adj = torch.zeros(graph_data.num_nodes, graph_data.num_nodes, dtype=torch.bool)
+    adj[graph_data.edge_index[0], graph_data.edge_index[1]] = True
+    adj = adj[selected_nodes]
+    adj = adj[:, selected_nodes]
+    pos_edge_index = adj.nonzero(as_tuple=False).t()
+    neg_adj = torch.ones(len(adj), len(adj), dtype=torch.bool)
+    neg_adj[pos_edge_index[0], pos_edge_index[1]] = False
+    neg_edge_index = neg_adj.nonzero(as_tuple=False).t()
+    if add_pos_edges:
+        graph_data.pos_edge_index = torch.LongTensor(pos_edge_index)
+    graph_data.neg_edge_index = torch.LongTensor(neg_edge_index)
+    return graph_data
+
+
+def network_train_val_test_split(network, train_val_test_size, random_state=1234):
+    train_size, val_size, test_size = train_val_test_size
+    nodes = list(network.nodes())
+    train_val_nodes, test_nodes = train_test_split(
+        nodes, test_size=test_size, random_state=random_state
+    )
+    train_nodes, val_nodes = train_test_split(
+        train_val_nodes, test_size=val_size / (1 - test_size), random_state=random_state
+    )
+
+    train_network = nx.Graph(network.subgraph(train_nodes))
+    for edge in train_network.edges(data=True):
+        edge[-1]["edge_mask"] = True
+    for node in train_network.nodes(data=True):
+        node[-1]["node_mask"] = True
+    train_network.name = "train_network"
+
+    val_network = nx.Graph(network.subgraph(train_nodes + val_nodes))
+    for edge in val_network.edges(data=True):
+        edge[-1]["edge_mask"] = edge[0] in val_nodes and edge[1] in val_nodes
+    for node in val_network.nodes(data=True):
+        node[-1]["node_mask"] = node[0] in val_nodes
+    val_network.name = "val_network"
+
+    test_network = nx.Graph(network.subgraph(train_nodes + val_nodes + test_nodes))
+    for edge in test_network.edges(data=True):
+        edge[-1]["edge_mask"] = edge[0] in test_nodes and edge[1] in test_nodes
+    for node in test_network.nodes(data=True):
+        node[-1]["node_mask"] = node[0] in test_nodes
+    test_network.name = "test_network"
+
+    return train_network, val_network, test_network
