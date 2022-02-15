@@ -500,3 +500,17 @@ class TorchTransformableSuperset(ConcatDataset):
                     " the set_transform_pipeline method."
                 )
             raise exception
+
+
+class IndexedTensorDataset(Dataset):
+    def __init__(self, data, labels, groups):
+        super().__init__()
+        self.data = data
+        self.labels = labels
+        self.groups = groups
+
+    def __getitem__(self, idx):
+        return self.data[idx], self.labels[idx], self.groups[idx]
+
+    def __len__(self):
+        return len(self.groups)

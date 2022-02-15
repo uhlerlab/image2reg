@@ -41,9 +41,12 @@ pipeline:
       data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-  - method: train_models
-  - method: evaluate_test_performance
-  - method: visualize_loss_evolution
+  - method: load_model
+    params:
+      weights_fname: "data/experiments/image_embeddings/specificity_target_emb_cv_strat/fold_0/best_model_weights.pth"
+  #- method: train_models
+  #- method: evaluate_test_performance
+  #- method: visualize_loss_evolution
   - method: plot_confusion_matrices
     params:
       normalize: "true"
