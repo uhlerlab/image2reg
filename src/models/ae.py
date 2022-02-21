@@ -98,7 +98,8 @@ class FeatureDecoder(torch.nn.Module):
         self.model = torch.nn.Sequential(*self.modules)
 
     def forward(self, x):
-        return self.model(x)
+        outputs = self.model(x)
+        return outputs
 
 
 class CustomGAE(torch.nn.Module):

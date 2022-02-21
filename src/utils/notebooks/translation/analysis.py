@@ -7,7 +7,12 @@ from imblearn.under_sampling import RandomUnderSampler
 import copy
 
 from matplotlib import pyplot as plt
-from sklearn.model_selection import train_test_split, GroupShuffleSplit, GroupKFold, LeaveOneGroupOut
+from sklearn.model_selection import (
+    train_test_split,
+    GroupShuffleSplit,
+    GroupKFold,
+    LeaveOneGroupOut,
+)
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
 from torch import nn
@@ -42,28 +47,35 @@ def plot_conditions_for_datadict(data_dict, figsize=[15, 6]):
     ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
     return fig, ax, all_label_counts
 
+
 class CustomKNNClassifier(object):
-    def __init__(self, clf, samples, ks=list(range(1,11))):
+    def __init__(self, clf, samples, ks=list(range(1, 11))):
         super().__init__()
         self.clf = clf
         self.ks = ks
         self.samples = samples
 
+
 def weight_reset(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
         m.reset_parameters()
+
 
 def train_model_topk_acc(
     model,
     optimizer,
     criterion,
     data_dict,
-    nn_clf = None,
+    nn_clf=None,
     n_epochs=1000,
     early_stopping=50,
     log_epochs=False,
-    device="cpu"
+    device="cuda:0",
 ):
+
+    model.to(device)
+    criterion.to(device)
+    print(device)
 
     best_val_loss = np.infty
     best_model_weights = None
@@ -75,38 +87,40 @@ def train_model_topk_acc(
     else:
         epoch_nn_clf = None
 
-    for i in range(n_epochs):
+    for i in tqdm(range(n_epochs)):
         if es_counter > early_stopping:
             break
-        for mode in ["train", "val", "test"]:
-            loss, topk_acc = process_single_epoch(
+        for mode in ["train", "val"]:
+            loss, topk_acc, mean_topk_acc = process_single_epoch(
                 model=model,
                 optimizer=optimizer,
                 criterion=criterion,
                 data=data_dict[mode],
                 mode=mode,
-                nn_clf=epoch_nn_clf,
-                device=device
+                nn_clf=None,
+                device=device,
             )
             if log_epochs:
                 print("{} loss: {}".format(mode, loss))
                 if topk_acc is not None:
                     print("{} top-k accuracies: {}".format(mode, topk_acc))
+                if mean_topk_acc is not None:
+                    print("{} mean top-k accuracies: {}".format(mode, mean_topk_acc))
                 print("---" * 20)
 
-            if mode == "val":
+            if mode == "train":
                 if loss < best_val_loss:
                     best_val_loss = loss
                     best_model_weights = copy.deepcopy(model.state_dict())
                 else:
                     es_counter += 1
         if log_epochs:
-            print("---"*20)
+            print("---" * 20)
 
     model.load_state_dict(best_model_weights)
 
     for mode in ["train", "val", "test"]:
-        loss, topk_acc = process_single_epoch(
+        loss, topk_acc, mean_topk_acc = process_single_epoch(
             model, optimizer, criterion, data_dict[mode], "test", nn_clf=nn_clf
         )
         print("{} loss: {}".format(mode, loss))
@@ -114,14 +128,18 @@ def train_model_topk_acc(
         if topk_acc is not None:
             print("{} top-k accuracies: {}".format(mode, topk_acc))
 
-    return model, topk_acc
+        if mean_topk_acc is not None:
+            print("{} mean top-k accuracies: {}".format(mode, mean_topk_acc))
+
+    return model, topk_acc, mean_topk_acc
 
 
-def process_single_epoch(model, optimizer, criterion, data, mode, nn_clf = None, device="cpu"):
+def process_single_epoch(
+    model, optimizer, criterion, data, mode, nn_clf=None, device="cuda:0"
+):
     total_loss = 0
     all_outputs = []
     all_targets = []
-    model.to(device)
     if mode == "train":
         model.train()
         optimizer.zero_grad()
@@ -136,9 +154,10 @@ def process_single_epoch(model, optimizer, criterion, data, mode, nn_clf = None,
 
         with torch.set_grad_enabled(mode == "train"):
             outputs = model(inputs)
-            all_outputs.extend(list(outputs.clone().detach().cpu().numpy()))
-            all_targets.extend(list(targets))
-            loss = criterion(outputs, labels)
+            if nn_clf is not None:
+                all_outputs.extend(list(outputs.clone().detach().cpu().numpy()))
+                all_targets.extend(list(targets))
+            loss = criterion(outputs.to(device), labels.to(device))
             total_loss += loss.item() * outputs.size(0)
 
         if mode == "train":
@@ -147,18 +166,37 @@ def process_single_epoch(model, optimizer, criterion, data, mode, nn_clf = None,
 
     if nn_clf is not None:
         topk_acc = {}
+        mean_topk_acc = {}
         for k in nn_clf.ks:
             k_correct = 0
-            neighbor_preds = nn_clf.clf.kneighbors(np.array(all_outputs), k, return_distance=False)
+            neighbor_preds = nn_clf.clf.kneighbors(
+                np.array(all_outputs), k, return_distance=False
+            )
             for i in range(len(neighbor_preds)):
                 if all_targets[i] in nn_clf.samples[neighbor_preds[i]]:
                     k_correct += 1
-            topk_acc[k] = np.round(k_correct/len(all_targets),5)
+            topk_acc[k] = np.round(k_correct / len(all_targets), 5)
+
+            k_correct=0
+            mean_outputs = pd.DataFrame(all_outputs)
+            mean_outputs["target"] = all_targets
+            mean_outputs = mean_outputs.groupby("target").mean()
+            mean_nb_preds = nn_clf.clf.kneighbors(
+                np.array(mean_outputs), k, return_distance=False
+            )
+            targets = list(mean_outputs.index)
+            for i in range(len(mean_nb_preds)):
+                if k == 5 and len(targets) == 1:
+                    print("Target:", targets[i], "5NN:", nn_clf.samples[mean_nb_preds[i]])
+                if targets[i] in nn_clf.samples[mean_nb_preds[i]]:
+                    k_correct += 1
+            mean_topk_acc[k] = np.round(k_correct / len(targets), 5)
     else:
         topk_acc = None
+        mean_topk_acc=None
 
     total_loss /= len(data.dataset)
-    return total_loss, topk_acc
+    return total_loss, topk_acc, mean_topk_acc
 
 
 def get_data_dict(
@@ -364,13 +402,13 @@ def label_point(x, y, val, ax, size=10, highlight=None):
     ymin, ymax = ax.get_ylim()
     for i in range(len(x)):
         if highlight is not None and val[i] == highlight:
-            c='r'
-            weight="bold"
+            c = "r"
+            weight = "bold"
         else:
-            c='k'
-            weight="normal"
+            c = "k"
+            weight = "normal"
         if x[i] > xmin and x[i] < xmax and y[i] > ymin and y[i] < ymax:
-            ax.text(x[i] + 0.02, y[i], val[i], {"size": size, "c":c, "weight":weight})
+            ax.text(x[i] + 0.02, y[i], val[i], {"size": size, "c": c, "weight": weight})
 
 
 def plot_translation(
@@ -447,12 +485,14 @@ def evaluate_loto_cv(
     nn_clf,
     n_epochs=1000,
     early_stopping=20,
-    device="cuda:0"
+    device="cuda:0",
 ):
     topk_accs = []
+    mean_topk_accs = []
     for i in tqdm(range(len(data_dicts)), desc="Run LoTo CV"):
+        model.apply(weight_reset)
         data_dict = data_dicts[i]
-        _, topk_acc = train_model_topk_acc(
+        _, topk_acc, mean_topk_acc = train_model_topk_acc(
             model=model,
             data_dict=data_dict,
             optimizer=optimizer,
@@ -461,11 +501,16 @@ def evaluate_loto_cv(
             early_stopping=early_stopping,
             nn_clf=nn_clf,
             log_epochs=False,
-            device=device
+            device=device,
         )
         topk_accs.append(list(topk_acc.values()))
+        mean_topk_accs.append(list(mean_topk_acc.values()))
     topk_accs = dict(zip(targets, topk_accs))
     topk_accs = pd.DataFrame(
         topk_accs, index=["top{}".format(i) for i in list(nn_clf.ks)]
     )
-    return topk_accs.transpose()
+    mean_topk_accs = dict(zip(targets, mean_topk_accs))
+    mean_topk_accs = pd.DataFrame(
+        mean_topk_accs, index=["mean_top{}".format(i) for i in list(nn_clf.ks)]
+    )
+    return topk_accs.transpose(), mean_topk_accs.transpose()

@@ -3,7 +3,8 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_mutual_info_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.manifold import TSNE
+import pandas as pd
 from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
 from tqdm import tqdm
 import seaborn as sns
@@ -287,3 +288,35 @@ def plot_amis_matrices(names, amis, figsize=[30, 30]):
                 [k + 1 for k in range(len(amis[i * len(names) + j]))]
             )
     plt.show()
+
+
+def plot_tsne_embs(latents, ax, random_state=1234, perplexity=16, size=10):
+    embs = TSNE(
+        random_state=random_state, perplexity=perplexity, init="pca", learning_rate="auto", n_jobs=5
+    ).fit_transform(latents)
+    embs = pd.DataFrame(embs, columns=["tsne_0", "tsne_1"], index=latents.index)
+    ax = sns.scatterplot(data=embs, x="tsne_0", y="tsne_1", cmap="viridis")
+    label_point(
+        np.array(embs.loc[:, "tsne_0"]),
+        np.array(embs.loc[:, "tsne_1"]),
+        np.array(embs.index).astype("str"),
+        ax=ax,
+        size=size,
+    )
+    return ax
+
+
+def label_point(x, y, val, ax, size=10):
+    for i in range(len(x)):
+        ax.text(x[i] + 0.02, y[i], val[i], {"size": size})
+
+
+def get_rank_difference_dict(latents, tol=1e-5):
+    idc = list(latents.index)
+    full_rank = np.linalg.matrix_rank(latents, tol=tol)
+    delta_rank_dict = {}
+    for idx in idc:
+        rank = np.linalg.matrix_rank(latents.loc[latents.index!=idx], tol=tol)
+        if rank != full_rank:
+            delta_rank_dict[idx] = full_rank - rank
+    return delta_rank_dict
