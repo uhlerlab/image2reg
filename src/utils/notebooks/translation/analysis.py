@@ -7,10 +7,11 @@ from imblearn.under_sampling import RandomUnderSampler
 import copy
 
 from matplotlib import pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.manifold import MDS, TSNE
 from sklearn.model_selection import (
     train_test_split,
     GroupShuffleSplit,
-    GroupKFold,
     LeaveOneGroupOut,
 )
 from sklearn.neighbors import NearestNeighbors
@@ -97,7 +98,7 @@ def train_model_topk_acc(
                 criterion=criterion,
                 data=data_dict[mode],
                 mode=mode,
-                nn_clf=None,
+                nn_clf=epoch_nn_clf,
                 device=device,
             )
             if log_epochs:
@@ -177,7 +178,7 @@ def process_single_epoch(
                     k_correct += 1
             topk_acc[k] = np.round(k_correct / len(all_targets), 5)
 
-            k_correct=0
+            k_correct = 0
             mean_outputs = pd.DataFrame(all_outputs)
             mean_outputs["target"] = all_targets
             mean_outputs = mean_outputs.groupby("target").mean()
@@ -187,13 +188,15 @@ def process_single_epoch(
             targets = list(mean_outputs.index)
             for i in range(len(mean_nb_preds)):
                 if k == 5 and len(targets) == 1:
-                    print("Target:", targets[i], "5NN:", nn_clf.samples[mean_nb_preds[i]])
+                    print(
+                        "Target:", targets[i], "5NN:", nn_clf.samples[mean_nb_preds[i]]
+                    )
                 if targets[i] in nn_clf.samples[mean_nb_preds[i]]:
                     k_correct += 1
             mean_topk_acc[k] = np.round(k_correct / len(targets), 5)
     else:
         topk_acc = None
-        mean_topk_acc=None
+        mean_topk_acc = None
 
     total_loss /= len(data.dataset)
     return total_loss, topk_acc, mean_topk_acc
@@ -293,6 +296,7 @@ def get_logo_data_dicts(
     scale_x=True,
     scale_y=False,
     balanced=False,
+    aggregate_train=None,
 ):
     logo = LeaveOneGroupOut()
     data_dicts = []
@@ -326,6 +330,7 @@ def get_logo_data_dicts(
             train_val_data.iloc[train_idc],
             train_val_labels.iloc[train_idc],
         )
+
         val_data, val_labels = (
             train_val_data.iloc[val_idc],
             train_val_labels.iloc[val_idc],
@@ -421,6 +426,8 @@ def plot_translation(
     crop=False,
     highlight_target=None,
     filter_targets=None,
+    pred_size=10,
+    reg_size=20,
 ):
     all_outputs = []
     all_targets = []
@@ -429,51 +436,58 @@ def plot_translation(
         outputs = model(inputs)
         all_outputs.append(list(outputs.clone().detach().cpu().numpy()))
         all_targets.append(targets)
-    print(np.concatenate([np.array(node_embs), np.array(all_outputs)]).shape)
-    umap = UMAP(random_state=random_state).fit(
-        np.concatenate([np.array(node_embs), np.array(all_outputs)])
-    )
-    umap_node_embs = pd.DataFrame(
-        umap.transform(node_embs), index=node_embs.index, columns=["umap_0", "umap_1"]
+    all_sample_size = np.concatenate(
+        [np.array(node_embs), np.array(all_outputs)]
+    ).shape[0]
+    node_embs_size = len(node_embs)
+    tsne_embs = TSNE(
+        random_state=random_state,
+        n_components=2,
+        perplexity=int(np.sqrt(all_sample_size)) + 1,
+        init="pca",
+        learning_rate=200,
+    ).fit_transform(np.concatenate([np.array(node_embs), np.array(all_outputs)]))
+    tsne_node_embs = pd.DataFrame(
+        tsne_embs[:node_embs_size,], index=node_embs.index, columns=["tsne_0", "tsne_1"]
     )
     fig, ax = plt.subplots(figsize=figsize)
     ax.scatter(
-        np.array(umap_node_embs.loc[:, "umap_0"]),
-        np.array(umap_node_embs.loc[:, "umap_1"]),
+        np.array(tsne_node_embs.loc[:, "tsne_0"]),
+        np.array(tsne_node_embs.loc[:, "tsne_1"]),
         c="k",
-        s=20,
+        s=reg_size,
         label="regulatory embeddings",
+        alpha=0.7,
     )
-    umap_pred_embs = pd.DataFrame(
-        umap.transform(np.array(all_outputs)),
-        index=all_targets,
-        columns=["umap_0", "umap_1"],
+    tsne_pred_embs = pd.DataFrame(
+        tsne_embs[node_embs_size:], index=all_targets, columns=["tsne_0", "tsne_1"],
     )
-    umap_pred_embs["target"] = np.array(umap_pred_embs.index)
+    tsne_pred_embs["target"] = np.array(tsne_pred_embs.index)
 
     if filter_targets is not None:
-        umap_pred_embs = umap_pred_embs.loc[
-            umap_pred_embs.loc[:, "target"].isin(filter_targets)
+        tsne_pred_embs = tsne_pred_embs.loc[
+            tsne_pred_embs.loc[:, "target"].isin(filter_targets)
         ]
     ax = sns.scatterplot(
-        data=umap_pred_embs, x="umap_0", y="umap_1", hue="target", s=5, alpha=0.7
+        data=tsne_pred_embs, x="tsne_0", y="tsne_1", hue="target", s=pred_size,
     )
-    if crop:
-        umap_0_pred_embs = np.array(umap_pred_embs.loc[:, "umap_0"])
-        umap_1_pred_embs = np.array(umap_pred_embs.loc[:, "umap_1"])
 
-        ax.set_xlim(umap_0_pred_embs.min(), umap_0_pred_embs.max())
-        ax.set_ylim(umap_1_pred_embs.min(), umap_1_pred_embs.max())
+    if crop:
+        tsne_0_pred_embs = np.array(tsne_pred_embs.loc[:, "tsne_0"])
+        tsne_1_pred_embs = np.array(tsne_pred_embs.loc[:, "tsne_1"])
+
+        ax.set_xlim(tsne_0_pred_embs.min(), tsne_0_pred_embs.max())
+        ax.set_ylim(tsne_1_pred_embs.min(), tsne_1_pred_embs.max())
 
     label_point(
-        np.array(umap_node_embs.loc[:, "umap_0"]),
-        np.array(umap_node_embs.loc[:, "umap_1"]),
-        np.array(umap_node_embs.index).astype("str"),
+        np.array(tsne_node_embs.loc[:, "tsne_0"]),
+        np.array(tsne_node_embs.loc[:, "tsne_1"]),
+        np.array(tsne_node_embs.index).astype("str"),
         ax=ax,
         size=text_size,
         highlight=highlight_target,
     )
-    return fig, ax
+    return fig, ax, tsne_node_embs, tsne_node_embs
 
 
 def evaluate_loto_cv(

@@ -1,8 +1,9 @@
 import logging
-
+import copy
 import networkx as nx
 import torch
 from sklearn.model_selection import train_test_split
+from torch_geometric.utils import negative_sampling
 
 from src.utils.torch.general import get_device
 import numpy as np
@@ -50,9 +51,14 @@ def process_single_epoch_gae(
 
     if hasattr(data, "pos_edge_index"):
         pos_edge_index = data.pos_edge_index
-        neg_edge_index = data.neg_edge_index
     else:
         pos_edge_index = data.pos_edge_label_index
+
+    if hasattr(data, "neg_edge_index"):
+        neg_edge_index = data.neg_edge_index
+    elif hasattr(data, "neg_edge_label_index"):
+        neg_edge_index = data.neg_edge_label_index
+    else:
         neg_edge_index = None
 
     if mode == "train":
@@ -61,9 +67,13 @@ def process_single_epoch_gae(
         latents = model.encode(inputs, data.edge_index, edge_weight=edge_weight)
         # Negative edges created via negative sampling
         if reconstruct_features:
-            loss = model.recon_loss(inputs, latents, pos_edge_index=pos_edge_index)
+            loss = model.recon_loss(
+                inputs, latents, pos_edge_index=pos_edge_index, neg_edge_index=None
+            )
         else:
-            loss = model.recon_loss(latents, pos_edge_index=pos_edge_index)
+            loss = model.recon_loss(
+                latents, pos_edge_index=pos_edge_index, neg_edge_index=None
+            )
         loss.backward()
         optimizer.step()
     else:
@@ -87,6 +97,31 @@ def process_single_epoch_gae(
                     pos_edge_index=pos_edge_index,
                     neg_edge_index=neg_edge_index,
                 )
+            if mode in ["test"]:
+                model.eval()
+                aucs = []
+                aps = []
+                if neg_edge_index is None:
+                    for i in range(100):
+                        neg_edge_index = negative_sampling(
+                            pos_edge_index, latents.size(0)
+                        )
+                        auc, ap = model.test(
+                            latents,
+                            pos_edge_index=pos_edge_index,
+                            neg_edge_index=neg_edge_index,
+                        )
+                        aucs.append(auc)
+                        aps.append(ap)
+                    auc = np.array(aucs).mean()
+                    ap = np.array(aps).mean()
+                else:
+                    auc, ap = model.test(
+                        latents,
+                        pos_edge_index=pos_edge_index,
+                        neg_edge_index=neg_edge_index,
+                    )
+                print(mode.upper(), "AUC: {}".format(auc), "AP: {}".format(ap))
     return loss.item()
 
 
@@ -150,7 +185,7 @@ def train_gae(
                     if loss < best_val_loss:
                         es_counter = 0
                         best_val_loss = loss
-                        best_model_weights = model.state_dict()
+                        best_model_weights = copy.deepcopy(model.state_dict())
                         best_epoch = i
                     else:
                         es_counter += 1
@@ -195,9 +230,9 @@ def train_gae(
 
 
 def add_pos_negative_edge_indices(graph_data, add_pos_edges=True):
-    selected_nodes = torch.LongTensor(list(range(graph_data.num_nodes)))[
-        graph_data.node_mask
-    ]
+    selected_nodes = torch.LongTensor(list(range(graph_data.num_nodes)))
+    if hasattr(graph_data, "node_mask"):
+        selected_nodes = selected_nodes[graph_data.node_mask]
     adj = torch.zeros(graph_data.num_nodes, graph_data.num_nodes, dtype=torch.bool)
     adj[graph_data.edge_index[0], graph_data.edge_index[1]] = True
     adj = adj[selected_nodes]

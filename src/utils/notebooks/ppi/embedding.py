@@ -9,10 +9,17 @@ from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
 from tqdm import tqdm
 import seaborn as sns
 import torch_geometric.transforms as T
+from torch_geometric.utils import remove_self_loops
+from torch import nn
 
 from src.models.ae import FeatureDecoder, CustomGAE, GCNEncoder
 from src.utils.torch.general import get_device
-from src.utils.torch.network import train_n2v_model, train_gae
+from src.utils.torch.network import (
+    train_n2v_model,
+    train_gae,
+    add_pos_negative_edge_indices,
+    network_train_val_test_split,
+)
 
 
 def get_gae_latents_for_seed(
@@ -21,7 +28,7 @@ def get_gae_latents_for_seed(
     input_dim,
     node_feature_key,
     data_dict=None,
-    link_pred=False,
+    split_type=None,
     reconstruct_features=False,
     feature_decoder_params=None,
     feat_loss=None,
@@ -30,6 +37,7 @@ def get_gae_latents_for_seed(
     latent_dim=32,
     hidden_dim=128,
     lr=1e-3,
+    wd=0,
     n_epochs=100,
     early_stopping=50,
     plot_loss=False,
@@ -43,10 +51,16 @@ def get_gae_latents_for_seed(
 
         # No train-val-test split
         if data_dict is None:
-            if not link_pred:
+            if split_type is None:
                 modified_graph_data = graph_data
                 modified_graph_data.pos_edge_label_index = (
                     modified_graph_data.edge_index
+                )
+
+                modified_graph_data = add_pos_negative_edge_indices(modified_graph_data)
+                # remove self-loops:
+                modified_graph_data.neg_edge_index, _ = remove_self_loops(
+                    modified_graph_data.neg_edge_index
                 )
 
                 data_dict = {
@@ -54,10 +68,10 @@ def get_gae_latents_for_seed(
                     "val": modified_graph_data,
                     "test": modified_graph_data,
                 }
-            else:
+            elif split_type == "link":
                 random_link_splitter = T.RandomLinkSplit(
                     is_undirected=True,
-                    add_negative_train_samples=False,
+                    add_negative_train_samples=True,
                     num_val=0.1,
                     num_test=0.2,
                     split_labels=True,
@@ -65,11 +79,24 @@ def get_gae_latents_for_seed(
                 train_link_data, val_link_data, test_link_data = random_link_splitter(
                     graph_data
                 )
+                # print(train_link_data)
+                # print(val_link_data)
+                # print(test_link_data)
                 data_dict = {
                     "train": train_link_data,
                     "val": val_link_data,
                     "test": test_link_data,
                 }
+            elif split_type == "node":
+                raise NotImplementedError
+                # train_network, val_network, test_network = network_train_val_test_split(graph_data, train_val_test_size=[0.7, 0.1,0.2])
+                # data_dict = {
+                #     "train": train_network,
+                #     "val": val_network,
+                #     "test": test_network,
+                # }
+            else:
+                raise NotImplementedError()
         if reconstruct_features:
             feat_decoder = FeatureDecoder(**feature_decoder_params)
             gae = CustomGAE(
@@ -79,12 +106,13 @@ def get_gae_latents_for_seed(
                     out_channels=latent_dim,
                 ),
                 adj_decoder=InnerProductDecoder(),
+                transformer=None,
                 feat_decoder=feat_decoder,
                 alpha=alpha,
                 beta=beta,
                 feat_loss=feat_loss,
             )
-            optimizer = torch.optim.Adam(gae.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(gae.parameters(), lr=lr, weight_decay=wd)
             gae, loss_hist = train_gae(
                 model=gae,
                 data_dict=data_dict,
@@ -92,7 +120,7 @@ def get_gae_latents_for_seed(
                 optimizer=optimizer,
                 n_epochs=n_epochs,
                 early_stopping=early_stopping,
-                link_pred=link_pred,
+                link_pred=split_type == "link",
                 reconstruct_features=reconstruct_features,
             )
 
@@ -105,7 +133,7 @@ def get_gae_latents_for_seed(
                     random_state=seed,
                 )
             )
-            optimizer = torch.optim.Adam(gae.parameters(), lr=lr)
+            optimizer = torch.optim.Adam(gae.parameters(), lr=lr, weight_decay=wd)
             gae, loss_hist = train_gae(
                 model=gae,
                 data_dict=data_dict,
@@ -113,7 +141,7 @@ def get_gae_latents_for_seed(
                 optimizer=optimizer,
                 n_epochs=n_epochs,
                 early_stopping=early_stopping,
-                link_pred=link_pred,
+                link_pred=split_type == "link",
             )
 
         gae.eval()
@@ -292,10 +320,14 @@ def plot_amis_matrices(names, amis, figsize=[30, 30]):
 
 def plot_tsne_embs(latents, ax, random_state=1234, perplexity=16, size=10):
     embs = TSNE(
-        random_state=random_state, perplexity=perplexity, init="pca", learning_rate="auto", n_jobs=5
+        random_state=random_state,
+        perplexity=perplexity,
+        init="pca",
+        learning_rate="auto",
+        n_jobs=5,
     ).fit_transform(latents)
     embs = pd.DataFrame(embs, columns=["tsne_0", "tsne_1"], index=latents.index)
-    ax = sns.scatterplot(data=embs, x="tsne_0", y="tsne_1", cmap="viridis")
+    ax = sns.scatterplot(data=embs, x="tsne_0", y="tsne_1", cmap="viridis", ax=ax)
     label_point(
         np.array(embs.loc[:, "tsne_0"]),
         np.array(embs.loc[:, "tsne_1"]),
@@ -316,7 +348,7 @@ def get_rank_difference_dict(latents, tol=1e-5):
     full_rank = np.linalg.matrix_rank(latents, tol=tol)
     delta_rank_dict = {}
     for idx in idc:
-        rank = np.linalg.matrix_rank(latents.loc[latents.index!=idx], tol=tol)
+        rank = np.linalg.matrix_rank(latents.loc[latents.index != idx], tol=tol)
         if rank != full_rank:
             delta_rank_dict[idx] = full_rank - rank
     return delta_rank_dict

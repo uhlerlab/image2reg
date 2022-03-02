@@ -5,7 +5,7 @@ from scipy.cluster import hierarchy as hc
 import pandas as pd
 import seaborn as sns
 from scipy.spatial.distance import pdist
-from sklearn.cluster import AgglomerativeClustering
+from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import (
     mutual_info_score,
     adjusted_mutual_info_score,
@@ -17,6 +17,7 @@ from sklearn.metrics import (
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 from umap import UMAP
+from yellowbrick.cluster import KElbowVisualizer
 
 
 def plot_dendrogram(model, **kwargs):
@@ -237,6 +238,7 @@ def plot_struct_embs_cv(
 
     return embs
 
+
 def add_cluster_membership(model, latents, label_col):
     latents = latents.copy()
     latents["cluster"] = ""
@@ -252,6 +254,7 @@ def add_cluster_membership(model, latents, label_col):
         latents.loc[target_latents_idc, "cluster"] = np.array(target_cluster_labels)
     return latents
 
+
 def plot_clustertree(latents, title, method="average", figsize=[20, 4], text_size=10):
     plt.figure(figsize=figsize)
     corr_condensed = pdist(latents)
@@ -259,6 +262,7 @@ def plot_clustertree(latents, title, method="average", figsize=[20, 4], text_siz
     dendrogram = hc.dendrogram(z, labels=latents.index, leaf_font_size=text_size)
     plt.title(title)
     plt.show()
+
 
 def get_perm_test_results(
     fold_latents, node_embs, targets, score="mi", linkages=["average", "average"], b=200
@@ -278,3 +282,18 @@ def get_perm_test_results(
             else:
                 test_results[k].append(v)
     return test_results
+
+
+def plot_clustering(latents, label_col="labels", score="silhouette", random_state=1234):
+    labels = sorted(np.unique(latents.loc[:, label_col]))
+    model = KMeans(random_state=random_state)
+    for label in tqdm(labels):
+        print(label)
+        visualizer = KElbowVisualizer(
+            model, k=10, metric=score, timings=False, locate_elbow=True
+        )
+        target_latents = latents.loc[
+            latents.loc[:, label_col] == label
+        ]._get_numeric_data()
+        visualizer.fit(target_latents)
+        ax = visualizer.show()

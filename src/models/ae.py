@@ -39,41 +39,20 @@ class GCNEncoder(torch.nn.Module):
             "x, edge_index, edge_weight",
             [
                 (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
-                torch.nn.ReLU(),
+                torch.nn.PReLU(),
                 # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
-                # torch.nn.ReLU(),
-                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
-                # torch.nn.ReLU(),
+                # torch.nn.PReLU(),
                 # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
                 # torch.nn.PReLU(),
                 (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
-                # BatchNorm1d(out_channels)
+                torch.nn.PReLU(),
+                torch.nn.Linear(out_channels, out_channels),
             ],
         )
 
     def forward(self, x, edge_index, edge_weight=None):
         x = self.model(x, edge_index, edge_weight)
         return x
-
-
-# class GCNEncoder(torch.nn.Module):
-#     def __init__(self, in_channels, out_channels, hidden_dim, random_state: int = 1234):
-#         super().__init__()
-#         self.model1 = Sequential(
-#             "x, edge_index, edge_weight",
-#             [
-#                 (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
-#                 torch.nn.ReLU(),
-#             ],
-#         )
-#         self.bn = torch.nn.BatchNorm1d(hidden_dim)
-#         self.model2 = GCNConv(hidden_dim, out_channels)
-#
-#     def forward(self, x, edge_index, edge_weight=None):
-#         x = self.model1(x, edge_index, edge_weight)
-#         x = self.bn(x)
-#         x = self.model2(x, edge_index, edge_weight)
-#         return x
 
 
 class FeatureDecoder(torch.nn.Module):
@@ -106,6 +85,7 @@ class CustomGAE(torch.nn.Module):
     def __init__(
         self,
         encoder: nn.Module,
+        transformer: nn.Module,
         adj_decoder: nn.Module,
         feat_decoder: nn.Module,
         feat_loss: nn.Module,
@@ -114,13 +94,17 @@ class CustomGAE(torch.nn.Module):
     ):
         super().__init__()
         self.gae = GAE(encoder=encoder, decoder=adj_decoder)
+        self.transformer = transformer
         self.feat_decoder = feat_decoder
         self.feat_loss = feat_loss
         self.alpha = alpha
         self.beta = beta
 
     def encode(self, x, edge_index, edge_weight=None):
-        return self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
+        z = self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
+        if self.transformer is not None:
+            z = self.transformer(z)
+        return z
 
     def decode(self, z):
         adj = self.gae.decode(z)
