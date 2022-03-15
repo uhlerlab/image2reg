@@ -15,7 +15,7 @@ from sklearn.model_selection import (
     LeaveOneGroupOut,
 )
 from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch import nn
 from torch.utils.data import DataLoader
 import seaborn as sns
@@ -72,6 +72,7 @@ def train_model_topk_acc(
     early_stopping=50,
     log_epochs=False,
     device="cuda:0",
+    use_val_data=False,
 ):
 
     model.to(device)
@@ -88,11 +89,18 @@ def train_model_topk_acc(
     else:
         epoch_nn_clf = None
 
+    epoch_modes = ["train"]
+    if use_val_data:
+        epoch_modes = epoch_modes + ["val"]
+        val_mode = "val"
+    else:
+        val_mode = "train"
+
     for i in tqdm(range(n_epochs)):
         if es_counter > early_stopping:
             break
-        for mode in ["train", "val"]:
-            loss, topk_acc, mean_topk_acc = process_single_epoch(
+        for mode in epoch_modes:
+            loss, topk_acc, mean_topk_acc, mean_knns = process_single_epoch(
                 model=model,
                 optimizer=optimizer,
                 criterion=criterion,
@@ -109,7 +117,7 @@ def train_model_topk_acc(
                     print("{} mean top-k accuracies: {}".format(mode, mean_topk_acc))
                 print("---" * 20)
 
-            if mode == "train":
+            if mode == val_mode:
                 if loss < best_val_loss:
                     best_val_loss = loss
                     best_model_weights = copy.deepcopy(model.state_dict())
@@ -120,8 +128,8 @@ def train_model_topk_acc(
 
     model.load_state_dict(best_model_weights)
 
-    for mode in ["train", "val", "test"]:
-        loss, topk_acc, mean_topk_acc = process_single_epoch(
+    for mode in epoch_modes + ["test"]:
+        loss, topk_acc, mean_topk_acc, mean_knns = process_single_epoch(
             model, optimizer, criterion, data_dict[mode], "test", nn_clf=nn_clf
         )
         print("{} loss: {}".format(mode, loss))
@@ -132,7 +140,7 @@ def train_model_topk_acc(
         if mean_topk_acc is not None:
             print("{} mean top-k accuracies: {}".format(mode, mean_topk_acc))
 
-    return model, topk_acc, mean_topk_acc
+    return model, topk_acc, mean_topk_acc, mean_knns
 
 
 def process_single_epoch(
@@ -166,40 +174,47 @@ def process_single_epoch(
             optimizer.step()
 
     if nn_clf is not None:
+        nn_hit_idc = []
+        neighbor_preds = nn_clf.clf.kneighbors(
+            np.array(all_outputs),
+            n_neighbors=len(nn_clf.samples),
+            return_distance=False,
+        )
+        for i in range(len(neighbor_preds)):
+            nn_hit_idc.append(
+                np.where(nn_clf.samples[neighbor_preds[i].flatten()] == all_targets[i])[
+                    0
+                ]
+            )
+
+        mean_hit_idc = []
+        mean_outputs = pd.DataFrame(all_outputs)
+        mean_outputs["target"] = all_targets
+        mean_outputs = mean_outputs.groupby("target").mean()
+        mean_nb_preds = nn_clf.clf.kneighbors(
+            np.array(mean_outputs),
+            n_neighbors=len(nn_clf.samples),
+            return_distance=False,
+        )
+        targets = list(mean_outputs.index)
+        mean_knns = []
+        for i in range(len(mean_nb_preds)):
+            mean_hit_idc.append(
+                np.where(nn_clf.samples[mean_nb_preds[i]] == targets[i])
+            )
+            mean_knns.append(nn_clf.samples[mean_nb_preds[i]])
         topk_acc = {}
         mean_topk_acc = {}
         for k in nn_clf.ks:
-            k_correct = 0
-            neighbor_preds = nn_clf.clf.kneighbors(
-                np.array(all_outputs), k, return_distance=False
-            )
-            for i in range(len(neighbor_preds)):
-                if all_targets[i] in nn_clf.samples[neighbor_preds[i]]:
-                    k_correct += 1
-            topk_acc[k] = np.round(k_correct / len(all_targets), 5)
-
-            k_correct = 0
-            mean_outputs = pd.DataFrame(all_outputs)
-            mean_outputs["target"] = all_targets
-            mean_outputs = mean_outputs.groupby("target").mean()
-            mean_nb_preds = nn_clf.clf.kneighbors(
-                np.array(mean_outputs), k, return_distance=False
-            )
-            targets = list(mean_outputs.index)
-            for i in range(len(mean_nb_preds)):
-                if k == 5 and len(targets) == 1:
-                    print(
-                        "Target:", targets[i], "5NN:", nn_clf.samples[mean_nb_preds[i]]
-                    )
-                if targets[i] in nn_clf.samples[mean_nb_preds[i]]:
-                    k_correct += 1
-            mean_topk_acc[k] = np.round(k_correct / len(targets), 5)
+            topk_acc[k] = np.round(np.mean(np.array(nn_hit_idc) < k), 6)
+            mean_topk_acc[k] = np.round(np.mean(np.array(mean_hit_idc) < k), 6)
     else:
         topk_acc = None
         mean_topk_acc = None
+        mean_knns = None
 
     total_loss /= len(data.dataset)
-    return total_loss, topk_acc, mean_topk_acc
+    return total_loss, topk_acc, mean_topk_acc, mean_knns
 
 
 def get_data_dict(
@@ -258,9 +273,19 @@ def get_data_dict(
 
     if scale_y:
         sc = StandardScaler().fit(train_labels)
-        train_labels = sc.transform(train_labels)
-        val_labels = sc.transform(val_labels)
-        test_labels = sc.transform(test_labels)
+        train_labels = pd.DataFrame(
+            sc.transform(train_labels),
+            index=train_labels.index,
+            columns=train_labels.columns,
+        )
+        val_labels = pd.DataFrame(
+            sc.transform(val_labels), index=val_labels.index, columns=val_labels.columns
+        )
+        test_labels = pd.DataFrame(
+            sc.transform(test_labels),
+            index=test_labels.index,
+            columns=test_labels.columns,
+        )
 
     train_dataset = IndexedTensorDataset(
         torch.FloatTensor(np.array(train_data)),
@@ -320,33 +345,54 @@ def get_logo_data_dicts(
             labels.iloc[train_val_idc],
         )
 
-        gss = GroupShuffleSplit(n_splits=100, test_size=val_size)
-        train_val_group_labels = np.array(train_val_labels.index)
-        train_idc, val_idc = next(
-            gss.split(train_val_data, groups=train_val_group_labels)
-        )
+        if val_size > 0:
+            gss = GroupShuffleSplit(n_splits=100, test_size=val_size)
+            train_val_group_labels = np.array(train_val_labels.index)
+            train_idc, val_idc = next(
+                gss.split(train_val_data, groups=train_val_group_labels)
+            )
+        else:
+            train_idc = list(range(len(train_val_data)))
+            val_idc = None
 
         train_data, train_labels = (
             train_val_data.iloc[train_idc],
             train_val_labels.iloc[train_idc],
         )
-
-        val_data, val_labels = (
-            train_val_data.iloc[val_idc],
-            train_val_labels.iloc[val_idc],
-        )
+        if val_idc is not None:
+            val_data, val_labels = (
+                train_val_data.iloc[val_idc],
+                train_val_labels.iloc[val_idc],
+            )
+        else:
+            val_data = None
+            val_labels = None
 
         if scale_x:
             sc = StandardScaler().fit(train_data)
             train_data = sc.transform(train_data)
-            val_data = sc.transform(val_data)
+            if val_data is not None:
+                val_data = sc.transform(val_data)
             test_data = sc.transform(test_data)
 
         if scale_y:
             sc = StandardScaler().fit(train_labels)
-            train_labels = sc.transform(train_labels)
-            val_labels = sc.transform(val_labels)
-            test_labels = sc.transform(test_labels)
+            train_labels = pd.DataFrame(
+                sc.transform(train_labels),
+                index=train_labels.index,
+                columns=train_labels.columns,
+            )
+            if val_labels is not None:
+                val_labels = pd.DataFrame(
+                    sc.transform(val_labels),
+                    index=val_labels.index,
+                    columns=val_labels.columns,
+                )
+            test_labels = pd.DataFrame(
+                sc.transform(test_labels),
+                index=test_labels.index,
+                columns=test_labels.columns,
+            )
 
         train_dataset = IndexedTensorDataset(
             torch.FloatTensor(np.array(train_data)),
@@ -355,12 +401,15 @@ def get_logo_data_dicts(
         )
         train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
-        val_dataset = IndexedTensorDataset(
-            torch.FloatTensor(np.array(val_data)),
-            torch.FloatTensor(np.array(val_labels)),
-            list(val_labels.index),
-        )
-        val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+        if val_data is not None:
+            val_dataset = IndexedTensorDataset(
+                torch.FloatTensor(np.array(val_data)),
+                torch.FloatTensor(np.array(val_labels)),
+                list(val_labels.index),
+            )
+            val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+        else:
+            val_loader = None
 
         test_dataset = IndexedTensorDataset(
             torch.FloatTensor(np.array(test_data)),
@@ -402,13 +451,16 @@ def get_preds_label_dict(model, data):
     return np.array(preds), np.array(labels)
 
 
-def label_point(x, y, val, ax, size=10, highlight=None):
+def label_point(x, y, val, ax, size=10, highlight=None, highlight_other=None):
     xmin, xmax = ax.get_xlim()
     ymin, ymax = ax.get_ylim()
     for i in range(len(x)):
         if highlight is not None and val[i] == highlight:
             c = "r"
             weight = "bold"
+        elif highlight_other is not None and val[i] in highlight_other:
+            c = "b"
+            weight="bold"
         else:
             c = "k"
             weight = "normal"
@@ -425,6 +477,7 @@ def plot_translation(
     text_size=10,
     crop=False,
     highlight_target=None,
+    highlight_nns = None,
     filter_targets=None,
     pred_size=10,
     reg_size=20,
@@ -440,54 +493,55 @@ def plot_translation(
         [np.array(node_embs), np.array(all_outputs)]
     ).shape[0]
     node_embs_size = len(node_embs)
-    tsne_embs = TSNE(
+    mds_embs = MDS(
         random_state=random_state,
         n_components=2,
-        perplexity=int(np.sqrt(all_sample_size)) + 1,
-        init="pca",
-        learning_rate=200,
+        # perplexity=int(np.sqrt(all_sample_size)) + 1,
+        # init="pca",
+        # learning_rate=200,
     ).fit_transform(np.concatenate([np.array(node_embs), np.array(all_outputs)]))
-    tsne_node_embs = pd.DataFrame(
-        tsne_embs[:node_embs_size,], index=node_embs.index, columns=["tsne_0", "tsne_1"]
+    mds_node_embs = pd.DataFrame(
+        mds_embs[:node_embs_size,], index=node_embs.index, columns=["mds_0", "mds_1"]
     )
     fig, ax = plt.subplots(figsize=figsize)
     ax.scatter(
-        np.array(tsne_node_embs.loc[:, "tsne_0"]),
-        np.array(tsne_node_embs.loc[:, "tsne_1"]),
+        np.array(mds_node_embs.loc[:, "mds_0"]),
+        np.array(mds_node_embs.loc[:, "mds_1"]),
         c="k",
         s=reg_size,
         label="regulatory embeddings",
         alpha=0.7,
     )
-    tsne_pred_embs = pd.DataFrame(
-        tsne_embs[node_embs_size:], index=all_targets, columns=["tsne_0", "tsne_1"],
+    mds_pred_embs = pd.DataFrame(
+        mds_embs[node_embs_size:], index=all_targets, columns=["mds_0", "mds_1"],
     )
-    tsne_pred_embs["target"] = np.array(tsne_pred_embs.index)
+    mds_pred_embs["target"] = np.array(mds_pred_embs.index)
 
     if filter_targets is not None:
-        tsne_pred_embs = tsne_pred_embs.loc[
-            tsne_pred_embs.loc[:, "target"].isin(filter_targets)
+        mds_pred_embs = mds_pred_embs.loc[
+            mds_pred_embs.loc[:, "target"].isin(filter_targets)
         ]
     ax = sns.scatterplot(
-        data=tsne_pred_embs, x="tsne_0", y="tsne_1", hue="target", s=pred_size,
+        data=mds_pred_embs, x="mds_0", y="mds_1", hue="target", s=pred_size,
     )
 
     if crop:
-        tsne_0_pred_embs = np.array(tsne_pred_embs.loc[:, "tsne_0"])
-        tsne_1_pred_embs = np.array(tsne_pred_embs.loc[:, "tsne_1"])
+        mds_0_pred_embs = np.array(mds_pred_embs.loc[:, "mds_0"])
+        mds_1_pred_embs = np.array(mds_pred_embs.loc[:, "mds_1"])
 
-        ax.set_xlim(tsne_0_pred_embs.min(), tsne_0_pred_embs.max())
-        ax.set_ylim(tsne_1_pred_embs.min(), tsne_1_pred_embs.max())
+        ax.set_xlim(mds_0_pred_embs.min(), mds_0_pred_embs.max())
+        ax.set_ylim(mds_1_pred_embs.min(), mds_1_pred_embs.max())
 
     label_point(
-        np.array(tsne_node_embs.loc[:, "tsne_0"]),
-        np.array(tsne_node_embs.loc[:, "tsne_1"]),
-        np.array(tsne_node_embs.index).astype("str"),
+        np.array(mds_node_embs.loc[:, "mds_0"]),
+        np.array(mds_node_embs.loc[:, "mds_1"]),
+        np.array(mds_node_embs.index).astype("str"),
         ax=ax,
         size=text_size,
         highlight=highlight_target,
+        highlight_other = highlight_nns
     )
-    return fig, ax, tsne_node_embs, tsne_node_embs
+    return fig, ax, mds_node_embs
 
 
 def evaluate_loto_cv(
@@ -506,7 +560,7 @@ def evaluate_loto_cv(
     for i in tqdm(range(len(data_dicts)), desc="Run LoTo CV"):
         model.apply(weight_reset)
         data_dict = data_dicts[i]
-        _, topk_acc, mean_topk_acc = train_model_topk_acc(
+        _, topk_acc, mean_topk_acc, _ = train_model_topk_acc(
             model=model,
             data_dict=data_dict,
             optimizer=optimizer,
@@ -528,3 +582,179 @@ def evaluate_loto_cv(
         mean_topk_accs, index=["mean_top{}".format(i) for i in list(nn_clf.ks)]
     )
     return topk_accs.transpose(), mean_topk_accs.transpose()
+
+
+def get_mean_knn_dict(embs, k=5):
+    targets = np.array(list(embs.index))
+    nn = NearestNeighbors(n_neighbors=k + 1).fit(np.array(embs))
+    nn_clf = CustomKNNClassifier(clf=nn, samples=targets, ks=k)
+    knn_dict = {}
+    for target in targets:
+        preds = nn_clf.clf.kneighbors(
+            np.array(embs.loc[target]).reshape(1, -1), return_distance=False
+        )
+        knn_dict[target] = list(targets[preds].flatten()[1:])
+    knn_dict = {k: knn_dict[k] for k in sorted(knn_dict)}
+    return knn_dict
+
+
+def get_centroid_knn_dict(embs, labels, k=5):
+    targets = sorted(np.unique(labels))
+    knn_dict = {}
+
+    for target in targets:
+        filtered_embs = embs.loc[labels != target]
+        filtered_labels = labels[labels != target]
+
+        pred_input = embs.loc[labels == target]
+        nn = NearestNeighbors(n_neighbors=k).fit(np.array(filtered_embs))
+        nn_clf = CustomKNNClassifier(clf=nn, samples=filtered_labels, ks=k)
+        preds = nn_clf.clf.kneighbors(np.array(pred_input), return_distance=False)
+        nns = []
+        for i in range(k):
+            for pred in preds:
+                nns.append(nn_clf.samples[pred[i]])
+        indexes = np.unique(nns, return_index=True)[1]
+        nns = [nns[index] for index in sorted(indexes)]
+        knn_dict[target] = list(nns[:k])
+    return knn_dict
+
+
+def get_single_knn_dict(embs, labels, k=5):
+    targets = np.unique(labels)
+    knn_dict = {}
+
+    for target in tqdm(targets):
+        filtered_embs = embs.loc[labels != target]
+        filtered_labels = labels[labels != target]
+
+        pred_input = embs.loc[labels == target]
+        nn = NearestNeighbors(n_neighbors=1).fit(np.array(filtered_embs))
+        nn_clf = CustomKNNClassifier(clf=nn, samples=filtered_labels, ks=k)
+        preds = nn_clf.clf.kneighbors(np.array(pred_input), return_distance=False)
+        nns = nn_clf.samples[preds.flatten()]
+        count_dict = dict(Counter(nns))
+        count_dict = dict(
+            sorted(count_dict.items(), key=lambda item: item[1], reverse=True)
+        )
+        knn_dict[target] = list(count_dict.keys())[:5]
+    return knn_dict
+
+
+def get_inv_gs_dict(targets, gs_dict):
+    inv_gs_dict = {}
+    for target in targets:
+        inv_gs_dict[target] = []
+        for k, v in gs_dict.items():
+            if target in list(v):
+                inv_gs_dict[target].append(k)
+    return inv_gs_dict
+
+
+def get_geneset_io(nn_dict, inv_geneset_dict, k=1):
+    iou_dict = {}
+    for target, nns in nn_dict.items():
+        target_gs = set(inv_geneset_dict[target])
+        nn_gs = []
+        for i in range(k):
+            nn_gs.extend(inv_geneset_dict[nns[i]])
+        nn_gs = set(nn_gs)
+        if len(target_gs) == 0:
+            iou_dict[target] = np.nan
+        else:
+            iou_dict[target] = len(target_gs.intersection(nn_gs)) / len(
+                target_gs.union(nn_gs)
+            )
+    return iou_dict
+
+
+def scale_data(data, scaling=None):
+    if scaling in ["minmax", "minmax_loto"]:
+        scaler = MinMaxScaler()
+        if scaling == "minmax":
+            data = pd.DataFrame(
+                scaler.fit_transform(data), columns=data.columns, index=data.index
+            )
+        elif scaling == "minmax_loto":
+            scaled_data = data.copy()
+            for idx in data.index:
+                scaler.fit(np.array(data.loc[data.index != idx]))
+                scaled_data.loc[idx] = scaler.transform(
+                    np.array(scaled_data.loc[idx]).reshape(1, -1))
+            data = scaled_data
+    elif scaling in ["znorm", "znorm_loto"]:
+        scaler = StandardScaler()
+        if scaling == "znorm":
+            data = pd.DataFrame(
+                scaler.fit_transform(data), columns=data.columns, index=data.index
+            )
+        elif scaling == "znorm_loto":
+            scaled_data = data.copy()
+            for idx in data.index:
+                scaler.fit(np.array(data.loc[data.index != idx]))
+                scaled_data.loc[idx] = scaler.transform(
+                    np.array(scaled_data.loc[idx]).reshape(1, -1)
+                )
+            data = scaled_data
+    return data
+
+
+def get_embeddings(data, method="pca", scaling=None, seed=1234, selection=None):
+    data = scale_data(data, scaling=scaling)
+    if selection is not None:
+        data = data.loc[data.index.isin(selection)]
+    if method == "pca":
+        mapper = PCA(n_components=2, random_state=seed)
+    elif method == "mds":
+        mapper = MDS(n_components=2, random_state=seed)
+    elif method == "tsne":
+        mapper = TSNE(
+            n_components=2, random_state=seed, perplexity=int(np.sqrt(len(data))) + 1, init="pca",learning_rate="auto"
+        )
+    else:
+        raise NotImplementedError
+    embs = pd.DataFrame(
+        mapper.fit_transform(data),
+        columns=["{}_0".format(method), "{}_1".format(method)],
+        index=data.index,
+    )
+    return embs
+
+
+def plot_space(
+    data,
+    method="pca",
+    scaling=None,
+    seed=1234,
+    figsize=[6, 4],
+    label_points=True,
+    text_size=10,
+    selection=None
+):
+    fig, ax = plt.subplots(figsize=figsize)
+    embs = get_embeddings(data, method=method, scaling=scaling, seed=seed, selection=selection)
+    ax = sns.scatterplot(data=embs, x="{}_0".format(method), y="{}_1".format(method))
+    if label_points:
+        label_point(
+            np.array(embs.loc[:, "{}_0".format(method)]),
+            np.array(embs.loc[:, "{}_1".format(method)]),
+            np.array(embs.index).astype("str"),
+            ax=ax,
+            size=text_size,
+        )
+    return fig, ax
+
+
+def get_sample_neighbor_dict(data, selection=None):
+    if selection is not None:
+        data = data.loc[data.index.isin(selection)]
+    samples = np.array(list(data.index))
+    nn = NearestNeighbors(n_neighbors=len(data))
+    sample_neighbor_dict = {}
+    nn.fit(np.array(data))
+    for sample in samples:
+        pred_idx = nn.kneighbors(
+            np.array(data.loc[sample]).reshape(1, -1), return_distance=False
+        )[0]
+        sample_neighbor_dict[sample] = samples[pred_idx]
+    return sample_neighbor_dict

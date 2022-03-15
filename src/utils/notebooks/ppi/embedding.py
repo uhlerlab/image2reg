@@ -5,6 +5,7 @@ from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_mutual_info_score
 from sklearn.manifold import TSNE
 import pandas as pd
+from torch_geometric.data import Data
 from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
 from tqdm import tqdm
 import seaborn as sns
@@ -27,6 +28,7 @@ def get_gae_latents_for_seed(
     seeds,
     input_dim,
     node_feature_key,
+    edge_weight_key=None,
     data_dict=None,
     split_type=None,
     reconstruct_features=False,
@@ -41,6 +43,8 @@ def get_gae_latents_for_seed(
     n_epochs=100,
     early_stopping=50,
     plot_loss=False,
+    use_full_graph=False,
+    neg_edge_ratio=1.0,
 ):
     latents_dict = {}
     for seed in seeds:
@@ -75,26 +79,28 @@ def get_gae_latents_for_seed(
                     num_val=0.1,
                     num_test=0.2,
                     split_labels=True,
+                    neg_sampling_ratio=neg_edge_ratio
                 )
                 train_link_data, val_link_data, test_link_data = random_link_splitter(
                     graph_data
                 )
-                # print(train_link_data)
-                # print(val_link_data)
-                # print(test_link_data)
+                if use_full_graph:
+                    train_link_data.edge_index =graph_data.edge_index
+                    val_link_data.edge_index = graph_data.edge_index
+                    test_link_data.edge_index = graph_data.edge_index
+
+                    if edge_weight_key is not None:
+                        setattr(train_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
+                        setattr(val_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
+                        setattr(test_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
+
                 data_dict = {
                     "train": train_link_data,
                     "val": val_link_data,
                     "test": test_link_data,
                 }
             elif split_type == "node":
-                raise NotImplementedError
-                # train_network, val_network, test_network = network_train_val_test_split(graph_data, train_val_test_size=[0.7, 0.1,0.2])
-                # data_dict = {
-                #     "train": train_network,
-                #     "val": val_network,
-                #     "test": test_network,
-                # }
+                raise NotImplementedError()
             else:
                 raise NotImplementedError()
         if reconstruct_features:
@@ -117,6 +123,7 @@ def get_gae_latents_for_seed(
                 model=gae,
                 data_dict=data_dict,
                 node_feature_key=node_feature_key,
+                edge_weight_key=edge_weight_key,
                 optimizer=optimizer,
                 n_epochs=n_epochs,
                 early_stopping=early_stopping,
@@ -138,6 +145,7 @@ def get_gae_latents_for_seed(
                 model=gae,
                 data_dict=data_dict,
                 node_feature_key=node_feature_key,
+                edge_weight_key=edge_weight_key,
                 optimizer=optimizer,
                 n_epochs=n_epochs,
                 early_stopping=early_stopping,

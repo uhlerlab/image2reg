@@ -255,9 +255,9 @@ def add_cluster_membership(model, latents, label_col):
     return latents
 
 
-def plot_clustertree(latents, title, method="average", figsize=[20, 4], text_size=10):
+def plot_clustertree(latents, title, metric="euclidean",method="average", figsize=[20, 4], text_size=10):
     plt.figure(figsize=figsize)
-    corr_condensed = pdist(latents)
+    corr_condensed = pdist(latents, metric=metric)
     z = hc.linkage(corr_condensed, method=method)
     dendrogram = hc.dendrogram(z, labels=latents.index, leaf_font_size=text_size)
     plt.title(title)

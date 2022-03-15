@@ -40,12 +40,12 @@ class GCNEncoder(torch.nn.Module):
             [
                 (GCNConv(in_channels, hidden_dim), "x, edge_index, edge_weight -> x"),
                 torch.nn.PReLU(),
-                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
-                # torch.nn.PReLU(),
-                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
-                # torch.nn.PReLU(),
-                (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
+                (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
                 torch.nn.PReLU(),
+                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
+                # torch.nn.PReLU(),
+                # (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
+                # torch.nn.PReLU(),
                 torch.nn.Linear(out_channels, out_channels),
             ],
         )
