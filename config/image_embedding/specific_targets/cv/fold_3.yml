@@ -14,7 +14,7 @@ run_params:
                         'type':'ensemble',
                         'input_dim': 1024,
                         'latent_dim': 1024,
-                        'n_output_nodes': 47,
+                        'n_output_nodes': 42,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
                                  fix_feature_extractor: False, 'dropout_rate':0.0},
@@ -41,9 +41,12 @@ pipeline:
       data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-  - method: train_models
-  - method: evaluate_test_performance
-  - method: visualize_loss_evolution
+#  - method: train_models
+#  - method: evaluate_test_performance
+#  - method: visualize_loss_evolution
+  - method: load_model
+    params:
+      weights_fname: "data/experiments/image_embeddings/specificity_target_emb_cv_strat/final_1024_newnodeset/fold_1/best_model_weights.pth"
   - method: plot_confusion_matrices
     params:
       normalize: "true"

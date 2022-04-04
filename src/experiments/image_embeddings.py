@@ -7,7 +7,10 @@ import torch
 from src.data.datasets import TorchTransformableSuperset
 from src.experiments.base import BaseExperiment, BaseExperimentCV
 from src.helper.data import DataHandler, DataHandlerCV
-from src.utils.basic.visualization import plot_confusion_matrices
+from src.utils.basic.visualization import (
+    plot_confusion_matrices,
+    save_confusion_matrices,
+)
 from src.utils.torch.data import (
     init_image_dataset,
     init_multi_image_dataset,
@@ -140,6 +143,11 @@ class BaseImageEmbeddingExperiment:
             dataset_types=["train", "val", "test"],
             normalize=normalize,
         )
+        save_confusion_matrices(
+            confusion_matrices,
+            output_dir=self.output_dir,
+            labels=sorted(self.target_list),
+        )
         plot_confusion_matrices(
             confusion_matrices,
             output_dir=self.output_dir,
@@ -202,7 +210,7 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
             dataset=self.data_set,
             n_folds=self.n_folds,
             batch_size=self.batch_size,
-            num_workers=0,
+            num_workers=15,
             random_state=self.random_state,
             transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,
@@ -302,7 +310,7 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         dh = DataHandler(
             dataset=self.data_set,
             batch_size=self.batch_size,
-            num_workers=0,
+            num_workers=15,
             random_state=self.random_state,
             transformation_dicts=self.data_transform_pipeline_dicts,
             drop_last_batch=drop_last_batch,

@@ -1,9 +1,11 @@
 import logging
 import os
+from typing import Iterable
 
 import imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from numpy import ndarray
 from matplotlib.colors import LinearSegmentedColormap
 from sklearn.metrics import ConfusionMatrixDisplay
@@ -299,3 +301,11 @@ def plot_confusion_matrices(
         cmd.plot(ax=ax, values_format=".2f", xticks_rotation="vertical")
         plt.savefig(os.path.join(output_dir, "confusion_matrix_{}.png".format(str(k))))
         plt.close()
+
+
+def save_confusion_matrices(
+    confusion_matrices_dict: dict, output_dir: str, labels=Iterable
+):
+    for k, cmatrix in confusion_matrices_dict.items():
+        cmatrix_df = pd.DataFrame(cmatrix, columns=labels, index=labels)
+        cmatrix_df.to_csv(os.path.join(output_dir, "{}_cmatrix.csv".format(k)))

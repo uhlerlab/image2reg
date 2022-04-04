@@ -14,7 +14,7 @@ run_params:
                         'type':'ensemble',
                         'input_dim': 1024,
                         'latent_dim': 1024,
-                        'n_output_nodes': 47,
+                        'n_output_nodes': 42,
                         'component_dicts':[
                                 {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
                                  fix_feature_extractor: False, 'dropout_rate':0.0},
@@ -22,13 +22,13 @@ run_params:
                                  fix_feature_extractor: False, 'dropout_rate':0.0}
                         ]
                  },
-                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.001},
                  'loss_config':{'type':'ce'}}
 
   domain_name: 'image'
   num_epochs: 300
-  early_stopping: 10
-  batch_size: 64
+  early_stopping: 5
+  batch_size: 128
   random_state: 1234
   save_freq: 50
 
@@ -41,12 +41,12 @@ pipeline:
       data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-  - method: load_model
-    params:
-      weights_fname: "data/experiments/image_embeddings/specificity_target_emb_cv_strat/fold_0/best_model_weights.pth"
-  #- method: train_models
-  #- method: evaluate_test_performance
-  #- method: visualize_loss_evolution
+#  - method: load_model
+#    params:
+#      weights_fname: "data/experiments/image_embeddings/specificity_target_emb_cv_strat/fold_0/best_model_weights.pth"
+  - method: train_models
+  - method: evaluate_test_performance
+  - method: visualize_loss_evolution
   - method: plot_confusion_matrices
     params:
       normalize: "true"

@@ -460,7 +460,7 @@ def label_point(x, y, val, ax, size=10, highlight=None, highlight_other=None):
             weight = "bold"
         elif highlight_other is not None and val[i] in highlight_other:
             c = "b"
-            weight="bold"
+            weight = "bold"
         else:
             c = "k"
             weight = "normal"
@@ -477,7 +477,7 @@ def plot_translation(
     text_size=10,
     crop=False,
     highlight_target=None,
-    highlight_nns = None,
+    highlight_nns=None,
     filter_targets=None,
     pred_size=10,
     reg_size=20,
@@ -539,7 +539,7 @@ def plot_translation(
         ax=ax,
         size=text_size,
         highlight=highlight_target,
-        highlight_other = highlight_nns
+        highlight_other=highlight_nns,
     )
     return fig, ax, mds_node_embs
 
@@ -680,7 +680,8 @@ def scale_data(data, scaling=None):
             for idx in data.index:
                 scaler.fit(np.array(data.loc[data.index != idx]))
                 scaled_data.loc[idx] = scaler.transform(
-                    np.array(scaled_data.loc[idx]).reshape(1, -1))
+                    np.array(scaled_data.loc[idx]).reshape(1, -1)
+                )
             data = scaled_data
     elif scaling in ["znorm", "znorm_loto"]:
         scaler = StandardScaler()
@@ -709,7 +710,11 @@ def get_embeddings(data, method="pca", scaling=None, seed=1234, selection=None):
         mapper = MDS(n_components=2, random_state=seed)
     elif method == "tsne":
         mapper = TSNE(
-            n_components=2, random_state=seed, perplexity=int(np.sqrt(len(data))) + 1, init="pca",learning_rate="auto"
+            n_components=2,
+            random_state=seed,
+            perplexity=int(np.sqrt(len(data))) + 1,
+            init="pca",
+            learning_rate="auto",
         )
     else:
         raise NotImplementedError
@@ -729,10 +734,12 @@ def plot_space(
     figsize=[6, 4],
     label_points=True,
     text_size=10,
-    selection=None
+    selection=None,
 ):
     fig, ax = plt.subplots(figsize=figsize)
-    embs = get_embeddings(data, method=method, scaling=scaling, seed=seed, selection=selection)
+    embs = get_embeddings(
+        data, method=method, scaling=scaling, seed=seed, selection=selection
+    )
     ax = sns.scatterplot(data=embs, x="{}_0".format(method), y="{}_1".format(method))
     if label_points:
         label_point(

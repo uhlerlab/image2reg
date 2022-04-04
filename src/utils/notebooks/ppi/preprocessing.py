@@ -108,8 +108,13 @@ def compute_edge_weights(
     metrics=["pearsonr", "spearmanr", "mi", "pearsonp", "spearmanp"],
     b=1000,
     random_state=1234,
+    attr_name=None,
 ):
     for metric in metrics:
+        if attr_name is None:
+            edge_attribute_name = metric
+        else:
+            edge_attribute_name = "_".join([attr_name, metric])
         for (u, v) in tqdm(
             ppi.edges(), desc="Compute edge weights for {}".format(metric)
         ):
@@ -124,18 +129,20 @@ def compute_edge_weights(
             elif metric == "mi":
                 cost = compute_mi_score(x, y, 100)
             elif metric == "pearsonp":
-                association = compute_bootstrap_p(
-                    x, y, metric="pearson", b=b, random_state=random_state
-                )
+                # association = compute_bootstrap_p(
+                #     x, y, metric="pearson", b=b, random_state=random_state
+                # )
+                association = pearsonr(x, y)[1]
                 cost = association
             elif metric == "spearmanp":
-                association = compute_bootstrap_p(
-                    x, y, metric="spearman", b=b, random_state=random_state
-                )
+                # association = compute_bootstrap_p(
+                #     x, y, metric="spearman", b=b, random_state=random_state
+                # )
+                association = spearmanr(x, y)[1]
                 cost = association
             else:
                 raise NotImplementedError("Unknown metric provided: {}".format(metric))
-            ppi.edges[u, v][metric] = cost
+            ppi.edges[u, v][edge_attribute_name] = cost
     return ppi
 
 

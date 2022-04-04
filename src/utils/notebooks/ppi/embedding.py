@@ -3,7 +3,7 @@ import torch
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import adjusted_mutual_info_score
-from sklearn.manifold import TSNE
+from sklearn.manifold import TSNE, MDS
 import pandas as pd
 from torch_geometric.data import Data
 from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
@@ -79,20 +79,32 @@ def get_gae_latents_for_seed(
                     num_val=0.1,
                     num_test=0.2,
                     split_labels=True,
-                    neg_sampling_ratio=neg_edge_ratio
+                    neg_sampling_ratio=neg_edge_ratio,
                 )
                 train_link_data, val_link_data, test_link_data = random_link_splitter(
                     graph_data
                 )
                 if use_full_graph:
-                    train_link_data.edge_index =graph_data.edge_index
+                    train_link_data.edge_index = graph_data.edge_index
                     val_link_data.edge_index = graph_data.edge_index
                     test_link_data.edge_index = graph_data.edge_index
 
                     if edge_weight_key is not None:
-                        setattr(train_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
-                        setattr(val_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
-                        setattr(test_link_data, edge_weight_key, getattr(graph_data, edge_weight_key))
+                        setattr(
+                            train_link_data,
+                            edge_weight_key,
+                            getattr(graph_data, edge_weight_key),
+                        )
+                        setattr(
+                            val_link_data,
+                            edge_weight_key,
+                            getattr(graph_data, edge_weight_key),
+                        )
+                        setattr(
+                            test_link_data,
+                            edge_weight_key,
+                            getattr(graph_data, edge_weight_key),
+                        )
 
                 data_dict = {
                     "train": train_link_data,
@@ -326,7 +338,16 @@ def plot_amis_matrices(names, amis, figsize=[30, 30]):
     plt.show()
 
 
-def plot_tsne_embs(latents, ax, random_state=1234, perplexity=16, size=10):
+def plot_tsne_embs(
+    latents,
+    ax,
+    random_state=1234,
+    perplexity=16,
+    size=10,
+    hue=None,
+    hue_order=None,
+    palette=None,
+):
     embs = TSNE(
         random_state=random_state,
         perplexity=perplexity,
@@ -335,10 +356,50 @@ def plot_tsne_embs(latents, ax, random_state=1234, perplexity=16, size=10):
         n_jobs=5,
     ).fit_transform(latents)
     embs = pd.DataFrame(embs, columns=["tsne_0", "tsne_1"], index=latents.index)
-    ax = sns.scatterplot(data=embs, x="tsne_0", y="tsne_1", cmap="viridis", ax=ax)
+    ax = sns.scatterplot(
+        data=embs,
+        x="tsne_0",
+        y="tsne_1",
+        cmap="viridis",
+        ax=ax,
+        hue=hue,
+        hue_order=hue_order,
+        palette=palette,
+    )
     label_point(
         np.array(embs.loc[:, "tsne_0"]),
         np.array(embs.loc[:, "tsne_1"]),
+        np.array(embs.index).astype("str"),
+        ax=ax,
+        size=size,
+    )
+    return ax
+
+
+def plot_mds_embs(
+    latents,
+    ax,
+    dissimilarity="precomputed",
+    size=10,
+    hue=None,
+    hue_order=None,
+    palette=None,
+):
+    embs = MDS(n_components=2, dissimilarity=dissimilarity).fit_transform(latents)
+    embs = pd.DataFrame(embs, columns=["mds_0", "mds_1"], index=latents.index)
+    ax = sns.scatterplot(
+        data=embs,
+        x="mds_0",
+        y="mds_1",
+        cmap="viridis",
+        ax=ax,
+        hue=hue,
+        hue_order=hue_order,
+        palette=palette,
+    )
+    label_point(
+        np.array(embs.loc[:, "mds_0"]),
+        np.array(embs.loc[:, "mds_1"]),
         np.array(embs.index).astype("str"),
         ax=ax,
         size=size,
