@@ -1,11 +1,11 @@
+import copy
 from collections import Counter
 
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import torch
 from imblearn.under_sampling import RandomUnderSampler
-import copy
-
 from matplotlib import pyplot as plt
 from sklearn.decomposition import PCA
 from sklearn.manifold import MDS, TSNE
@@ -18,9 +18,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from torch import nn
 from torch.utils.data import DataLoader
-import seaborn as sns
 from tqdm.notebook import tqdm
-from umap import UMAP
 
 from src.data.datasets import IndexedTensorDataset
 

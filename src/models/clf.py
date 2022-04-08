@@ -1,12 +1,12 @@
 from abc import ABC
+from typing import Type, List, Union, Any
 
 import torch
+from torch import nn
 from torch.functional import Tensor
 from torch.hub import load_state_dict_from_url
 from torch.nn import Module
-from torch import nn
 from torchvision.models.resnet import ResNet, BasicBlock, Bottleneck, model_urls
-from typing import Type, List, Union, Any
 
 from src.utils.torch.general import get_device
 
@@ -218,6 +218,47 @@ def resnet152(pretrained: bool = False, progress: bool = True, **kwargs: Any) ->
     return _resnet(
         "resnet152", Bottleneck, [3, 8, 36, 3], pretrained, progress, **kwargs
     )
+
+
+class LatentClassifier(nn.Module):
+    def __init__(self, latent_dim:int=1024, hidden_dims:List=None, n_classes:int=10, loss_fct:nn.Module=None):
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.hidden_dims = hidden_dims
+        self.n_classes = n_classes
+        if loss_fct is None:
+            self.loss_fct = nn.CrossEntropyLoss()
+        else:
+            self.loss_fct = loss_fct
+
+        modules = []
+        if self.hidden_dims is None:
+            modules.append(nn.Linear(self.latent_dim, self.n_classes))
+        else:
+            modules.append(nn.Linear(self.latent_dim, self.hidden_dims[0]))
+            modules.append(nn.BatchNorm1d(self.hidden_dims[0]))
+            modules.append(nn.PReLU())
+            for i in range(1, len(self.hidden_dims)):
+                modules.append(nn.Linear(self.hidden_dims[i-1], self.hidden_dims[i]))
+                modules.append(nn.BatchNorm1d(self.hidden_dims[i]))
+                modules.append(nn.PReLU())
+            modules.append(nn.Linear(self.hidden_dims[-1], self.n_classes))
+        self.model = nn.Sequential(*modules)
+
+    def forward(self, latents:Tensor):
+        return self.model(latents)
+
+    def loss(self, latents:Tensor, label_mask: Tensor, labels:Tensor):
+        preds = self.forward(latents)
+        return self.loss_fct(preds[label_mask], labels[label_mask])
+
+    def reset_parameters(self):
+        for layer in self.model.children():
+            if hasattr(layer, 'reset_parameters'):
+                layer.reset_parameters()
+
+
+
 
 
 class SimpleDiscriminator(nn.Module, ABC):

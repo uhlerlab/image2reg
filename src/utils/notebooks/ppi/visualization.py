@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import networkx as nx
 import numpy as np
 import pandas as pd
+import seaborn as sns
 
 
 def plot_degree_dist(graph, figsize=[8, 6], title="", smoothing=1):

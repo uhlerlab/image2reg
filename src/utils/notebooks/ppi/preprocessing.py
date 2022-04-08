@@ -1,11 +1,10 @@
+import networkx as nx
+import numpy as np
+import pandas as pd
 from scipy.stats import ttest_1samp, spearmanr, pearsonr
 from sklearn.metrics import mutual_info_score
 from statsmodels.stats.multitest import fdrcorrection
-
-import numpy as np
-import pandas as pd
 from tqdm import tqdm
-import networkx as nx
 
 
 def find_markers(data, target, avg_log_fc=0.25, min_pct=0.1):

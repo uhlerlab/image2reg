@@ -1,13 +1,13 @@
+import logging as logger
+
+import community
+import networkx as nx
 import numpy as np
 import pandas as pd
-import networkx as nx
 from networkx import NetworkXNoPath
-from tqdm import tqdm
-import logging as logger
-import community
-from pcst_fast import pcst_fast
-
 from networkx.algorithms.approximation import steinertree
+from pcst_fast import pcst_fast
+from tqdm import tqdm
 
 
 def get_node_id_dict(graph):

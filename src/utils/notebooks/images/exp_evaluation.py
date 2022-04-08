@@ -1,12 +1,14 @@
-from src.utils.basic.io import get_file_list
-import pandas as pd
-import numpy as np
-from typing import List
-import matplotlib.pyplot as plt
 import os
-from tqdm import tqdm
-from sklearn.manifold import TSNE
+from typing import List
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+from sklearn.manifold import TSNE
+from tqdm import tqdm
+
+from src.utils.basic.io import get_file_list
 
 
 class LogAnalyzer(object):

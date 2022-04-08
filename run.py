@@ -9,10 +9,9 @@ import logging
 import os
 import shutil
 import sys
+from pprint import pformat
 
 import yaml
-
-from pprint import pformat
 
 sys.path.append(".")
 

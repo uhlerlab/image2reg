@@ -1,11 +1,11 @@
-from pcst_fast import pcst_fast
-from tqdm import tqdm
-import numpy as np
-import networkx as nx
 import community
 import matplotlib.pyplot as plt
+import networkx as nx
+import numpy as np
 import pandas as pd
 import seaborn as sns
+from pcst_fast import pcst_fast
+from tqdm import tqdm
 
 
 def run_pcst_sensitivity_analyses(

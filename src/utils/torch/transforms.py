@@ -1,17 +1,15 @@
-import torchvision.transforms.functional
-from torchvision.transforms import functional as F
+import copy
+from typing import Union, Tuple
+
 import numpy as np
 import torch
-from torchvision import transforms
-from typing import Union, Optional, Tuple
-from torch_geometric.typing import EdgeType
-
-import copy
+import torchvision.transforms.functional
 from torch import Tensor
-
 from torch_geometric.data import Data
-from torch_geometric.utils import negative_sampling, add_self_loops
 from torch_geometric.transforms import BaseTransform
+from torch_geometric.utils import negative_sampling, add_self_loops
+from torchvision import transforms
+from torchvision.transforms import functional as F
 
 
 class CustomCompose(transforms.Compose):

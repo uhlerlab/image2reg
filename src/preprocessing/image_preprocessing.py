@@ -1,20 +1,18 @@
 import logging
-import multiprocessing
 import os
 from shutil import copyfile
 from typing import List, Tuple
 
 import cv2
-import pandas as pd
 import numpy as np
+import pandas as pd
 from joblib import Parallel, delayed
+from skimage.io import imread
+from skimage.measure import regionprops, label
+from skimage.morphology import remove_small_objects, remove_small_holes
 from sklearn.mixture import GaussianMixture
 from tifffile import tifffile
 from tqdm import tqdm
-
-from skimage.io import imread
-from skimage.measure import regionprops, label, regionprops_table
-from skimage.morphology import remove_small_objects, remove_small_holes
 
 from src.utils.basic.feature_extraction import compute_nuclear_chromatin_features
 from src.utils.basic.io import get_file_list

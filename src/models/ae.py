@@ -2,13 +2,11 @@ from abc import abstractmethod, ABC
 from typing import Any, List
 
 import torch
-import torch_geometric.nn
 from torch import nn, Tensor
-from torch.nn import BatchNorm1d
+from torch_geometric.nn import GCNConv, Sequential, GAE
 from torch_geometric.utils import remove_self_loops, add_self_loops, negative_sampling
 
 from src.utils.torch.general import get_device
-from torch_geometric.nn import GCNConv, Sequential, GAE
 
 
 class BaseAE(nn.Module):
@@ -56,95 +54,71 @@ class GCNEncoder(torch.nn.Module):
         return x
 
 
-class FeatureDecoder(torch.nn.Module):
-    def __init__(self, latent_dim, hidden_dims, output_dim):
-        super().__init__()
-        self.modules = [
-            torch.nn.Sequential(
-                torch.nn.Linear(latent_dim, hidden_dims[0]),
-                torch.nn.BatchNorm1d(hidden_dims[0]),
-                torch.nn.PReLU(),
-            )
-        ]
-        for i in range(1, len(hidden_dims)):
-            self.modules.append(
-                torch.nn.Sequential(
-                    torch.nn.Linear(hidden_dims[i - 1], hidden_dims[i]),
-                    torch.nn.BatchNorm1d(hidden_dims[i]),
-                    torch.nn.PReLU(),
-                )
-            )
-        self.modules.append(torch.nn.Linear(hidden_dims[-1], output_dim))
-        self.model = torch.nn.Sequential(*self.modules)
-
-    def forward(self, x):
-        outputs = self.model(x)
-        return outputs
-
-
-class CustomGAE(torch.nn.Module):
-    def __init__(
-        self,
-        encoder: nn.Module,
-        transformer: nn.Module,
-        adj_decoder: nn.Module,
-        feat_decoder: nn.Module,
-        feat_loss: nn.Module,
-        classifier: nn.Module = None,
-        class_loss: nn.Module=None,
-        alpha: float = 1.0,
-        beta: float = 1.0,
-    ):
-        super().__init__()
-        self.gae = GAE(encoder=encoder, decoder=adj_decoder)
-        self.transformer = transformer
-        self.feat_decoder = feat_decoder
-        self.feat_loss = feat_loss
-        self.alpha = alpha
-        self.beta = beta
-        self.l2_loss = nn.MSELoss()
-
-    def encode(self, x, edge_index, edge_weight=None):
-        z = self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
-        if self.transformer is not None:
-            z = self.transformer(z)
-        return z
-
-    def decode(self, z):
-        adj = self.gae.decode(z)
-        feat = self.feat_decoder(z)
-        return adj, feat
-
-    def recon_loss(self, x, z, pos_edge_index, neg_edge_index=None):
-        gae_loss = self.gae.recon_loss(
-            z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index
-        )
-        # gae_loss = self.gae_l2_loss(z=z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index)
-        feat_loss = self.feat_loss(x, self.feat_decoder(z))
-        return self.alpha * gae_loss + self.beta * feat_loss
-
-    def classification_loss(self, z, labels, label_mask):
-        class_loss = self.class_loss(self.classifier(z)[label_mask], labels)
-        return self.gamma * class_loss
-
-    def test(self, z, pos_edge_index, neg_edge_index):
-        return self.gae.test(z, pos_edge_index, neg_edge_index)
-
-    def gae_l2_loss(self, z, pos_edge_index, neg_edge_index=None):
-        pos_preds = self.gae.decoder(z, pos_edge_index, sigmoid=True)
-        pos_true = torch.ones_like(pos_preds)
-
-        # Do not include self-loops in negative samples
-        pos_edge_index, _ = remove_self_loops(pos_edge_index)
-        pos_edge_index, _ = add_self_loops(pos_edge_index)
-        if neg_edge_index is None:
-            neg_edge_index = negative_sampling(pos_edge_index, z.size(0))
-        neg_preds = self.gae.decoder(z, neg_edge_index, sigmoid=True)
-        neg_true = torch.zeros_like(neg_preds)
-        preds = torch.cat((pos_preds, neg_preds))
-        true = torch.cat((pos_true, neg_true))
-
-        return self.l2_loss(preds, true)
+# class CustomGAE(torch.nn.Module):
+#     def __init__(
+#         self,
+#         encoder: nn.Module,
+#         transformer: nn.Module,
+#         adj_decoder: nn.Module,
+#         feat_decoder: nn.Module,
+#         feat_loss: nn.Module,
+#         classifier: nn.Module = None,
+#         class_loss: nn.Module = None,
+#         alpha: float = 1.0,
+#         beta: float = 1.0,
+#     ):
+#         super().__init__()
+#         self.gae = GAE(encoder=encoder, decoder=adj_decoder)
+#         self.transformer = transformer
+#         self.feat_decoder = feat_decoder
+#         self.feat_loss = feat_loss
+#         self.alpha = alpha
+#         self.beta = beta
+#         self.l2_loss = nn.MSELoss()
+#         self.classifier = classifier
+#         self.class_loss = class_loss
+#
+#     def encode(self, x, edge_index, edge_weight=None):
+#         z = self.gae.encode(x, edge_index=edge_index, edge_weight=edge_weight)
+#         if self.transformer is not None:
+#             z = self.transformer(z)
+#         return z
+#
+#     def decode(self, z):
+#         adj = self.gae.decode(z)
+#         feat = self.feat_decoder(z)
+#         return adj, feat
+#
+#     def recon_loss(self, x, z, pos_edge_index, neg_edge_index=None):
+#         gae_loss = self.gae.recon_loss(
+#             z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index
+#         )
+#         # gae_loss = self.gae_l2_loss(z=z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index)
+#         feat_loss = self.feat_loss(x, self.feat_decoder(z))
+#         return self.alpha * gae_loss + self.beta * feat_loss
+#
+#     def classification_loss(self, z, labels, label_mask):
+#         class_loss = self.class_loss(self.classifier(z)[label_mask], labels)
+#         return self.gamma * class_loss
+#
+#     def test(self, z, pos_edge_index, neg_edge_index):
+#         return self.gae.test(z, pos_edge_index, neg_edge_index)
+#
+#     def gae_l2_loss(self, z, pos_edge_index, neg_edge_index=None):
+#         pos_preds = self.gae.decoder(z, pos_edge_index, sigmoid=True)
+#         pos_true = torch.ones_like(pos_preds)
+#
+#         # Do not include self-loops in negative samples
+#         pos_edge_index, _ = remove_self_loops(pos_edge_index)
+#         pos_edge_index, _ = add_self_loops(pos_edge_index)
+#         if neg_edge_index is None:
+#             neg_edge_index = negative_sampling(pos_edge_index, z.size(0))
+#         neg_preds = self.gae.decoder(z, neg_edge_index, sigmoid=True)
+#         neg_true = torch.zeros_like(neg_preds)
+#         preds = torch.cat((pos_preds, neg_preds))
+#         true = torch.cat((pos_true, neg_true))
+#
+#         return self.l2_loss(preds, true)
 
 
 class VanillaConvAE(BaseAE, ABC):

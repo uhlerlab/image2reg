@@ -1,43 +1,37 @@
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import torch
+import torch_geometric.transforms as T
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
-from sklearn.metrics import adjusted_mutual_info_score
 from sklearn.manifold import TSNE, MDS
-import pandas as pd
-from torch_geometric.data import Data
-from torch_geometric.nn import Node2Vec, InnerProductDecoder, GAE
-from tqdm import tqdm
-import seaborn as sns
-import torch_geometric.transforms as T
+from sklearn.metrics import adjusted_mutual_info_score
+from torch_geometric.nn import Node2Vec
 from torch_geometric.utils import remove_self_loops
-from torch import nn
+from tqdm import tqdm
 
-from src.models.ae import FeatureDecoder, CustomGAE, GCNEncoder
 from src.utils.torch.general import get_device
 from src.utils.torch.network import (
     train_n2v_model,
     train_gae,
     add_pos_negative_edge_indices,
-    network_train_val_test_split,
 )
 
 
 def get_gae_latents_for_seed(
     graph_data,
+    gae,
     seeds,
-    input_dim,
     node_feature_key,
     edge_weight_key=None,
+    feature_decoder=None,
+    latent_classifier=None,
     data_dict=None,
     split_type=None,
-    reconstruct_features=False,
-    feature_decoder_params=None,
-    feat_loss=None,
     alpha=1,
     beta=1,
-    latent_dim=32,
-    hidden_dim=128,
+    gamma=1,
     lr=1e-3,
     wd=0,
     n_epochs=100,
@@ -48,6 +42,11 @@ def get_gae_latents_for_seed(
 ):
     latents_dict = {}
     for seed in seeds:
+        gae.reset_parameters()
+        if feature_decoder is not None:
+            feature_decoder.reset_parameters()
+        if latent_classifier is not None:
+            latent_classifier.reset_parameters()
 
         # Ensure reproducibility
         torch.manual_seed(seed)
@@ -115,53 +114,28 @@ def get_gae_latents_for_seed(
                 raise NotImplementedError()
             else:
                 raise NotImplementedError()
-        if reconstruct_features:
-            feat_decoder = FeatureDecoder(**feature_decoder_params)
-            gae = CustomGAE(
-                encoder=GCNEncoder(
-                    in_channels=input_dim,
-                    hidden_dim=hidden_dim,
-                    out_channels=latent_dim,
-                ),
-                adj_decoder=InnerProductDecoder(),
-                transformer=None,
-                feat_decoder=feat_decoder,
+
+            model_parameters = list(gae.parameters())
+            if feature_decoder is not None:
+                model_parameters += list(feature_decoder.parameters())
+            if latent_classifier is not None:
+                model_parameters += list(latent_classifier.parameters())
+
+            optimizer = torch.optim.Adam(model_parameters, lr=lr, weight_decay=wd)
+            gae, feature_decoder, latent_classifier, loss_hist = train_gae(
+                gae=gae,
+                data_dict=data_dict,
+                node_feature_key=node_feature_key,
+                edge_weight_key=edge_weight_key,
+                optimizer=optimizer,
+                n_epochs=n_epochs,
+                early_stopping=early_stopping,
+                link_pred=split_type == "link",
+                feature_decoder=feature_decoder,
+                latent_classifier=latent_classifier,
                 alpha=alpha,
                 beta=beta,
-                feat_loss=feat_loss,
-            )
-            optimizer = torch.optim.Adam(gae.parameters(), lr=lr, weight_decay=wd)
-            gae, loss_hist = train_gae(
-                model=gae,
-                data_dict=data_dict,
-                node_feature_key=node_feature_key,
-                edge_weight_key=edge_weight_key,
-                optimizer=optimizer,
-                n_epochs=n_epochs,
-                early_stopping=early_stopping,
-                link_pred=split_type == "link",
-                reconstruct_features=reconstruct_features,
-            )
-
-        else:
-            gae = GAE(
-                GCNEncoder(
-                    in_channels=input_dim,
-                    hidden_dim=hidden_dim,
-                    out_channels=latent_dim,
-                    random_state=seed,
-                )
-            )
-            optimizer = torch.optim.Adam(gae.parameters(), lr=lr, weight_decay=wd)
-            gae, loss_hist = train_gae(
-                model=gae,
-                data_dict=data_dict,
-                node_feature_key=node_feature_key,
-                edge_weight_key=edge_weight_key,
-                optimizer=optimizer,
-                n_epochs=n_epochs,
-                early_stopping=early_stopping,
-                link_pred=split_type == "link",
+                gamma=gamma,
             )
 
         gae.eval()
@@ -184,7 +158,6 @@ def get_gae_latents_for_seed(
             )
             ax.set_xlabel("Epoch")
             ax.set_ylabel("Loss")
-            # ax.set_title("Train loss: {:.4f}".format(np.min(loss_hist["train"][np.argmin(loss_hist["val"])])))
             ax.set_title("Test loss: {:.4f}".format(loss_hist["test"]))
             plt.show()
 

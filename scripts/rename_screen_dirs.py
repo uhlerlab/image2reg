@@ -1,7 +1,8 @@
 import argparse
 import os
-from src.utils.basic.io import get_file_list
 import sys
+
+from src.utils.basic.io import get_file_list
 
 if __name__ == "__main__":
 
