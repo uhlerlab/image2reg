@@ -2,20 +2,18 @@
 import copy
 from typing import List
 
-from skimage.measure._regionprops import RegionProperties
-from skimage.morphology import erosion
-from tifffile import imread
-import pandas as pd
-from skimage import measure
 import numpy as np
+import pandas as pd
+from mahotas.features import zernike_moments
 from nmco.nuclear_features import (
     Boundary_global as BG,
     Img_texture as IT,
     Int_dist_features as IDF,
     Boundary_local_curvature as BLC,
 )
-from tqdm import tqdm
-from mahotas.features import zernike_moments
+from skimage import measure
+from skimage.measure._regionprops import RegionProperties
+from skimage.morphology import erosion
 
 
 def compute_carpenter_profiles(

@@ -4,18 +4,13 @@ import os
 import time
 from typing import Tuple
 
-import torch
 import numpy as np
+import torch
 from sklearn.metrics import balanced_accuracy_score
 from tqdm import tqdm
 
 from src.helper.models import DomainConfig, DomainModelConfig, LatentClassifierConfig
-from src.utils.basic.visualization import plot_confusion_matrices
-from src.utils.torch.evaluation import (
-    save_latents_from_model,
-    visualize_image_ae_performance,
-    get_confusion_matrices,
-)
+from src.utils.torch.evaluation import visualize_image_ae_performance
 from src.utils.torch.general import get_device
 
 

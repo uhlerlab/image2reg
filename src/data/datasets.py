@@ -5,17 +5,16 @@ from abc import ABC
 from collections import Counter
 from typing import List, Iterable
 
-import torch
 import numpy as np
 import pandas as pd
+import torch
 from PIL import Image
 from imblearn.under_sampling import RandomUnderSampler
-from matplotlib import pyplot as plt
+from skimage.io import imread
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from torch import Tensor
 from torch.utils.data import Dataset, Subset, ConcatDataset
 from torchvision import transforms
-from skimage.io import imread
 
 from src.utils.basic.general import combine_path
 

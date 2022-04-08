@@ -1,9 +1,9 @@
 import numpy as np
-from matplotlib import pyplot as plt
-from scipy.cluster.hierarchy import dendrogram
-from scipy.cluster import hierarchy as hc
 import pandas as pd
 import seaborn as sns
+from matplotlib import pyplot as plt
+from scipy.cluster import hierarchy as hc
+from scipy.cluster.hierarchy import dendrogram
 from scipy.spatial.distance import pdist
 from sklearn.cluster import AgglomerativeClustering, KMeans
 from sklearn.metrics import (
@@ -94,7 +94,7 @@ def compute_cc_scores_perm_test(
     embs_2,
     b=100,
     n_max_clusters=20,
-    affinity="euclidean",
+    affinities=["euclidean", "euclidean"],
     linkages=["average", "average"],
     random_state=1234,
     score="ami",
@@ -104,21 +104,16 @@ def compute_cc_scores_perm_test(
     cc_score = np.zeros((n_max_clusters, n_max_clusters))
     cluster_sols1 = []
     cluster_sols2 = []
-    for i in range(1, n_max_clusters + 1):
+    for i in tqdm(range(1, n_max_clusters + 1)):
         cluster_sol1 = AgglomerativeClustering(
-            affinity=affinity, n_clusters=i, linkage=linkages[0]
+            affinity=affinities[0], n_clusters=i, linkage=linkages[0]
         ).fit_predict(embs_1)
         cluster_sol2 = AgglomerativeClustering(
-            affinity=affinity, n_clusters=i, linkage=linkages[1]
+            affinity=affinities[1], n_clusters=i, linkage=linkages[1]
         ).fit_predict(embs_2)
 
         cluster_sols1.append(cluster_sol1)
         cluster_sols2.append(cluster_sol2)
-
-        # print("Clusters", i)
-        # print("Cluster sol 1", dict(zip(list(embs_1.index), cluster_sol1)))
-        # print("Cluster sol 2", dict(zip(list(embs_1.index), cluster_sol2)))
-        # print(" ")
 
     for i in range(n_max_clusters):
         for j in range(n_max_clusters):
@@ -140,7 +135,7 @@ def compute_cc_scores_perm_test(
     return {
         "cc_score": cc_score,
         "perm_cc_scores": perm_cc_scores,
-        "pval": np.mean(perm_cc_scores > (cc_score - 1e-16), axis=0),
+        "pval": np.mean(perm_cc_scores >= (cc_score - 1e-8), axis=0),
     }
 
 

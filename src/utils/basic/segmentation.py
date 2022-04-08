@@ -1,7 +1,8 @@
 from typing import Tuple
-from scipy.ndimage import binary_fill_holes
+
 import numpy as np
 from numpy import ndarray
+from scipy.ndimage import binary_fill_holes
 
 
 def get_mask_image_from_outline(outline_image: ndarray) -> ndarray:

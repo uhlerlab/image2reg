@@ -90,6 +90,8 @@ class CustomGAE(torch.nn.Module):
         adj_decoder: nn.Module,
         feat_decoder: nn.Module,
         feat_loss: nn.Module,
+        classifier: nn.Module = None,
+        class_loss: nn.Module=None,
         alpha: float = 1.0,
         beta: float = 1.0,
     ):
@@ -120,6 +122,10 @@ class CustomGAE(torch.nn.Module):
         # gae_loss = self.gae_l2_loss(z=z, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index)
         feat_loss = self.feat_loss(x, self.feat_decoder(z))
         return self.alpha * gae_loss + self.beta * feat_loss
+
+    def classification_loss(self, z, labels, label_mask):
+        class_loss = self.class_loss(self.classifier(z)[label_mask], labels)
+        return self.gamma * class_loss
 
     def test(self, z, pos_edge_index, neg_edge_index):
         return self.gae.test(z, pos_edge_index, neg_edge_index)

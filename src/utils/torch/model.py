@@ -1,19 +1,16 @@
+import logging
 from typing import List
 
 import torch
-from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
-from torch.optim import Adam, RMSprop
-from torch.nn import Module
-from torch.optim import Optimizer
 from torch import nn
+from torch.nn import L1Loss, MSELoss, BCELoss, BCEWithLogitsLoss, CrossEntropyLoss
+from torch.nn import Module
+from torch.optim import Adam, RMSprop
+from torch.optim import Optimizer
+from torchvision import transforms, models
 
 from src.helper.models import DomainConfig
 from src.models.ae import VanillaConvAE
-
-from torchvision import transforms, models
-
-import logging
-
 from src.models.clf import (
     resnet18,
     resnet34,

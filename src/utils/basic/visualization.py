@@ -6,8 +6,8 @@ import imageio
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from numpy import ndarray
 from matplotlib.colors import LinearSegmentedColormap
+from numpy import ndarray
 from sklearn.metrics import ConfusionMatrixDisplay
 
 
