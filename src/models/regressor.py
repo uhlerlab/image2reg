@@ -36,5 +36,5 @@ class FeatureDecoder(nn.Module):
 
     def reset_parameters(self):
         for layer in self.model.children():
-            if hasattr(layer, 'reset_parameters'):
+            if hasattr(layer, "reset_parameters"):
                 layer.reset_parameters()

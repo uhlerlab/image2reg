@@ -41,6 +41,7 @@ def get_gae_latents_for_seed(
     neg_edge_ratio=1.0,
 ):
     latents_dict = {}
+    loss_hist_dict = {}
     for seed in seeds:
         gae.reset_parameters()
         if feature_decoder is not None:
@@ -115,28 +116,28 @@ def get_gae_latents_for_seed(
             else:
                 raise NotImplementedError()
 
-            model_parameters = list(gae.parameters())
-            if feature_decoder is not None:
-                model_parameters += list(feature_decoder.parameters())
-            if latent_classifier is not None:
-                model_parameters += list(latent_classifier.parameters())
+        model_parameters = list(gae.parameters())
+        if feature_decoder is not None:
+            model_parameters += list(feature_decoder.parameters())
+        if latent_classifier is not None:
+            model_parameters += list(latent_classifier.parameters())
 
-            optimizer = torch.optim.Adam(model_parameters, lr=lr, weight_decay=wd)
-            gae, feature_decoder, latent_classifier, loss_hist = train_gae(
-                gae=gae,
-                data_dict=data_dict,
-                node_feature_key=node_feature_key,
-                edge_weight_key=edge_weight_key,
-                optimizer=optimizer,
-                n_epochs=n_epochs,
-                early_stopping=early_stopping,
-                link_pred=split_type == "link",
-                feature_decoder=feature_decoder,
-                latent_classifier=latent_classifier,
-                alpha=alpha,
-                beta=beta,
-                gamma=gamma,
-            )
+        optimizer = torch.optim.Adam(model_parameters, lr=lr, weight_decay=wd)
+        gae, feature_decoder, latent_classifier, loss_hist = train_gae(
+            gae=gae,
+            data_dict=data_dict,
+            node_feature_key=node_feature_key,
+            edge_weight_key=edge_weight_key,
+            optimizer=optimizer,
+            n_epochs=n_epochs,
+            early_stopping=early_stopping,
+            link_pred=split_type == "link",
+            feature_decoder=feature_decoder,
+            latent_classifier=latent_classifier,
+            alpha=alpha,
+            beta=beta,
+            gamma=gamma,
+        )
 
         gae.eval()
         graph_data = graph_data.to(gae.device)
@@ -145,23 +146,76 @@ def get_gae_latents_for_seed(
         latents = latents.detach().cpu().numpy()
 
         latents_dict[seed] = latents
+        loss_hist_dict[seed] = loss_hist
 
         if plot_loss:
-            fig, ax = plt.subplots(figsize=[6, 4])
-            ax.plot(
-                np.arange(1, len(loss_hist["train"]) + 1),
-                loss_hist["train"],
-                label="train",
+            train_loss_hist = loss_hist.loc[
+                (loss_hist.loc[:, "mode"] == "train") & (loss_hist.loc[:, "epoch"] > -1)
+            ]
+            val_loss_hist = loss_hist.loc[
+                (loss_hist.loc[:, "mode"] == "val") & (loss_hist.loc[:, "epoch"] > -1)
+            ]
+            epochs = np.array(train_loss_hist.loc[:, "epoch"])
+            fig, ax = plt.subplots(figsize=[12, 4], ncols=2)
+            ax = ax.flatten()
+            ax[0] = sns.lineplot(
+                data=loss_hist.loc[loss_hist.loc[:, "epoch"] > -1],
+                x="epoch",
+                y="total_loss",
+                hue="mode",
+                ax=ax[0],
             )
-            ax.plot(
-                np.arange(1, len(loss_hist["val"]) + 1), loss_hist["val"], label="val"
+
+            ax[1].plot(
+                epochs,
+                np.array(train_loss_hist.loc[:, "gae_recon_loss",]),
+                c="tab:blue",
+                label="train_gae_recon",
+                linestyle="-.",
             )
-            ax.set_xlabel("Epoch")
-            ax.set_ylabel("Loss")
-            ax.set_title("Test loss: {:.4f}".format(loss_hist["test"]))
+            ax[1].plot(
+                epochs,
+                np.array(train_loss_hist.loc[:, "feat_recon_loss",],),
+                c="tab:blue",
+                label="train_feat_recon",
+                linestyle="--",
+            )
+            ax[1].plot(
+                epochs,
+                np.array(train_loss_hist.loc[:, "class_loss",],),
+                c="tab:blue",
+                label="cluster",
+                linestyle=":",
+            )
+
+            ax[1].plot(
+                epochs,
+                np.array(val_loss_hist.loc[:, "gae_recon_loss",]),
+                c="tab:orange",
+                label="val_gae_recon",
+                linestyle="-.",
+            )
+            ax[1].plot(
+                epochs,
+                np.array(val_loss_hist.loc[:, "feat_recon_loss",],),
+                c="tab:orange",
+                linestyle="--",
+                label="val_feat_recon",
+            )
+            ax[1].plot(
+                epochs,
+                np.array(val_loss_hist.loc[:, "class_loss",],),
+                c="tab:orange",
+                label="val_cluster",
+                linestyle=":",
+            )
+
+            ax[1].set_xlabel("epoch")
+            ax[1].set_ylabel("loss")
+            plt.legend()
             plt.show()
 
-    return latents_dict
+    return latents_dict, loss_hist_dict
 
 
 def get_n2v_latents_for_seed(

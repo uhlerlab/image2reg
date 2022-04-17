@@ -3,8 +3,7 @@ from typing import Any, List
 
 import torch
 from torch import nn, Tensor
-from torch_geometric.nn import GCNConv, Sequential, GAE
-from torch_geometric.utils import remove_self_loops, add_self_loops, negative_sampling
+from torch_geometric.nn import GCNConv, Sequential
 
 from src.utils.torch.general import get_device
 

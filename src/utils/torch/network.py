@@ -3,6 +3,7 @@ import logging
 
 import networkx as nx
 import numpy as np
+import pandas as pd
 import torch
 from sklearn.model_selection import train_test_split
 from torch_geometric.utils import negative_sampling
@@ -88,10 +89,14 @@ def process_single_epoch_gae(
         if feature_decoder is not None:
             feat_recon_loss = feature_decoder.loss(inputs, latents)
             loss += beta * feat_recon_loss
+        else:
+            feat_recon_loss = None
 
         if latent_classifier is not None:
             class_loss = latent_classifier.loss(latents, label_mask, labels)
             loss += gamma * class_loss
+        else:
+            class_loss = None
 
         loss.backward()
         optimizer.step()
@@ -114,19 +119,21 @@ def process_single_epoch_gae(
                     labels = labels[data.node_mask]
 
             gae_recon_loss = gae.recon_loss(
-                latents,
-                pos_edge_index=pos_edge_index,
-                neg_edge_index=neg_edge_index,
+                latents, pos_edge_index=pos_edge_index, neg_edge_index=neg_edge_index,
             )
 
             loss = alpha * gae_recon_loss
             if feature_decoder is not None:
                 feat_recon_loss = feature_decoder.loss(inputs, latents)
                 loss += beta * feat_recon_loss
+            else:
+                feat_recon_loss = None
 
             if latent_classifier is not None:
                 class_loss = latent_classifier.loss(latents, label_mask, labels)
                 loss += gamma * class_loss
+            else:
+                class_loss = None
 
             if mode in ["test"]:
                 gae.eval()
@@ -153,7 +160,14 @@ def process_single_epoch_gae(
                         neg_edge_index=neg_edge_index,
                     )
                 print(mode.upper(), "AUC: {}".format(auc), "AP: {}".format(ap))
-    return loss.item()
+    epoch_loss_hist = {
+        "total_loss": loss.item(),
+        "gae_recon_loss": alpha * gae_recon_loss.item(),
+        "feat_recon_loss": beta * feat_recon_loss.item(),
+        "class_loss": gamma * class_loss.item(),
+        "mode": mode,
+    }
+    return epoch_loss_hist
 
 
 def test_link_pred(model, data, node_feature_key, edge_weight_key=None):
@@ -196,7 +210,7 @@ def train_gae(
         latent_classifier.to(device)
     # print("Using {}".format(device))
     best_val_loss = np.infty
-    loss_hist = {"train": [], "val": []}
+    loss_hist = []
     es_counter = 0
 
     best_gae_model_weights = None
@@ -208,7 +222,7 @@ def train_gae(
         if es_counter < early_stopping:
             for mode in ["train", "val"]:
                 data = data_dict[mode].to(device)
-                loss = process_single_epoch_gae(
+                epoch_loss_hist = process_single_epoch_gae(
                     gae=gae,
                     data=data,
                     node_feature_key=node_feature_key,
@@ -222,12 +236,12 @@ def train_gae(
                     gamma=gamma,
                 )
                 # print("{} loss:".format(mode.upper()), loss)
-                loss_hist[mode].append(loss)
+                loss_hist.append(pd.DataFrame(epoch_loss_hist, index=[i]))
 
                 if mode == "val":
-                    if loss < best_val_loss:
+                    if epoch_loss_hist["total_loss"] < best_val_loss:
                         es_counter = 0
-                        best_val_loss = loss
+                        best_val_loss = epoch_loss_hist["total_loss"]
                         best_gae_model_weights = copy.deepcopy(gae.state_dict())
                         if feature_decoder is not None:
                             best_feature_decoder_weights = copy.deepcopy(
@@ -273,9 +287,22 @@ def train_gae(
         beta=beta,
         gamma=gamma,
     )
-    print("TRAIN loss: {}".format(loss_hist["train"][best_epoch]))
-    print("VAL loss: {}".format(loss_hist["val"][best_epoch]))
-    print("TEST loss: {}".format(test_loss))
+    loss_hist = pd.concat(loss_hist)
+    print(
+        "TRAIN loss: {}".format(
+            np.array(loss_hist.loc[loss_hist.loc[:, "mode"] == "train", "total_loss"])[
+                best_epoch
+            ]
+        )
+    )
+    print(
+        "VAL loss: {}".format(
+            np.array(loss_hist.loc[loss_hist.loc[:, "mode"] == "val", "total_loss"])[
+                best_epoch
+            ]
+        )
+    )
+    print("TEST loss: {}".format(test_loss["total_loss"]))
     if link_pred:
         auc, ap = test_link_pred(
             model=gae,
@@ -284,7 +311,8 @@ def train_gae(
             edge_weight_key=edge_weight_key,
         )
         print("TEST AUC: {} \t AP: {}".format(auc, ap))
-    loss_hist["test"] = test_loss
+    loss_hist = pd.concat([loss_hist, pd.DataFrame(test_loss, index=[-1])])
+    loss_hist["epoch"] = np.array(loss_hist.index)
     return gae, feature_decoder, latent_classifier, loss_hist
 
 
