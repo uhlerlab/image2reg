@@ -160,11 +160,20 @@ def process_single_epoch_gae(
                         neg_edge_index=neg_edge_index,
                     )
                 print(mode.upper(), "AUC: {}".format(auc), "AP: {}".format(ap))
+    if feature_decoder is not None:
+        feat_recon_loss_item = beta * feat_recon_loss.item()
+    else:
+        feat_recon_loss_item = 0
+
+    if class_loss is not None:
+        class_loss_item = gamma * class_loss.item()
+    else:
+        class_loss_item = 0
     epoch_loss_hist = {
         "total_loss": loss.item(),
         "gae_recon_loss": alpha * gae_recon_loss.item(),
-        "feat_recon_loss": beta * feat_recon_loss.item(),
-        "class_loss": gamma * class_loss.item(),
+        "feat_recon_loss": feat_recon_loss_item,
+        "class_loss": class_loss_item,
         "mode": mode,
     }
     return epoch_loss_hist

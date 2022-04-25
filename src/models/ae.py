@@ -4,6 +4,7 @@ from typing import Any, List
 import torch
 from torch import nn, Tensor
 from torch_geometric.nn import GCNConv, Sequential
+from torch.nn.functional import normalize
 
 from src.utils.torch.general import get_device
 
@@ -40,10 +41,6 @@ class GCNEncoder(torch.nn.Module):
                 torch.nn.PReLU(),
                 (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
                 torch.nn.PReLU(),
-                # (GCNConv(hidden_dim, hidden_dim), "x, edge_index, edge_weight -> x"),
-                # torch.nn.PReLU(),
-                # (GCNConv(hidden_dim, out_channels), "x, edge_index, edge_weight -> x"),
-                # torch.nn.PReLU(),
                 torch.nn.Linear(out_channels, out_channels),
             ],
         )

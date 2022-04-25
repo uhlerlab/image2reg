@@ -374,6 +374,7 @@ def plot_tsne_embs(
     hue=None,
     hue_order=None,
     palette=None,
+    label_points=None,
 ):
     embs = TSNE(
         random_state=random_state,
@@ -393,13 +394,15 @@ def plot_tsne_embs(
         hue_order=hue_order,
         palette=palette,
     )
-    label_point(
-        np.array(embs.loc[:, "tsne_0"]),
-        np.array(embs.loc[:, "tsne_1"]),
-        np.array(embs.index).astype("str"),
-        ax=ax,
-        size=size,
-    )
+    if label_points is not None:
+        to_label_embs = embs.loc[embs.index.isin(label_points)]
+        label_point(
+            np.array(to_label_embs.loc[:, "tsne_0"]),
+            np.array(to_label_embs.loc[:, "tsne_1"]),
+            np.array(to_label_embs.index).astype("str"),
+            ax=ax,
+            size=size,
+        )
     return ax
 
 
@@ -411,8 +414,12 @@ def plot_mds_embs(
     hue=None,
     hue_order=None,
     palette=None,
+    label_points=None,
+    random_state=1234,
 ):
-    embs = MDS(n_components=2, dissimilarity=dissimilarity).fit_transform(latents)
+    embs = MDS(
+        n_components=2, dissimilarity=dissimilarity, random_state=random_state
+    ).fit_transform(latents)
     embs = pd.DataFrame(embs, columns=["mds_0", "mds_1"], index=latents.index)
     ax = sns.scatterplot(
         data=embs,
@@ -424,13 +431,15 @@ def plot_mds_embs(
         hue_order=hue_order,
         palette=palette,
     )
-    label_point(
-        np.array(embs.loc[:, "mds_0"]),
-        np.array(embs.loc[:, "mds_1"]),
-        np.array(embs.index).astype("str"),
-        ax=ax,
-        size=size,
-    )
+    if label_points is not None:
+        to_label_embs = embs.loc[embs.index.isin(label_points)]
+        label_point(
+            np.array(to_label_embs.loc[:, "mds_0"]),
+            np.array(to_label_embs.loc[:, "mds_1"]),
+            np.array(to_label_embs.index).astype("str"),
+            ax=ax,
+            size=size,
+        )
     return ax
 
 

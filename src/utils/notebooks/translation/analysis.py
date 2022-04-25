@@ -319,7 +319,6 @@ def get_logo_data_dicts(
     scale_x=True,
     scale_y=False,
     balanced=False,
-    aggregate_train=None,
 ):
     logo = LeaveOneGroupOut()
     data_dicts = []
