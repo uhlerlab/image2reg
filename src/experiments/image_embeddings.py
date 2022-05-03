@@ -3,6 +3,7 @@ import logging
 import os
 from typing import List
 
+import pandas as pd
 import torch
 
 from src.data.datasets import TorchTransformableSuperset
@@ -20,7 +21,9 @@ from src.utils.torch.evaluation import (
     visualize_latent_space_pca_walk,
     save_latents_to_hdf,
     get_confusion_matrices,
+    get_preds_labels,
 )
+
 from src.utils.torch.exp import model_train_val_test_loop
 from src.utils.torch.general import get_device
 from src.utils.torch.model import (
@@ -123,9 +126,11 @@ class BaseImageEmbeddingExperiment:
         weights = torch.load(weights_fname)
         self.domain_config.domain_model_config.model.load_state_dict(weights)
 
-    def extract_and_save_latents(self, output_dir):
+    def extract_and_save_latents(self, output_dir, dataset_types=None):
+        if dataset_types is None:
+            dataset_types = ["train", "val", "test"]
         device = get_device()
-        for dataset_type in ["train", "val", "test"]:
+        for dataset_type in dataset_types:
             save_path = os.path.join(
                 output_dir, "{}_latents.h5".format(str(dataset_type))
             )
@@ -137,18 +142,23 @@ class BaseImageEmbeddingExperiment:
                 device=device,
             )
 
-    def plot_confusion_matrices(self, normalize=None):
+    def plot_confusion_matrices(self, normalize=None, dataset_types=None):
+        if dataset_types is None:
+            dataset_types = ["train", "val", "test"]
         self.domain_config.data_loader_dict = self.data_loader_dict
         confusion_matrices = get_confusion_matrices(
             domain_config=self.domain_config,
-            dataset_types=["train", "val", "test"],
+            dataset_types=dataset_types,
             normalize=normalize,
         )
-        save_confusion_matrices(
-            confusion_matrices,
-            output_dir=self.output_dir,
-            labels=sorted(self.target_list),
-        )
+        try:
+            save_confusion_matrices(
+                confusion_matrices,
+                output_dir=self.output_dir,
+                labels=sorted(self.target_list),
+            )
+        except ValueError:
+            pass
         plot_confusion_matrices(
             confusion_matrices,
             output_dir=self.output_dir,
@@ -343,8 +353,10 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
     def load_model(self, weights_fname):
         super().load_model(weights_fname=weights_fname)
 
-    def extract_and_save_latents(self):
-        super().extract_and_save_latents(output_dir=self.output_dir)
+    def extract_and_save_latents(self, dataset_types=None):
+        super().extract_and_save_latents(
+            output_dir=self.output_dir, dataset_types=dataset_types
+        )
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
@@ -372,6 +384,19 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
 
     def evaluate_test_performance(self):
         super().evaluate_test_performance()
+
+    def save_preds_labels(self, dataset_types=None):
+        if dataset_types is None:
+            dataset_types = ["train", "val", "test"]
+        for dataset_type in dataset_types:
+            preds, labels, idc = get_preds_labels(
+                domain_config=self.domain_config, dataset_type=dataset_type
+            )
+            pred_label_df = pd.DataFrame(preds, columns=["prediction"], index=idc)
+            pred_label_df["labels"] = labels
+            pred_label_df.to_csv(
+                os.path.join(self.output_dir, "pred_label_{}.csv".format(dataset_type))
+            )
 
 
 class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
@@ -480,6 +505,7 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
 
     def initialize_domain_config(self):
         super().initialize_domain_config()
+        self.domain_config.data_loader_dict = self.data_loader_dict
 
     def train_models(self):
         super().train_models()
@@ -487,8 +513,8 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
     def load_model(self, weights_fname):
         super().load_model(weights_fname=weights_fname)
 
-    def extract_and_save_latents(self):
-        super().extract_and_save_latents()
+    def extract_and_save_latents(self, dataset_types=None):
+        super().extract_and_save_latents(dataset_types=dataset_types)
 
     def visualize_loss_evolution(self):
         super().visualize_loss_evolution()
@@ -502,3 +528,6 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
 
     def evaluate_test_performance(self):
         super().evaluate_test_performance()
+
+    def save_preds_labels(self, dataset_types=None):
+        super().save_preds_labels(dataset_types=dataset_types)

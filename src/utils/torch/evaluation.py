@@ -193,14 +193,23 @@ def get_confusion_matrices(
 def get_confusion_matrix(
     domain_config: DomainConfig, dataset_type: str = "test", normalize=None
 ):
+    all_preds, all_labels, _ = get_preds_labels(
+        domain_config=domain_config, dataset_type=dataset_type
+    )
+    return confusion_matrix(all_labels, all_preds, normalize=normalize)
+
+
+def get_preds_labels(domain_config: DomainConfig, dataset_type: str = "test"):
     device = get_device()
     model = domain_config.domain_model_config.model.to(device).eval()
     dataloader = domain_config.data_loader_dict[dataset_type]
     all_labels = []
     all_preds = []
+    all_idc = []
 
-    for sample in tqdm(dataloader, desc="Compute confusion matrix"):
+    for sample in tqdm(dataloader, desc="Compute predictions"):
         # inputs = sample[domain_config.data_key].to(device)
+        index = sample[domain_config.index_key]
         inputs = sample[domain_config.data_key]
         labels = sample[domain_config.label_key]
         if domain_config.extra_feature_key is not None:
@@ -212,8 +221,8 @@ def get_confusion_matrix(
 
         all_labels.extend(list(labels.detach().cpu().numpy()))
         all_preds.extend(list(preds.detach().cpu().numpy()))
-
-    return confusion_matrix(all_labels, all_preds, normalize=normalize)
+        all_idc.extend(list(index))
+    return np.array(all_preds), np.array(all_labels), np.array(all_idc)
 
 
 def visualize_latent_space_pca_walk(
