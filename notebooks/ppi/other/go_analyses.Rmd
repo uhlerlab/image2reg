@@ -1,9 +1,11 @@
 ---
-title: 'Analysis: Derived interactomes'
+title: 'GO of the gene clusters in the physical space'
 author: "Daniel Paysan"
-date: "08/02/2021"
+date: "06/07/2022"
 output: html_document
 ---
+
+This notebook conducts a GO analysis to characterize the gene clusters identified in the physical space.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -12,6 +14,8 @@ knitr::opts_knit$set(root.dir = "/home/daniel/PycharmProjects/image2reg/")
 
 # 0. Environmental setup
 
+First, we load the required packages.
+
 ```{r environmental setup}
 require("topGO")
 require("KEGGREST")
@@ -19,6 +23,7 @@ require("org.Hs.eg.db")
 require("GeneAnswers")
 require("EnrichmentBrowser")
 ```
+Next, we load a function that enables a simple GO analysis using the topGO API.
 
 ```{r}
 # taken from https://github.com/karthikshekhar/CellTypeMIMB/blob/master/utilities.R
@@ -96,37 +101,22 @@ topGOterms = function(fg.genes = NULL,
 }
 ```
 
-# 1. Read in data
 
-We will now load in the gene sets describing the results of the PPI inference.
+# 1. Gene Ontology analyses
 
-## 1a. Steiner tree solution
-```{r steiner tree, echo=FALSE}
-steiner_tree_selected_nodes <- read.csv("../../data/ppi/steiner_tree_selected_nodes.csv", row.names = 1)
-```
-
-```{r}
-pcst_alpha_1_0_beta_1_k_0_selected_nodes <- read.csv("../../data/ppi/pcst_alpha_1_0_beta_1_k_0_selected_nodes.csv", row.names = 1)
-```
+We now conduct the gene ontology analysis for the individual clusters and correct the computed p-values for multiple testing using the Bonferroni-Holm procedure.
+To characterize each cluster, we look at the top-10 GO terms.
 
 
-# 2. Gene Ontology analyses of the gene sets
-
-## 2a. Steiner tree solution
+The background is given by all identified physical regulator genes.
 
 ```{r}
-selected_genes <- rownames(steiner_tree_selected_nodes)[steiner_tree_selected_nodes$type=="steiner"]
-all_genes <- rownames(steiner_tree_selected_nodes)
-```
-
-```{r}
-all_genes <- c('CDCA2', 'APPBP2', 'TK1', 'MMP2', 'PRKACA', 'CDC45', 'NOTCH3', 'SPARC', 'FBN1', 'FBLN1', 'RUNX1', 'SREBF1', 'STAC', 'TNNT1', 'GTSE1', 'TNNC1', 'YWHAQ', 'ERG', 'BIRC5', 'PRKCA', 'ACAN', 'CASP8', 'LZTS2', 'SPC25', 'MAPK7', 'S100A2', 'TUBB2B', 'CDC6', 'DHRS2', 'CEBPA', 'BEX1', 'UCHL5', 'HSPB1', 'WEE1', 'BMP4', 'PRAME', 'MYL2', 'SUV39H1', 'SDC2', 'TNC', 'DIABLO', 'DNMT3B', 'APC', 'TPM1', 'FKBP4', 'MAGEA6', 'LTBP2', 'CNN1', 'CLSPN', 'CRMP1', 'MCM4', 'GLI1', 'PKIA', 'CDKN1A', 'COL4A2', 'MAGEA1', 'MCM5', 'CDC42EP1', 'PCNA', 'JUN', 'NCF2', 'FOS', 'CD40', 'MAGED1', 'FBN2', 'MAP2K3', 'YES1', 'CDCA3', 'BCL2L11', 'AURKA', 'CCND2', 'MAP3K5', 'PRC1', 'TP73', 'CYBA', 'CDK14', 'TIMP1', 'TLR4', 'MAGEA4', 'PLCG1', 'CEP192', 'FOXM1', 'HRAS', 'KRT18', 'NCAPH', 'UBE2S', 'FN1', 'KPNA2', 'PTN', 'MYH9', 'HJURP', 'MAP3K9', 'LGALS1', 'FGFR2', 'CDC42', 'SMAD4', 'UBE2C', 'E2F1', 'BAX', 'CRYAB', 'PDGFRB', 'OIP5', 'VCAN', 'COL5A1', 'MDC1', 'CCNE1', 'ELK1', 'ZWINT', 'FOXO1', 'SRC', 'PCOLCE', 'FGF1', 'PIK3R2', 'AMPH', 'SMO', 'DUSP6', 'LDOC1', 'RPS6KB1', 'TRIB3', 'TRAF2', 'KRAS', 'BRAF', 'KRT81', 'TRIP6', 'SKP2', 'NCAM1', 'TUBB', 'EPB41L3', 'MYBL2', 'IRAK4', 'NEK2', 'COL4A1', 'CREB1', 'KIF15', 'KRT80', 'ATXN7', 'CDK1', 'AKT1S1', 'RARA', 'CKS2', 'HSP90AB1', 'TGFB1', 'PRKCE', 'MAPK8', 'EFEMP1', 'MKI67', 'PTCH1', 'RELB', 'NDN', 'KRT8', 'RHOA', 'AURKB', 'PAK2', 'GSK3B', 'CLU', 'HAPLN1', 'STC2', 'TPX2', 'KLK6', 'SPC24', 'MCM7', 'CCNB1', 'MAGEA11', 'WWTR1', 'MBP', 'ALOX5', 'FEN1', 'FSTL1', 'HSPG2', 'VIM', 'MYD88', 'CDK6', 'TUBA1A', 'GLI2', 'NDC80', 'ARMCX2', 'CDC20', 'SDC1', 'MDFI', 'EEF1A2', 'DSP', 'FGFR3', 'IGFBP5', 'THY1', 'PLK1', 'PARP2', 'TONSL', 'TCF4', 'CCNB2', 'CENPE', 'HSPA1B', 'MFAP2', 'SFN', 'MYC', 'BUB1B', 'KIF4A', 'CCNF', 'GABRB3', 'MAP3K2', 'LAMA1', 'BUB1', 'LOXL4', 'C1QL1', 'NUF2', 'AXL', 'AQP1', 'SDC3', 'S100A14', 'LBH', 'TGM2', 'KIF23', 'INHBA', 'SMAD3', 'BCR', 'TNNT2', 'THBS1', 'TSC2', 'NEFL', 'RAF1', 'KIF2C', 'MCM10', 'KRT15', 'RRM2', 'TENM3', 'FHL2', 'MCM3', 'NCOR2', 'GNAQ', 'THRA', 'MYL9', 'CCNA2', 'IRF7', 'MSH2', 'COL1A1', 'EXO1', 'GIT1', 'PCLO', 'IGF2', 'TPM2', 'ATF4', 'CENPA', 'PLCB2', 'CDK2', 'TUBB6')
-
-selected_genes <- c('APC', 'AURKA', 'AURKB', 'BIRC5', 'BUB1', 'BUB1B', 'CCNA2', 'CCNB1', 'CCNB2', 'CCND2', 'CCNE1', 'CCNF', 'CDC20', 'CDC45', 'CDC6', 'CDCA2', 'CDCA3', 'CDK1', 'CDK2', 'CDK6', 'CDKN1A', 'CENPE', 'CEP192', 'CKS2', 'CLSPN', 'DIABLO', 'DNMT3B', 'E2F1', 'EXO1', 'FEN1', 'FOXM1', 'GTSE1', 'HSPA1B', 'KIF15', 'KIF23', 'KIF2C', 'KIF4A', 'MAPK7', 'MCM10', 'MCM3', 'MCM4', 'MCM5', 'MCM7', 'MKI67', 'MSH2', 'MYBL2', 'MYC', 'NCAPH', 'NDC80', 'NEK2', 'NUF2', 'PCNA', 'PLK1', 'PRC1', 'RRM2', 'SKP2', 'SPC24', 'SPC25', 'TNNC1', 'TONSL', 'TP73', 'TPX2', 'UBE2C', 'UBE2S', 'WEE1', 'ZWINT')
+all_genes <- c('CEBPA', 'CXXC4', 'E2F1', 'ERG', 'JUN', 'FGFR3', 'MAP3K5', 'MAPK7', 'MOS', 'PIK3R2', 'PRKCE', 'RELB', 'SRC', 'TRAF2', 'WWTR1', 'ATF4', 'BAX', 'CREB1', 'ELK1', 'IRAK4', 'SMAD4', 'TSC2', 'AKT1S1', 'BRAF', 'CDC42', 'DIABLO', 'FOXO1', 'GLI1', 'MAP2K3', 'MAP3K2', 'MAP3K9', 'MYD88', 'PRKACA', 'RAF1', 'RHOA', 'SMO', 'SREBF1', 'CDKN1A', 'BCL2L11', 'CASP8', 'HRAS')
 ```
 
 
 ```{r}
+selected_genes <- c('SREBF1', 'WWTR1', 'FOXO1', 'DIABLO', 'MYD88', 'RHOA', 'SMO')
 steiner_go_results <-  topGOterms(fg.genes = selected_genes,
                       bg.genes = all_genes,
                       organism = "Human",
@@ -138,22 +128,106 @@ steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pv
 head(steiner_go_results$res.table, 10)
 ```
 
-## 2b. PC Steiner tree solution
-
 ```{r}
-selected_genes <- rownames(pcst_alpha_1_0_beta_1_k_0_selected_nodes)[pcst_alpha_1_0_beta_1_k_0_selected_nodes$type=="steiner"]
-all_genes <- rownames(pcst_alpha_1_0_beta_1_k_0_selected_nodes)
-```
-
-```{r}
-pcst_go_results <-  topGOterms(fg.genes = selected_genes,
+selected_genes <- c('PIK3R2', 'TRAF2', 'FGFR3', 'AKT1S1', 'PRKCE', 'MOS', 'SRC')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
                       bg.genes = all_genes,
                       organism = "Human",
                       ontology.use = "BP",
                       stats.use = "fisher",
                       algorithm.use = "weight01",
-                      num.char = 100)
-pcst_go_results$res.table[,"FDR"] <- p.adjust(pcst_go_results$res.table$pval, method="fdr")
-head(pcst_go_results$res.table[,c("GO.ID", "Term", "FDR")], 10)
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
 ```
 
+```{r}
+selected_genes <- c('BRAF', 'RAF1', 'CDC42', 'MAP3K2', 'MAP3K9')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('BCL2L11', 'CASP8')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('RELB', 'MAP3K5', 'MAP2K3', 'MAPK7')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('IRAK4', 'BAX', 'SMAD4', 'TSC2', 'CREB1', 'ATF4')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('CEBPA', 'JUN', 'ERG')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('ELK1', 'E2F1')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('PRKACA', 'CXXC4', 'GLI1')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```

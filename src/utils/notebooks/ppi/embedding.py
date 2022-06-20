@@ -5,6 +5,7 @@ import torch
 import torch_geometric.transforms as T
 from matplotlib import pyplot as plt
 from sklearn.cluster import AgglomerativeClustering
+from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE, MDS
 from sklearn.metrics import adjusted_mutual_info_score
 from torch_geometric.nn import Node2Vec
@@ -436,6 +437,43 @@ def plot_mds_embs(
         label_point(
             np.array(to_label_embs.loc[:, "mds_0"]),
             np.array(to_label_embs.loc[:, "mds_1"]),
+            np.array(to_label_embs.index).astype("str"),
+            ax=ax,
+            size=size,
+        )
+    return ax
+
+
+def plot_pca_embs(
+    latents,
+    ax,
+    size=10,
+    hue=None,
+    hue_order=None,
+    palette=None,
+    label_points=None,
+    highlight=None,
+    random_state=1234,
+):
+    embs = PCA(
+        n_components=2, random_state=random_state
+    ).fit_transform(latents)
+    embs = pd.DataFrame(embs, columns=["pc_0", "pc_1"], index=latents.index)
+    ax = sns.scatterplot(
+        data=embs,
+        x="pc_0",
+        y="pc_1",
+        cmap="viridis",
+        ax=ax,
+        hue=hue,
+        hue_order=hue_order,
+        palette=palette,
+    )
+    if label_points is not None:
+        to_label_embs = embs.loc[embs.index.isin(label_points)]
+        label_point(
+            np.array(to_label_embs.loc[:, "pc_0"]),
+            np.array(to_label_embs.loc[:, "pc_1"]),
             np.array(to_label_embs.index).astype("str"),
             ax=ax,
             size=size,

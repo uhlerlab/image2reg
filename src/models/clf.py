@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import Type, List, Union, Any
 
+import numpy as np
 import torch
 from torch import nn
 from torch.functional import Tensor
@@ -227,13 +228,18 @@ class LatentClassifier(nn.Module):
         hidden_dims: List = None,
         n_classes: int = 10,
         loss_fct: nn.Module = None,
+        class_weights:np.ndarray=None
     ):
         super().__init__()
         self.latent_dim = latent_dim
         self.hidden_dims = hidden_dims
         self.n_classes = n_classes
+        if class_weights is not None:
+            self.class_weights = torch.FloatTensor(np.array(class_weights))
+        else:
+            self.class_weights = None
         if loss_fct is None:
-            self.loss_fct = nn.CrossEntropyLoss()
+            self.loss_fct = nn.CrossEntropyLoss(weight=self.class_weights)
         else:
             self.loss_fct = loss_fct
 
