@@ -1,0 +1,56 @@
+---
+title: "GO analysis of the gene embedding clusters"
+output: html_notebook
+---
+
+This notebook assess the enrichment of the individual clusters of the inferred gene embeddings for specific pathways.
+
+# 0. Environmental setup
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/home/paysan_d/PycharmProjects/image2reg/")
+```
+
+```{r}
+require("clusterProfiler")
+require("ReactomePA")
+require("ggplot2")
+```
+
+# 1. Read in data
+
+```{r}
+cluster_data <- read.csv("data/other/all_gene_embeddings_clusters.csv", row.names = 1)
+```
+
+# 2. Enrichment analysis
+
+```{r}
+universe <- cluster_data$gene
+universe<-bitr(universe, fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Hs.eg.db")$ENTREZID
+universe <- sort(universe, decreasing=T)
+```
+```{r}
+gene_clusters <- list()
+for (i in sort(unique(cluster_data$cluster))){
+  gene_clusters[[as.character(i)]] <- cluster_data[cluster_data$cluster == i, "gene"]
+}
+```
+
+```{r}
+for(k in names(gene_clusters)){
+  gene_clusters[[k]] <- bitr(gene_clusters[[k]], fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Hs.eg.db")$ENTREZID
+}
+```
+
+```{r, fig.width=10, fig.heigh=20}
+compareGO <- compareCluster(geneClusters=gene_clusters, fun="enrichGO", data="", OrgDb="org.Hs.eg.db", pAdjustMethod="fdr", ont="BP", universe=universe, pvalueCutoff=0.05, qvalueCutoff=10,  maxGSSize = 500, minGSSize = 10)
+```
+
+```{r, fig.width=9, fig.height=8}
+dotplot(compareGO, font.size=15, showCategory=3,) + theme(
+  axis.text.y = element_text(face="bold", 
+                             size=15))
+```
+
