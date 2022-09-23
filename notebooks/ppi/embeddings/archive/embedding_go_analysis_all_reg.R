@@ -1,0 +1,28 @@
+require("clusterProfiler")
+require("ReactomePA")
+require("ggplot2")
+universe <- c('ACAN', 'AKT1S1', 'ALOX5', 'AMPH', 'APPBP2', 'AQP1', 'ARMCX2', 'ATF4', 'ATXN7', 'AURKA', 'AURKB', 'AXL', 'BAX', 'BCL2L11', 'BCR', 'BEX1', 'BIRC5', 'BMP4', 'BRAF', 'BUB1', 'BUB1B', 'C1QL1', 'CASP8', 'CCNA2', 'CCNB1', 'CCNB2', 'CCND2', 'CCNE1', 'CCNF', 'CD40', 'CDC20', 'CDC42', 'CDC42EP1', 'CDC45', 'CDC6', 'CDCA2', 'CDCA3', 'CDCA8', 'CDK1', 'CDK14', 'CDK2', 'CDK6', 'CDKN1A', 'CEBPA', 'CENPA', 'CENPE', 'CEP192', 'CKS2', 'CLSPN', 'CLU', 'CNN1', 'COL1A1', 'COL4A1', 'COL4A2', 'COL5A1', 'CREB1', 'CRMP1', 'CRYAB', 'CYBA', 'DHRS2', 'DIABLO', 'DNMT3B', 'DSP', 'DUSP6', 'E2F1', 'EEF1A2', 'EFEMP1', 'ELK1', 'EPB41L3', 'ERG', 'EXO1', 'FBLN1', 'FBN1', 'FBN2', 'FEN1', 'FGF1', 'FGFR2', 'FGFR3', 'FHL2', 'FKBP4', 'FN1', 'FOS', 'FOXM1', 'FOXO1', 'FSTL1', 'GABRB3', 'GIT1', 'GLI1', 'GLI2', 'GNAQ', 'GSK3B', 'GTSE1', 'HAPLN1', 'HJURP', 'HK2', 'HRAS', 'HSP90AB1', 'HSPA1B', 'HSPB1', 'HSPG2', 'IGF2', 'IGFBP5', 'INHBA', 'IRAK4', 'IRF7', 'JUN', 'KIF15', 'KIF23', 'KIF2C', 'KIF4A', 'KLK6', 'KPNA2', 'KRT15', 'KRT18', 'KRT8', 'KRT80', 'KRT81', 'LAMA1', 'LBH', 'LDOC1', 'LGALS1', 'LOXL4', 'LRP1', 'LTBP2', 'LZTS2', 'MAGEA1', 'MAGEA11', 'MAGEA12', 'MAGEA4', 'MAGEA6', 'MAGED1', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7', 'MAPK8', 'MBP', 'MCM10', 'MCM3', 'MCM4', 'MCM5', 'MCM7', 'MDC1', 'MDFI', 'MDK', 'MFAP2', 'MKI67', 'MMP2', 'MSH2', 'MYBL2', 'MYC', 'MYD88', 'MYH9', 'MYL2', 'MYL9', 'NCAM1', 'NCAPH', 'NCF2', 'NCOR2', 'NDC80', 'NDN', 'NEFL', 'NEK2', 'NOTCH3', 'NUF2', 'PAK2', 'PARP2', 'PCLO', 'PCNA', 'PCOLCE', 'PDGFRB', 'PIK3R2', 'PLAT', 'PLCB2', 'PLCG1', 'PLK1', 'PRAME', 'PRC1', 'PRKACA', 'PRKCA', 'PRKCE', 'PRSS23', 'PTCH1', 'PTN', 'RACGAP1', 'RAF1', 'RARA', 'RELB', 'RHOA', 'RPS6KB1', 'RRM2', 'RUNX1', 'S100A14', 'S100A2', 'SDC1', 'SDC2', 'SDC3', 'SERPINE1', 'SFN', 'SKP2', 'SMAD4', 'SMO', 'SPARC', 'SPC24', 'SPC25', 'SRC', 'SREBF1', 'STAC', 'STC2', 'SUV39H1', 'TCF4', 'TENM3', 'TGFB1', 'TGM2', 'THBS1', 'THRA', 'THY1', 'TIMP1', 'TINAGL1', 'TK1', 'TLR4', 'TNC', 'TNNC1', 'TNNT1', 'TNNT2', 'TONSL', 'TP73', 'TPM1', 'TPM2', 'TPX2', 'TRAF2', 'TRIB3', 'TSC2', 'TTK', 'TUBA1A', 'TUBB', 'TUBB2B', 'TUBB6', 'UBE2C', 'UBE2S', 'UCHL5', 'VCAN', 'VIM', 'WEE1', 'WWTR1', 'YES1', 'YWHAQ', 'ZWINT')
+universe<-bitr(universe, fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Hs.eg.db")$ENTREZID
+universe <- sort(universe, decreasing=T)
+
+cluster_list <- list("1"=c('ACAN', 'AKT1S1', 'APPBP2', 'ARMCX2', 'ATXN7', 'AXL', 'BMP4', 'COL1A1', 'COL4A1', 'COL4A2', 'COL5A1', 'DHRS2', 'DSP', 'EFEMP1', 'FBLN1', 'FBN1', 'FBN2', 'FGF1', 'FGFR2', 'FGFR3', 'FN1', 'FSTL1', 'HAPLN1', 'HSPG2', 'IGF2', 'IGFBP5', 'INHBA', 'KLK6', 'KRT80', 'KRT81', 'LAMA1', 'LRP1', 'LTBP2', 'MAGEA6', 'MDK', 'MFAP2', 'MMP2', 'MYH9', 'MYL9', 'NEFL', 'PCOLCE', 'PDGFRB', 'PIK3R2', 'PLAT', 'PLCG1', 'S100A14', 'SERPINE1', 'SPARC', 'SRC', 'TGFB1', 'TGM2', 'THBS1', 'THY1', 'TIMP1', 'TNC', 'UCHL5', 'VCAN'),
+                     "2"=c('ATF4', 'BAX', 'C1QL1', 'CLU', 'CREB1', 'GABRB3', 'GIT1', 'GLI2', 'GNAQ', 'GSK3B', 'IRAK4', 'MAP2K3', 'MAPK7', 'MBP', 'MDC1', 'NOTCH3', 'PCLO', 'PLCB2', 'PRKACA', 'PRKCA', 'PRSS23', 'RELB', 'TNNC1', 'TNNT2', 'TRIB3', 'UBE2C'),
+                     "3"=c('BRAF', 'CDC42', 'CDC42EP1', 'CDK14', 'CNN1', 'CRMP1', 'EPB41L3', 'FKBP4', 'HK2', 'HRAS', 'HSP90AB1', 'HSPB1', 'KPNA2', 'KRT15', 'KRT18', 'KRT8', 'LGALS1', 'MAGEA1', 'MAGEA12', 'MAGEA4', 'MAGED1', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MYL2', 'NCAM1', 'PAK2', 'PRKCE', 'RAF1', 'SFN', 'TK1', 'TNNT1', 'TPM1', 'TPM2', 'TTK', 'TUBA1A', 'TUBB', 'TUBB6', 'VIM', 'YWHAQ'),
+                     "4"=c('BCR', 'CD40', 'CDCA3', 'DIABLO', 'FHL2', 'FOXO1', 'HSPA1B', 'IRF7', 'MYD88', 'NCOR2', 'PRAME', 'PTCH1', 'RARA', 'RHOA', 'RUNX1', 'SMAD4', 'SMO', 'SREBF1', 'TENM3', 'THRA', 'TLR4', 'TRAF2', 'TSC2', 'WWTR1'),
+                     "5"=c('ALOX5', 'AMPH', 'BCL2L11', 'BEX1', 'CASP8', 'CYBA', 'DNMT3B', 'DUSP6', 'GLI1', 'KIF4A', 'LOXL4', 'LZTS2', 'MAGEA11', 'MDFI', 'NCF2', 'PARP2', 'RPS6KB1', 'STAC', 'SUV39H1', 'TINAGL1', 'YES1'),
+                     "6"=c('AQP1', 'CEBPA', 'CRYAB', 'EEF1A2', 'ERG', 'FOS', 'JUN', 'LBH', 'LDOC1', 'MAPK8', 'PTN', 'S100A2', 'SDC1', 'SDC2', 'SDC3', 'STC2', 'TCF4'),
+                     "7"=c('AURKA', 'AURKB', 'BIRC5', 'BUB1', 'BUB1B', 'CCNB1', 'CCNB2', 'CCNF', 'CDC20', 'CDCA2', 'CDCA8', 'CDK1', 'CENPA', 'CENPE', 'CEP192', 'CKS2', 'CLSPN', 'GTSE1', 'HJURP', 'KIF15', 'KIF23', 'KIF2C', 'MKI67', 'NCAPH', 'NDC80', 'NEK2', 'NUF2', 'PLK1', 'PRC1', 'RACGAP1', 'RRM2', 'SPC24', 'SPC25', 'TPX2', 'UBE2S', 'WEE1', 'ZWINT'),
+                     "8"=c('CCNA2', 'CCND2', 'CCNE1', 'CDC45', 'CDC6', 'CDK2', 'CDK6', 'CDKN1A', 'E2F1', 'ELK1', 'EXO1', 'FEN1', 'FOXM1', 'MCM10', 'MCM3', 'MCM4', 'MCM5', 'MCM7', 'MSH2', 'MYBL2', 'MYC', 'NDN', 'PCNA', 'SKP2', 'TONSL', 'TP73', 'TUBB2B')
+                )
+for(k in names(cluster_list)){
+  cluster_list[[k]] <- bitr(cluster_list[[k]], fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Hs.eg.db")$ENTREZID
+}
+
+compareGO <- compareCluster(geneClusters=cluster_list, fun="enrichGO", data="", OrgDb="org.Hs.eg.db", pAdjustMethod="fdr", ont="BP", universe=universe, pvalueCutoff=0.5, qvalueCutoff=10,  maxGSSize = 500, minGSSize = 10)
+dotplot(compareGO, font.size=10, showCategory=3,) + theme(
+  axis.text.y = element_text(face="bold", 
+                             size=10))
+comparePathway <- compareCluster(geneClusters=cluster_list, fun="enrichPathway", data="", organism="human", pAdjustMethod="BH", universe=universe, pvalueCutoff=0.05, qvalueCutoff=1)
+dotplot(comparePathway)
+compareKEGG <- compareCluster(geneClusters=cluster_list, fun="enrichKEGG", data="", organism="hsa", pAdjustMethod="BH", universe=universe, pvalueCutoff=0.05, qvalueCutoff=1)
+dotplot(compareKEGG)
