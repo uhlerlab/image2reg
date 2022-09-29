@@ -2,6 +2,8 @@
 
 The repository contains the code for the main methodology and analyses described in our paper: 
  >[*Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens*]().
+ 
+ ![](image2reg_pipeline.jpg)
 
 ---
 
