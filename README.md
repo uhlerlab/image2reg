@@ -99,7 +99,7 @@ The cluster analyses of the inferred gene perturbation embeddings are performed 
 
 #### 3.1. Gene-gene interactome inference
 
-The gene-gene interactome is inferred using a prize-collecting Steiner tree (PCST) algorithm. The required inputs of the algorithm can be obtained using the notebook ```notebooks/ppi/preprocessing/inference_preparation_full_pruning.ipynb```. In addition to the described single-cell gene expression data set the notebook requires asn estimate of the human protein-protein interactome and bulk gene expression data from the Cancer Cell Line Encyclopedia as input. The resources of where those can be obtained from are described in the paper.
+The gene-gene interactome is inferred using a prize-collecting Steiner tree (PCST) algorithm. The required inputs of the algorithm can be obtained using the notebook ```notebooks/ppi/preprocessing/inference_preparation_full_pruning.ipynb```. In addition to the described single-cell gene expression data set the notebook requires asn estimate of the human protein-protein interactome and bulk gene expression data from the Cancer Cell Line Encyclopedia as input. The resources of those inputs are listed in the paper.
 
 After the preprocessing of the inputs, a the gene-gene interactome can be inferred using the code available in the notebook ```notebooks/ppi/inference/interactome_inference_final.ipynb```. The input network to the PCST analyses and the output gene-gene interactome is also directly available as part of the optional data resources.
 
@@ -111,9 +111,15 @@ The R notebook ```notebooks/ppi/other/go_analysis_pcst_solution.Rmd`` provides t
 
 ### 4. Inference and analyses of the regulatory gene embeddings
 
+Given the previously computed inputs the proposed graph-convolutional autoencoder model can be trained to infer the regulatory gene embeddings within and outside of the leave-target-out evaluation setup described in the paper. The code required to run those experiments is available in ```notebooks/ppi/embedding/gae_gene_embs.ipynb```. All required inputs for the analyses are outputs of the previously described steps but also directly available as part of the optional data resources.
+
+The analysis of the clustering of the inferred gene-gene embedding are also included in that notebook. The R notebook in ```notebooks/ppi/embeddings/gene_embedding_cluster_analyses.Rmd```.
+
 ---
 
 ### 5. Mapping gene perturbation to regulatory gene embeddings
+
+Finally, the code required to assess the alignment of the inferred regulatory gene and perturbation gene embeddings in the described leave-one-targe-out evaluation setup including the associated meta-analyses are available in the notebook ```notebooks/translation/mapping/translational_mapping_lot_final_gridsearch.ipynb```.
 
 ---
 
