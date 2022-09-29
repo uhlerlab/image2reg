@@ -104,7 +104,7 @@ The cluster analyses of the inferred gene perturbation embeddings are performed 
 
 ---
 
-### 3. Mapping gene perturbation to regulatory gene embeddings
+### 5. Mapping gene perturbation to regulatory gene embeddings
 
 ---
 
