@@ -44,24 +44,45 @@ Please edit the config file to specify the location of the raw imaging data of y
 
 #### 1.2. Gene expression data
 
-Single-cell gene expression data from [Mahdessian et al, 2021]() was preprocessed as described in the paper using the notebook available in ```notebooks/ppi/gex_analyses/gex_analyses.ipynb```.
+Single-cell gene expression data from [Mahdessian et al, 2021]() was preprocessed as described in the paper using the notebook available in ```notebooks/ppi/gex_analyses/scgex_preprocessing.ipynb```.
 
-CMap gene signature data from [DepMap, 2021]() was preprocessed using the notebook available in ```notebooks/ppi/gex_analyses/cmap_analysis_cleaned```.
+CMap gene signature data from [DepMap, 2021]() was preprocessed using the notebook available in ```notebooks/ppi/gex_analyses/cmap_preprocessing.ipynb```. Note that this notebooks assumes that the gene-gene interactome (GGI) had already been inferred. Please see 3. on how to infer the GGI.
 
 ---
 
-### 2. Inference of image, gene perturbation gene and regulatory gene embeddings.
+### 2. Inference of image and gene perturbation gene
 
 #### 2.1. Identification of impactful gene perturbation
 
+To identify the impact gene perturbations we ran a large-scale screen assessing the performance of proposed convolutional neural network architecture on the task of distinguishing between the perturbed and control cells using the chromatin image inputs obtained as a result of the preprocessing (see 1.1.).
+
+The screen can be automatically run by running 
+```
+bash scripts/run_screen.sh
+```
+
+Note that the path of the first line of the script needs to be adjusted to reflect the home directory of the code base. Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/other/cv_screen_data_splits.ipynb``` and ```notebooks/other/create_screen_configs.ipynb``` provide function efficiently generate the resources required by the script to complete the screen.
+
+
 #### 2.2. Inference of image embeddings
+
+
 
 #### 2.3. Inference of gene perturbation embeddings
 
-#### 2.4. Inference of regulatory gene embeddings
+
+---
+
+### 3. Inference of the gene-gene interactome
+
+---
+
+### 4. Inference of the regulatory gene embeddings
 
 ---
 
 ### 3. Mapping gene perturbation to regulatory gene embeddings
 
 ---
+
+## Credits
