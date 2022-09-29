@@ -7,7 +7,7 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for configurations with lower RAM and GPU configurations parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU parameters like the batch size for the training of the neural networks might have to be adjusted.
 
 ## Installation
 
@@ -93,14 +93,17 @@ The analyses of the image embeddings and visualization of their representation c
 
 The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/image/embedding/gene_perturbation_cluster_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/image/embedding/gene_perturbations_go_analyses``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017).
 
+---
+
+### 3. Inference and analyses of the gene-gene interactome
+
+#### 3.1. Gene-gene interactome inference
+
+#### 3.2. Analysis of the inferred gene-gene interactome
 
 ---
 
-### 3. Inference of the gene-gene interactome
-
----
-
-### 4. Inference of the regulatory gene embeddings
+### 4. Inference and analyses of the regulatory gene embeddings
 
 ---
 
@@ -109,3 +112,7 @@ The cluster analyses of the inferred gene perturbation embeddings are performed 
 ---
 
 ## Credits
+
+If you use provided data please make sure to reference the required papers for any external resources and our work. If you use the code provided in the directory please also reference our work as follows:
+
+
