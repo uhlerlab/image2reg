@@ -7,7 +7,7 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(r) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for configurations with lower RAM and GPU configurations parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for configurations with lower RAM and GPU configurations parameters like the batch size for the training of the neural networks might have to be adjusted.
 
 ## Installation
 
