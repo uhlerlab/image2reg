@@ -1,7 +1,5 @@
 # Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens
 
----
-
 The repository contains the code for the main methodology and analyses described in our paper: *Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens*[]().
 
 ---
@@ -62,6 +60,8 @@ bash scripts/run_screen.sh
 
 Note that the path of the first line of the script needs to be adjusted to reflect the home directory of the code base. Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/other/cv_screen_data_splits.ipynb``` and ```notebooks/other/create_screen_configs.ipynb``` provide function efficiently generate the resources required by the script to complete the screen.
 
+Once the screen has been run the notebook ```notebooks/screen/screen_analyses_cv.ipynb``` can be used to analyze those results and identify the impact gene perturbations.
+
 
 #### 2.2. Inference of image embeddings
 
@@ -86,9 +86,9 @@ The required for the experiments are again available as part of the optional dat
 #### 2.3. Analyses of the image embeddings
 
 
-#### 2.4. Inference of gene perturbation embeddings
+#### 2.4. Analyses of the gene perturbation embeddings
 
-#### 2.5. Analyses of the gene perturbation embeddings
+The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/image/embedding/gene_perturbation_cluster_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/image/embedding/gene_perturbations_go_analyses``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017).
 
 
 ---
