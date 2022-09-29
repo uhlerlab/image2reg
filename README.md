@@ -27,7 +27,7 @@ The raw data including the images of the perturbation screen by [Rohban et. al, 
 
 ---
 
-## Reproducing the results
+## Reproducing the paper results
 The following description summarizes the steps to reproduce the results presented in the paper. The presented steps can similarly run using your own data.
 
 ### 1. Data preprocessing
