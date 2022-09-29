@@ -50,13 +50,12 @@ CMap gene signature data from [DepMap, 2021]() was preprocessed using the notebo
 
 ---
 
-### 2. Inference of image and gene perturbation gene
-
+### 2. Inference and analysis of the image and gene perturbation embeddings
 #### 2.1. Identification of impactful gene perturbation
 
 To identify the impact gene perturbations we ran a large-scale screen assessing the performance of proposed convolutional neural network architecture on the task of distinguishing between the perturbed and control cells using the chromatin image inputs obtained as a result of the preprocessing (see 1.1.).
 
-The screen can be automatically run by running 
+The screen can be automatically run by calling 
 ```
 bash scripts/run_screen.sh
 ```
@@ -66,9 +65,30 @@ Note that the path of the first line of the script needs to be adjusted to refle
 
 #### 2.2. Inference of image embeddings
 
+To infer the image embeddings the convolutional neural network is trained on a multi-class classification task to distinguish between the different as impactful identified gene perturbation settings. Thereby, the embeddings of the images in the test sets provide corresponding image embeddings.
+
+The related experiment can be run by calling
+```
+bash scripts/run_selected_targets.sh
+```
+
+As before the path in the first line needs to be adjusted and the required config files as well as data resource are assumed to be available. The data corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/other/cv_specific_targets_data_split.ipynb```.
+
+To obtain the image embeddings in the leave-one-target-out evaluation scheme the related experiments can be performed by calling
+```
+bash scripts/run_loto_selected_targets.sh
+bash scripts/run_extract_loto_latents.sh
+```
+
+The required for the experiments are again available as part of the optional data resources or can be efficiently generated using the notebooks ```notebooks/other/create_loto_configs.ipynb``` and ```notebooks/other/loto_data_splits.ipynb```.
 
 
-#### 2.3. Inference of gene perturbation embeddings
+#### 2.3. Analyses of the image embeddings
+
+
+#### 2.4. Inference of gene perturbation embeddings
+
+#### 2.5. Analyses of the gene perturbation embeddings
 
 
 ---
