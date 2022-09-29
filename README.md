@@ -99,7 +99,13 @@ The cluster analyses of the inferred gene perturbation embeddings are performed 
 
 #### 3.1. Gene-gene interactome inference
 
+The gene-gene interactome is inferred using a prize-collecting Steiner tree (PCST) algorithm. The algorithm takes a pruned version of an estimate of the human protein-protein interactome as input where nodes are prized according to the differential expression of genes in U2OS cells compared to other cancer cells and edges are weighted according to the observed correlation structure in the previously described single-cell gene expression data set. For more details please refer to our paper. The inference of the required inputs can be performed using the notebook ```notebooks/ppi/preprocessing/inference_preparation_full_pruning.ipynb```. In addition to the described single-cell gene expression data set the notebook requires asn estimate of the human protein-protein interactome and bulk gene expression data from the Cancer Cell Line Encyclopedia as input. The resources of where those can be obtained from are described in the paper.
+
+After the preprocessing of the inputs, a the gene-gene interactome can be inferred using the code available in the notebook ```notebooks/ppi/inference/interactome_inference_final.ipynb```. The input network to the PCST analyses and the output gene-gene interactome is also directly available as part of the optional data resources.
+
 #### 3.2. Analysis of the inferred gene-gene interactome
+
+The R notebook ```notebooks/ppi/other/go_analysis_pcst_solution.Rmd`` provides the code to evaluate the enrichment of biological processes associated to the mechanotransduction in cells in the inferred gene-gene interactome.
 
 ---
 
