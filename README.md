@@ -127,8 +127,10 @@ Finally, the code required to assess the alignment of the inferred regulatory ge
 
 ## Credits
 
-If you use provided data please make sure to reference the required papers for any external resources and our work. If you use the code provided in the directory please also reference our work as follows:
+If you use the code provided in the directory please also reference our work as follows:
 
 **TO BE ADDED**
+
+If you use the provided data please make sure to also reference the the corresponding raw data resources described in the paper in addition to our work.
 
 
