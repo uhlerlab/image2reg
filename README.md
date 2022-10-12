@@ -121,7 +121,7 @@ The analysis of the clustering of the inferred gene-gene embedding are also incl
 
 ### 5. Mapping gene perturbation to regulatory gene embeddings
 
-Finally, the code required to assess the alignment of the inferred regulatory gene and perturbation gene embeddings in the described leave-one-targe-out evaluation setup including the associated meta-analyses are available in the notebook ```notebooks/translation/mapping/translational_mapping_lot_final_gridsearch.ipynb```.
+Finally, the code required to assess the alignment of the inferred regulatory gene and perturbation gene embeddings in the described leave-one-targe-out evaluation setup including the associated meta-analyses are available in the notebook ```notebooks/translation/mapping/translational_mapping_loto_gridsearch.ipynb```.
 
 ---
 
