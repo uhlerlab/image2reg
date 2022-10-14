@@ -107,7 +107,7 @@ After the preprocessing of the inputs, a the gene-gene interactome can be inferr
 
 #### 3.2. Analysis of the inferred gene-gene interactome
 
-The R notebook ```notebooks/ppi/other/go_analysis_pcst_solution.Rmd`` provides the code to evaluate the enrichment of biological processes associated to the mechanotransduction in cells in the inferred gene-gene interactome.
+The R notebook ```notebooks/ppi/other/go_analysis_pcst_solution.Rmd``` provides the code to evaluate the enrichment of biological processes associated to the mechanotransduction in cells in the inferred gene-gene interactome.
 
 ---
 
