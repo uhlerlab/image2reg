@@ -25,7 +25,7 @@ conda activate image2reg
 
 Note that the following data resources are only required if you want to reproduce the results presented in the paper. In case you want to apply the presented methodology to your own data, please skip this section.
 
-The raw data including the images of the perturbation screen by [Rohban et. al, 2017](https://doi.org/10.7554/eLife.24060), the gene expression and protein-protein interaction data are publicly available from the sources described in the paper. Additional intermediate outputs of the presented analyses including i.a. trained neural network models, the inferred gene-gene interactome, computed image, perturbation gene and regulatory gene embeddings can be downloaded from [here](https://drive.google.com/drive/folders/1bl6YfG8GBpVjgHRIGZW_ycOvJ6r--a5Y?usp=sharing). Note that those intermediate results are optional and were generated as a results of the steps described in the following.
+The raw data including the images of the perturbation screen by [Rohban et. al, 2017](https://doi.org/10.7554/eLife.24060), the gene expression and protein-protein interaction data are publicly available from the sources described in the paper. Additional intermediate outputs of the presented analyses including i.a. trained neural network models, the inferred gene-gene interactome, computed image, perturbation gene and regulatory gene embeddings can be downloaded from our [Google Drive here](https://drive.google.com/drive/folders/1bl6YfG8GBpVjgHRIGZW_ycOvJ6r--a5Y?usp=sharing). Note that those intermediate results are optional and were generated as a results of the steps described in the following.
 
 ---
 
