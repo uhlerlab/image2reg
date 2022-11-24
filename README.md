@@ -1,7 +1,12 @@
 # Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens
 
+**by Daniel Paysan, Adityanarayanan Radhakrishnan, G.V. Shivashankar and Caroline Uhler**
+
+---
+
+
 The repository contains the code for the main methodology and analyses described in our paper: 
- >[*Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens*]().
+ >[*Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens (Under Review)*]().
  
  ![](https://github.com/dpaysan/image2reg/blob/389a275421f9d5508685ba0feb30f051085c54b2/imag2reg_pipeline.png)
 
@@ -9,7 +14,7 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
 ## Installation
 
