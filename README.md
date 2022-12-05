@@ -1,6 +1,6 @@
 # Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens
 
-**by Daniel Paysan, Adityanarayanan Radhakrishnan, G.V. Shivashankar and Caroline Uhler**
+**by Daniel Paysan(#), Adityanarayanan Radhakrishnan (#), G.V. Shivashankar (^) and Caroline Uhler (^)**
 
 The repository contains the code for the main methodology and analyses described in our paper: 
  >[*Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens (Under Review)*]().
@@ -17,7 +17,7 @@ The code has been developed on a system running Ubuntu 20.04. LTS running a Inte
 
 To install the code clone the repository and install the required software libraries and packages listed in the *requirements.txt* file:
 ```
-git clone https://github.com/dpaysan/image2reg.git
+git clone https://github.com/uhlerlab/image2reg.git
 conda create --name image2reg --file requirements.txt
 conda activate image2reg
 ```
