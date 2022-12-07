@@ -22,8 +22,9 @@ conda create --name image2reg
 conda activate image2reg
 pip install -r requirements.txt
 ```
+Note if you experience porblems with installing the packages ``torch, torchvision, ...``, please follow the official installation guide of PyTorch available [here](https://pytorch.org/get-started/locally/), but ensure that the correct version numbers are specified.
 
-The estimated installation time is 10 minutes depending on the speed of the available internet connection to download the required software packages.
+The estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
 ---
 
