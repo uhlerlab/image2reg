@@ -11,16 +11,19 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS running a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
 ## Installation
 
 To install the code clone the repository and install the required software libraries and packages listed in the *requirements.txt* file:
 ```
 git clone https://github.com/uhlerlab/image2reg.git
-conda create --name image2reg --file requirements.txt
+conda create --name image2reg
 conda activate image2reg
+pip install -r requirements.txt
 ```
+
+The estimated installation time is 10 minutes depending on the speed of the available internet connection to download the required software packages.
 ---
 
 ## Data resources (Optional)
