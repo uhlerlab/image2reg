@@ -24,6 +24,7 @@ pip install -r requirements.txt
 ```
 
 The estimated installation time is 10 minutes depending on the speed of the available internet connection to download the required software packages.
+
 ---
 
 ## Data resources (Optional)
