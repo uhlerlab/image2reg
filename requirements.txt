@@ -216,6 +216,7 @@ tifffile==2019.7.26.2
 toml==0.10.2
 tomli==2.0.1
 toolz==0.11.1
+--find-links https://download.pytorch.org/whl/torch_stable.html
 torch==1.8.1
 torchvision==0.9.1
 torchaudio==0.8.1
