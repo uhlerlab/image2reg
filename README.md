@@ -63,7 +63,7 @@ The raw data including the images of the perturbation screen by [Rohban et. al, 
 ---
 
 ## Reproducing the paper results
-The following description summarizes the steps to reproduce the results presented in the paper.
+The following description summarizes the steps to reproduce the results presented in the paper. To avoid long-run times (due to e.g. the large-scale screen to identify impactful gene perturbations), intermediate results can be downloaded from the referenced data resources mentioned above.
 
 ### 1. Data preprocessing
 
