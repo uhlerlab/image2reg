@@ -20,7 +20,7 @@ To install the code please first clone this repository using
 git clone https://github.com/uhlerlab/image2reg.git
 ```
 
-The software was built and tested using Python version 3.8. Thus, please next install Python version 3.8. While theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+The software was built and tested using Python v3.8. Thus, please next install Python v3.8. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
 Once miniconda is installed, you can create a conda environment running Python version 3.8 in which the required software packages will be installed via:
 ```
@@ -32,7 +32,7 @@ The final step of the installation consists of the installation of additional re
 conda activate image2reg
 pip install -r requirements.txt
 ```
-Note that this installs the requried [Pytorch](https://pytorch.org/) associated packages with GPU accelaration using CUDA v. 11.1, which we had used to develop and run the code in this repository. 
+Note that this installs the requried [Pytorch](https://pytorch.org/) associated packages with GPU accelaration using CUDA v11.1, which we had used to develop and run the code in this repository. 
 
 In case that no GPU is available on the system you are planning to instal the software on please install the required packages without GPU support via: 
 ```
