@@ -217,8 +217,8 @@ toml==0.10.2
 tomli==2.0.1
 toolz==0.11.1
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.8.1+cu111
-torchvision==0.9.1+cu111
+torch==1.8.1+cpu
+torchvision==0.9.1+cpu
 torchaudio==0.8.1
 torch-cluster==1.5.9
 torch-geometric==2.0.1
