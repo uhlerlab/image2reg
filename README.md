@@ -11,20 +11,40 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
 ## Installation
 
-To install the code clone the repository and install the required software libraries and packages listed in the *requirements.txt* file:
+To install the code please first clone this repository using
 ```
 git clone https://github.com/uhlerlab/image2reg.git
-conda create --name image2reg
+```
+
+The software was built and tested using Python version 3.8. Thus, please next install Python version 3.8. While theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+
+Once miniconda is installed, you can create a conda environment running Python version 3.8 in which the required software packages will be installed via:
+```
+conda create --name image2reg python==3.8
+```
+
+The final step of the installation consists of the installation of additional required packages which can be efficiently done via
+```
 conda activate image2reg
 pip install -r requirements.txt
 ```
-Note if you experience porblems with installing the packages ``torch, torchvision, ...``, please follow the official installation guide of PyTorch available [here](https://pytorch.org/get-started/locally/), but ensure that the correct version numbers are specified.
+Note that this installs the requried [Pytorch](https://pytorch.org/) associated packages with GPU accelaration using CUDA v. 11.1, which we had used to develop and run the code in this repository. 
 
-The estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
+In case that no GPU is available on the system you are planning to instal the software on please install the required packages without GPU support via: 
+```
+conda activate image2reg
+pip install -r requirements_cpu.txt
+```
+Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
+Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``.
+
+If you encounter any problems with the installation of the extended list of the site packages please refer to ``minimal_requirements.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install one-by-one in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
+
+In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
 ---
 
@@ -52,9 +72,9 @@ Please edit the config file to specify the location of the raw imaging data of y
 
 #### 1.2. Gene expression data
 
-Single-cell gene expression data from [Mahdessian et al, 2021]() was preprocessed as described in the paper using the notebook available in ```notebooks/ppi/gex_analyses/scgex_preprocessing.ipynb```.
+Single-cell gene expression data from [Mahdessian et al, 2021](https://www.nature.com/articles/s41586-021-03232-9) was preprocessed as described in the paper using the notebook available in ```notebooks/ppi/gex_analyses/scgex_preprocessing.ipynb```.
 
-CMap gene signature data from [DepMap, 2021]() was preprocessed using the notebook available in ```notebooks/ppi/gex_analyses/cmap_preprocessing.ipynb```. Note that this notebooks assumes that the gene-gene interactome (GGI) had already been inferred. Please see 3. on how to infer the GGI.
+CMap gene signature data from [DepMap, 2021](https://depmap.org/portal/) was preprocessed using the notebook available in ```notebooks/ppi/gex_analyses/cmap_preprocessing.ipynb```. Note that this notebooks assumes that the gene-gene interactome (GGI) had already been inferred. Please see 3. on how to infer the GGI.
 
 ---
 
