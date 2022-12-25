@@ -13,7 +13,7 @@ The repository contains the code for the main methodology and analyses described
 
 The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
-## Installation
+## Installation/Environmental setup
 
 To install the code please first clone this repository using
 ```
