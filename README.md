@@ -42,7 +42,7 @@ pip install -r requirements_cpu.txt
 *Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
 Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``.*
 
-If you encounter any problems with the installation of the extended list of the site packages please refer to ``minimal_requirements.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install one-by-one in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
+If you encounter any problems with the installation of the extended list of the site packages please refer to ``requirements_minimal.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install one-by-one in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
 
 In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
@@ -57,7 +57,7 @@ The raw data including the images of the perturbation screen by [Rohban et. al, 
 ---
 
 ## Reproducing the paper results
-The following description summarizes the steps to reproduce the results presented in the paper. The presented steps can similarly run using your own data.
+The following description summarizes the steps to reproduce the results presented in the paper.
 
 ### 1. Data preprocessing
 
@@ -156,6 +156,12 @@ The analysis of the clustering of the inferred gene-gene embedding are also incl
 ### 5. Mapping gene perturbation to regulatory gene embeddings
 
 Finally, the code required to assess the alignment of the inferred regulatory gene and perturbation gene embeddings in the described leave-one-targe-out evaluation setup including the associated meta-analyses are available in the notebook ```notebooks/translation/mapping/translational_mapping_loto_gridsearch.ipynb```.
+
+---
+
+## Application of the pipeline to user-specific data
+
+Our method is broadly applicable and provides a general framework to link cell images and gene regulation in genetic perturbation screens. However, the pipeline must be adjusted depending on the input data. The previously described set up as well as the selection of all hyperparameters including sizes of the cell images, architecture of the neural networks and so on should be tuned to the specific use case. The code provided in this repository including the notebooks in addition to the above description of the reproduction of the results presented in our paper should provide a general construct for such analyses, despite the fact that individual hyperparamters need to be selected by the user in dependence on the data.
 
 ---
 
