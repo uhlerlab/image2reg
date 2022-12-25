@@ -42,7 +42,13 @@ pip install -r requirements_cpu.txt
 *Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
 Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``.*
 
-If you encounter any problems with the installation of the extended list of the site packages please refer to ``requirements_minimal.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install one-by-one in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
+If you encounter any problems with the installation of the extended list of the site packages please refer to ``requirements_minimal.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install either one-by-one or all-at-once via
+
+```
+conda activate image2reg
+pip install -r requirements_minimal.txt
+```
+in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
 
 In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
