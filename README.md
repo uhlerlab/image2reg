@@ -27,7 +27,7 @@ Once miniconda is installed, you can create a conda environment running Python v
 conda create --name image2reg python==3.8
 ```
 
-The final step of the installation consists of the installation of additional required packages which can be efficiently done via
+The final step of the installation consists of the installation of additional required packages which can be efficiently done via:
 ```
 conda activate image2reg
 pip install -r requirements.txt
@@ -39,8 +39,8 @@ In case that no GPU is available on the system you are planning to instal the so
 conda activate image2reg
 pip install -r requirements_cpu.txt
 ```
-Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
-Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``.
+*Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
+Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``.*
 
 If you encounter any problems with the installation of the extended list of the site packages please refer to ``minimal_requirements.txt`` for a list of minimally required software packages and corresponding version numbers that you will need to install one-by-one in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
 
@@ -75,6 +75,13 @@ Please edit the config file to specify the location of the raw imaging data of y
 Single-cell gene expression data from [Mahdessian et al, 2021](https://www.nature.com/articles/s41586-021-03232-9) was preprocessed as described in the paper using the notebook available in ```notebooks/ppi/gex_analyses/scgex_preprocessing.ipynb```.
 
 CMap gene signature data from [DepMap, 2021](https://depmap.org/portal/) was preprocessed using the notebook available in ```notebooks/ppi/gex_analyses/cmap_preprocessing.ipynb```. Note that this notebooks assumes that the gene-gene interactome (GGI) had already been inferred. Please see 3. on how to infer the GGI.
+
+*Note that in general in order to run any of the provided jupyter notebooks, please start the jupyter server in the setup computational environment via:*
+```
+conda activate image2reg
+jupyter notebook
+```
+
 
 ---
 
