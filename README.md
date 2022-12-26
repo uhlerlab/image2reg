@@ -22,7 +22,7 @@ git clone https://github.com/uhlerlab/image2reg.git
 
 The software was built and tested using Python v3.8. Thus, please next install Python v3.8. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
-Once miniconda is installed, you can create a conda environment running Python version 3.8 in which the required software packages will be installed via:
+Once miniconda is installed, you can create a conda environment running Python v3.8 in which the required software packages will be installed via:
 ```
 conda create --name image2reg python==3.8
 ```
@@ -34,7 +34,7 @@ pip install -r requirements.txt
 ```
 Note that this installs the requried [Pytorch](https://pytorch.org/) associated packages with GPU accelaration using CUDA v11.1, which we had used to develop and run the code in this repository. 
 
-In case that no GPU is available on the system you are planning to instal the software on please install the required packages without GPU support via: 
+If no GPU is available on your system, please install the required packages without GPU support via: 
 ```
 conda activate image2reg
 pip install -r requirements_cpu.txt
@@ -48,7 +48,8 @@ If you encounter any problems with the installation of the extended list of the 
 conda activate image2reg
 pip install -r requirements_minimal.txt
 ```
-in order to setup a computational environment that can run the provided code. However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.
+in order to setup a computational environment that can run the provided code. 
+*However, note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.*
 
 In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
@@ -101,7 +102,8 @@ The screen can be automatically run by calling
 bash scripts/run_screen.sh
 ```
 
-Note that the path of the first line of the script needs to be adjusted to reflect the home directory of the code base. Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/other/cv_screen_data_splits.ipynb``` and ```notebooks/other/create_screen_configs.ipynb``` provide function efficiently generate the resources required by the script to complete the screen.
+*Note that the path of the first line of the script needs to be adjusted to reflect the home directory of the code base.*
+Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/other/cv_screen_data_splits.ipynb``` and ```notebooks/other/create_screen_configs.ipynb``` provide functions to efficiently generate the resources required by the script to complete the screen.
 
 Once the screen has been run the notebook ```notebooks/screen/screen_analyses_cv.ipynb``` can be used to analyze those results and identify the impact gene perturbations. Gene set information data can be obtained as described in the paper or directly from the optional data resources.
 
