@@ -1,0 +1,26 @@
+The setup of the computional environment was tested on the following systems:
+
+System 1
+--------
+HP Z4 workstation
+Ubuntu 20.04. LTS
+Python v3.8
+Intel(R) Xeon(R) W-2255 CPU with 3.70GHz
+128GB RAM
+Nvidia RTX 4000 GPU with CUDA v.11.1.74
+
+
+System 2
+---------
+Thinkpad P1 mobile work station 
+Ubuntu 22.04 LTS
+Python v3.8
+Intel(R) Core(TM) i7-9750H CPU with 2.60 GHz
+32GB RAM and a Nvidia P2000 GPU w. CUDA 11.1.74
+
+
+
+
+Note that the code was developed and all experiments were run using system 1.
+System 2 was only used to validate and test the setup of the computional environment due to time constrains.
+
