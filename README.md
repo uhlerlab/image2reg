@@ -67,14 +67,14 @@ The following description summarizes the steps to reproduce the results presente
 
 ### 1. Data preprocessing
 
-#### 1.1. Image data
+#### 1.1. Imaging data from Rohban et al.
 
-The raw image data of the perturbation screen is preprocessed including several filtering steps and nuclear segmentation.
+The raw image data of the perturbation screen from Rohban et al. (2017) is preprocessed including several filtering steps and nuclear segmentation.
 The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline.yml
 ```
-Please edit the config file to specify the location of the raw imaging data of your system.
+Please edit the config file to specify the location of the raw imaging data from Rohbna et al. of your system.
 
 #### 1.2. Gene expression data
 
@@ -116,7 +116,7 @@ The related experiment can be run by calling
 bash scripts/run_selected_targets.sh
 ```
 
-As before the path in the first line needs to be adjusted and the required config files as well as data resource are assumed to be available. The data corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/other/cv_specific_targets_data_split.ipynb```.
+As before the path in the first line needs to be adjusted and the required config files as well as data resource are assumed to be available. The corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/other/cv_specific_targets_data_split.ipynb```.
 
 To obtain the image embeddings in the leave-one-target-out evaluation scheme the related experiments can be performed by calling
 ```
