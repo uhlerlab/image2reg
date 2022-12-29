@@ -68,7 +68,7 @@ The raw data including the images of the perturbation screen by [Rohban et. al, 
 ## Reproducing the paper results
 The following description summarizes the steps to reproduce the results presented in the paper. To avoid long-run times (due to e.g. the large-scale screen to identify impactful gene perturbations), intermediate results can be downloaded from the referenced data resources mentioned above.
 
-*Note that, solely running all experiments and analyses described in the paper took more than 100 hours of pure computation time on the used hardware setup.*
+*Note that, solely running all experiments and analyses described in the paper took more than 100 hours of pure computation time on the used hardware setup due to the complexity of the computations and the size of the data sets.*
 
 ### 1. Data preprocessing
 
