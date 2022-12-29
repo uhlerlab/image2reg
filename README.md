@@ -191,6 +191,12 @@ Our method is broadly applicable and provides a general framework to link cell i
 
 ---
 
+## Questions/Issues
+
+If you encounter any problems with setting up the software and/or need assistance with adapting the code to run it for your own data set, feel very free to open a respective issue. We will do our very best to assist you as quickly as possible.
+
+---
+
 ## Credits
 
 If you use the code provided in the directory please also reference our work as follows:
