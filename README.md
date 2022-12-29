@@ -48,6 +48,7 @@ conda activate image2reg
 pip install -r requirements_minimal.txt
 ```
 in order to setup a computational environment that can run the provided code. 
+
 **Note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.**
 
 In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
