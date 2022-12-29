@@ -112,7 +112,7 @@ Note that the path of the first line of the script needs to be adjusted to refle
 
 Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/other/cv_screen_data_splits.ipynb``` and ```notebooks/other/create_screen_configs.ipynb``` provide functions to efficiently generate the resources required by the script to complete the screen.
 
-*The results of the screen which include e.g. the trained convolutional neural networks and the log files describing the performance of the network on the individual binary classification tasks are available from our data repository at ```perturbation_screen/chrometric_perturbation_screen.zip```.*
+*The results of the screen which include e.g. the trained convolutional neural networks and the log files describing the performance of the network on the individual binary classification tasks are available from our data repository at ```perturbation_screen/perturbation_screen.zip```.*
 
 Once the screen has been run the notebook ```notebooks/screen/screen_analyses_cv.ipynb``` can be used to analyze those results and identify the impact gene perturbations. Gene set information data can be obtained as described in the paper or directly from our data repository at ```genesets```.
 
