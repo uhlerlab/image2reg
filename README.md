@@ -169,7 +169,7 @@ The R notebook ```notebooks/ppi/other/go_analysis_pcst_solution.Rmd``` provides 
 
 Given the previously computed inputs the proposed graph-convolutional autoencoder model can be trained to infer the regulatory gene embeddings within and outside of the leave-target-out evaluation setup described in the paper. The code required to run those experiments is available in ```notebooks/ppi/embedding/gae_gene_embs.ipynb```. All required inputs for the analyses are outputs of the previously described steps.
 
-*Additionally, they are also directly available in our data repository. In particular, the gene expression data in ```preprocessing/gex```, the gene set information in ```genesets``` and additional cluster inputs in ```regulatory_embeddings/cluster_inputs```.*
+*Additionally, they are also directly available in our data repository. In particular, the gene expression data in ```preprocessing/gex```, the gene set information in ```genesets``` and additional cluster inputs in ```regulatory_embeddings/cluster_inputs```. The results of all conducted experiments including the inferred regulatory gene embeddings that are input to the translation analysis in the leave-one-target-out evaluation setting (see section 5) are available at ```regulatory_embeddings/leave_one_target_out```.*
 
 The analysis of the clustering of the inferred gene-gene embedding are also included in that notebook. The R notebook in ```notebooks/ppi/embeddings/gene_embedding_cluster_analyses.Rmd```.
 
