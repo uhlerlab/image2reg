@@ -18,7 +18,7 @@ The code has been developed on a system running Ubuntu 20.04. LTS with Python v3
 To install the code please first clone this repository using
 ```
 git clone https://github.com/uhlerlab/image2reg.git
-cd Image2reg
+cd image2reg
 ```
 
 The software was built and tested using Python v3.8. Thus, please next install Python v3.8. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
