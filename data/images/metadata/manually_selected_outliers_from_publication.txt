@@ -1,7 +1,0 @@
-Plates and wells that were manually determined to be outliers
--------------------------------------------------------------
-
-41749_*
-41749_J13
-41755_B01
-41757_E17
