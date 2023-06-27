@@ -1,0 +1,42 @@
+The setup of the computional environment was tested on the following systems:
+
+System 1
+--------
+HP Z4 workstation
+Ubuntu 20.04. LTS
+Python v3.8
+Intel(R) Xeon(R) W-2255 CPU with 3.70GHz
+128GB RAM
+Nvidia RTX 4000 GPU with CUDA v11.1.74
+
+
+System 2
+---------
+Thinkpad P1 mobile work station 
+Ubuntu 22.04 LTS
+Python v3.8
+Intel(R) Core(TM) i7-9750H CPU with 2.60 GHz
+32GB RAM
+Nvidia P2000 GPU w. CUDA v11.1.74
+
+System 3
+--------
+Python v3.8
+AMD Ryzen Threadripper PRO 3975WX 32-Cores
+516GB RAM
+NVIDIA RTX A5000 w. CUDA v11.4
+
+
+System 4
+--------
+Python v3.8
+Intel(R) Core(TM) i7-6950X CPU with 3.00GHz
+128 GB RAM
+NVIDIA GTX 1080 w.  CUDA v10.1
+
+
+
+
+Please note that the code was developed and all experiments were run using system 1.
+System 2-4 were only used to validate and test the setup of the computional environment due to time constraints. Please also note that the PyTorch version installed during the described installation procedure might only compatible with CUDA v11.1.74 as running the code was performed solely on the system containing that CUDA version.
+
