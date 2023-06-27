@@ -44,13 +44,6 @@ pipeline:
   - method: load_model
     params:
       weights_fname: "data/experiments/image_embeddings/specificity_target_emb_loto/complete/GENE/best_model_weights.pth"
-#  - method: plot_confusion_matrices
-#    params:
-#      normalize: "true"
-#      dataset_types: ["test"]
-#  - method: extract_and_save_latents
-#    params:
-#      dataset_types: ["test"]
   - method: save_preds_labels
     params:
       dataset_types: ["test"]

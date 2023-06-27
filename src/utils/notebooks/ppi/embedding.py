@@ -455,9 +455,7 @@ def plot_pca_embs(
     highlight=None,
     random_state=1234,
 ):
-    embs = PCA(
-        n_components=2, random_state=random_state
-    ).fit_transform(latents)
+    embs = PCA(n_components=2, random_state=random_state).fit_transform(latents)
     embs = pd.DataFrame(embs, columns=["pc_0", "pc_1"], index=latents.index)
     ax = sns.scatterplot(
         data=embs,

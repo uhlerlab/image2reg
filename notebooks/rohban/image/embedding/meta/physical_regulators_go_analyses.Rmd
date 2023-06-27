@@ -1,0 +1,397 @@
+---
+title: 'Enrichment analysis of the gene clusters in the physical space'
+author: "Daniel Paysan"
+date: "06/07/2022"
+output: html_document
+---
+
+This notebook conducts a GO analysis to characterize the gene clusters identified in the physical space.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/home/daniel/PycharmProjects/image2reg/")
+```
+
+# 0. Environmental setup
+
+First, we load the required packages.
+
+```{r environmental setup}
+require("topGO")
+require("KEGGREST")
+require("org.Hs.eg.db")
+require("GeneAnswers")
+require("EnrichmentBrowser")
+require("ggplot2")
+require("stringr")
+```
+Next, we load a function that enables a simple GO analysis using the topGO API.
+
+```{r}
+# taken from https://github.com/karthikshekhar/CellTypeMIMB/blob/master/utilities.R
+topGOterms = function(fg.genes = NULL,
+                      bg.genes = NULL,
+                      organism = "Mouse",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 100) {
+  if (is.null(fg.genes) | is.null(bg.genes)) {
+    stop("Error : Both gene lists are empty")
+  }
+  
+  require(topGO)
+  if (organism == "Mouse") {
+    mapping.use = "org.Mm.eg.db"
+    require(org.Mm.eg.db)
+  } else if (organism == "Human") {
+    mapping.use = "org.Hs.eg.db"
+    require(org.Hs.eg.db)
+  } else {
+    stop("Error : Organisms other than mouse not supported currently")
+  }
+  
+  n = length(bg.genes)
+  geneList = integer(n)
+  names(geneList) = bg.genes
+  geneList[intersect(names(geneList), fg.genes)] = 1
+  print(paste0(
+    "Total ",
+    length(geneList),
+    " genes. ",
+    sum(geneList),
+    " genes in the foreground"
+  ))
+  geneList = factor(geneList)
+  
+  if (ontology.use %in% c("BP", "CC", "MF")) {
+    print(paste0("Using Ontology : ", ontology.use))
+  } else {
+    stop("Error: Ontology not available. Should be one of BP, CC or MF")
+  }
+  # Make GO object
+  GOdata <- new(
+    "topGOdata",
+    description = "GOanalysis",
+    ontology = ontology.use,
+    allGenes = geneList,
+    annot = annFUN.org,
+    mapping = mapping.use,
+    ID = "SYMBOL",
+    nodeSize = 10
+  )
+  print(paste0(
+    "Using the ",
+    stats.use,
+    " statistic with the ",
+    algorithm.use,
+    " algorithm"
+  ))
+  res.result <-
+    runTest(GOdata, statistic = stats.use, algorithm = algorithm.use)
+  to.return = list()
+  to.return$GOdata = GOdata
+  
+  allGO = usedGO(object = GOdata) 
+  
+  to.return$res.table <-
+    GenTable(GOdata,
+             pval = res.result,
+             topNodes = length(allGO),
+             numChar = num.char)
+  return(to.return)
+}
+```
+
+
+```{r}
+barplot_topgo <- function(data){
+  p <- ggplot(data[1:5,], aes(x=Term, y=-log10(pval))) + 
+    geom_bar(stat="identity", fill = "#FF6666") + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 25))+
+    geom_hline(yintercept = c(-log10(0.05)),
+    linetype = c("dashed"),
+    colour = c("black"),
+    size = c(0.5))+
+  theme_bw(base_size = 10) +
+  theme(
+    legend.position = 'right',
+    legend.background = element_rect(),
+    plot.title = element_text(angle = 0, size = 16, face = 'bold', vjust = 1),
+    plot.subtitle = element_text(angle = 0, size = 10, face = 'bold', vjust = 1),
+    plot.caption = element_text(angle = 0, size = 10, face = 'bold', vjust = 1),
+
+    axis.text.x = element_text(angle = 0, size = 10, face = 'bold', hjust = 1.10),
+    axis.text.y = element_text(angle = 0, size = 10, face = 'bold', vjust = 0.5),
+    axis.title = element_text(size = 10, face = 'bold'),
+    axis.title.x = element_text(size = 10, face = 'bold'),
+    axis.title.y = element_text(size = 10, face = 'bold'),
+    axis.line = element_line(colour = 'black'),
+
+    #Legend
+    legend.key = element_blank(), # removes the border
+    legend.key.size = unit(1, "cm"), # Sets overall area/size of the legend
+    legend.text = element_text(size = 10, face = "bold"), # Text size
+    title = element_text(size = 14, face = "bold")) +
+  coord_flip()
+  return(p)
+}
+```
+
+
+# 1. Gene Ontology analysis
+
+We now conduct the gene ontology analysis using Fisher's exact test.
+The adjusted p-values are obtained using the Bonferroni-Holm procedure
+
+## 1.a. Physical regulator genes
+
+First, we assess the set of identified physical regulator genes with respect to their enrichment for specific biological processes. As indicated below none of the assessed GO terms is significantly enriched. Nonetheless, we observed the specificity score to significantly higher when genes were targeted which are part of the mechano-transduction pathways. Additionally, we found our selection to be broadly consistent with the one by Rohban et al. as the selected gene sets showed a significant overlap.
+
+```{r}
+oe_targets <- c('ACVR1B', 'ADAM17', 'AKT1', 'AKT1S1', 'AKT2', 'AKT3', 'APAF1', 'APC', 'ARAF', 'ARNTL', 'ATF2', 'ATF4', 'ATF6', 'ATG16L1', 'ATG5', 'ATM', 'AXIN2', 'BAMBI', 'BAX', 'BCL2L1', 'BCL2L11', 'BECN1', 'BMP2', 'BMPR1B', 'BRAF', 'BRCA1', 'BTRC', 'CARD11', 'CASP8', 'CASP9', 'CCND1', 'CCNE1', 'CDC42', 'CDK2', 'CDK4', 'CDKN1A', 'CEBPA', 'CHUK', 'CLOCK', 'CREB1', 'CREBBP', 'CRY1', 'CSNK1A1', 'CSNK1E', 'CTNNB1', 'CXXC4', 'CYLD', 'DDIT3', 'DDIT4', 'DEPTOR', 'DIABLO', 'DKK1', 'DLL1', 'DUSP1', 'DVL1', 'DVL2', 'DVL3', 'E2F1', 'EGLN1', 'EIF2A', 'EIF4E', 'EIF4EBP1', 'ELK1', 'ERBB2', 'ERG', 'ERN1', 'FGFR3', 'FH', 'FOXO1', 'FURIN', 'GLI1', 'GRB10', 'GSK3B', 'HIF1A', 'HIF1AN', 'HRAS', 'HSP90AA1', 'HSP90B1', 'HSPA5', 'IKBKB', 'IKBKE', 'IRAK1', 'IRAK4', 'IRGM', 'IRS1', 'JAG1', 'JAK2', 'JUN', 'KRAS', 'LRPPRC', 'MAP2K1', 'MAP2K3', 'MAP2K4', 'MAP3K11', 'MAP3K2', 'MAP3K5', 'MAP3K7', 'MAP3K8', 'MAP3K9', 'MAPK1', 'MAPK13', 'MAPK14', 'MAPK3', 'MAPK7', 'MAPK8', 'MAPK9', 'MAPKAP1', 'MCL1', 'MEK1', 'MKNK1', 'MLST8', 'MOS', 'MYD88', 'NFKB1', 'NFKB2', 'NFKBIA', 'NFKBIB', 'NFKBIE', 'NOTCH1', 'NOTCH2', 'PAK1', 'PDPK1', 'PER1', 'PHLPP1', 'PIK3CA', 'PIK3CB', 'PIK3CD', 'PIK3R1', 'PIK3R2', 'PKIA', 'PPARGC1A', 'PPP2R5C', 'PRKAA1', 'PRKACA', 'PRKACB', 'PRKACG', 'PRKCA', 'PRKCE', 'PRKCZ', 'PSENEN', 'PTEN', 'RAC1', 'RAF1', 'RB1', 'RBPJ', 'REL', 'RELA', 'RELB', 'RHEB', 'RHOA', 'RICTOR', 'RIPK1', 'RPS6KB1', 'RPTOR', 'SDHA', 'SGK3', 'SLIRP', 'SMAD3', 'SMAD4', 'SMAD5', 'SMAD7', 'SMO', 'SMURF2', 'SOCS3', 'SRC', 'SREBF1', 'STAT1', 'STAT3', 'STK11', 'STK3', 'TBK1', 'TCF4', 'TGFB1', 'TGFBR1', 'TGFBR2', 'TNFAIP3', 'TP53', 'TRAF2', 'TRAF3', 'TRAF5', 'TRAF6', 'TSC1', 'TSC2', 'VEGFC', 'VHL', 'WNT5A', 'WWTR1', 'XBP1', 'XIAP', 'YAP1')
+
+physical_regulators <- c('CEBPA', 'CXXC4', 'E2F1', 'ERG', 'JUN', 'FGFR3', 'MAP3K5', 'MAPK7', 'MOS', 'PIK3R2', 'PRKCE', 'RELB', 'SRC', 'TRAF2', 'WWTR1', 'ATF4', 'BAX', 'CREB1', 'ELK1', 'IRAK4', 'SMAD4', 'TSC2', 'AKT1S1', 'BRAF', 'CDC42', 'DIABLO', 'FOXO1', 'GLI1', 'MAP2K3', 'MAP3K2', 'MAP3K9', 'MYD88', 'PRKACA', 'RAF1', 'RHOA', 'SMO', 'SREBF1', 'CDKN1A', 'BCL2L11', 'CASP8', 'HRAS')
+```
+
+
+
+
+```{r}
+physical_regulator_go_results <-  topGOterms(fg.genes = physical_regulators,
+                      bg.genes = oe_targets,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+physical_regulator_go_results$res.table[,"qval"] <- p.adjust(physical_regulator_go_results$res.table$pval, method="BH")
+head(physical_regulator_go_results$res.table, 20)
+```
+
+
+
+
+## 1.b. Clustering of the physical space
+
+We now conduct the gene ontology analysis for the individual clusters. To characterize each cluster, we look at the top-10 GO terms. The background is given by all identified physical regulator genes. Due to the low power none of the identified gene clusters was found to be significantly when controlling the FDR on a 0.05 confidence level. However, note that the tests are not fully independent but the p-values are computed by conditioning on the neighboring terms which is why multiple testing theory does not directly apply.
+
+
+
+#### Cluster 1
+
+The first gene cluster consists of 7 genes that are found to be significant when assessing the raw p-values returned from the GO analysis.
+
+```{r}
+cluster1_genes <- c('SREBF1', 'WWTR1', 'FOXO1', 'DIABLO', 'MYD88', 'RHOA', 'SMO')
+cluster1_go_results <-  topGOterms(fg.genes = cluster1_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster1_go_results$res.table[,"qval"] <- p.adjust(cluster1_go_results$res.table$pval, method="BH")
+head(cluster1_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster1_go_terms <- cluster1_go_results$res.table
+sig_cluster1_go_terms$pval <- as.numeric(sig_cluster1_go_terms$pval)
+p <- barplot_topgo(sig_cluster1_go_terms)
+p + ggtitle("GO Terms for Cluster 1", subtitle = "SREBF1, FOXO1, DIABLO, MYD88, RHOA, SMO") + labs(x="GO term", y="-log10(raw p value)")
+```
+
+
+
+#### Cluster 2
+
+
+```{r}
+cluster2_genes <- c('PIK3R2', 'TRAF2', 'FGFR3', 'AKT1S1', 'PRKCE', 'MOS', 'SRC')
+cluster2_go_results <-  topGOterms(fg.genes = cluster2_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster2_go_results$res.table[,"qval"] <- p.adjust(cluster2_go_results$res.table$pval, method="BH")
+head(cluster2_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster2_go_terms <- cluster2_go_results$res.table
+sig_cluster2_go_terms$pval <- as.numeric(sig_cluster2_go_terms$pval)
+p <- barplot_topgo(sig_cluster2_go_terms)
+p + ggtitle("GO Terms for Cluster 2", subtitle = "PIK3R2, TRAF2, FGFR3, AKT1S1, PRKCE, MOS, SRC") + labs(x="GO term", y="-log10(raw p value)")
+```
+
+
+
+#### Cluster 3
+
+```{r}
+cluster3_genes <- c('BRAF', 'RAF1', 'CDC42', 'MAP3K2', 'MAP3K9')
+cluster3_go_results <-  topGOterms(fg.genes = cluster3_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster3_go_results$res.table[,"qval"] <- p.adjust(cluster3_go_results$res.table$pval, method="BH")
+head(cluster3_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster3_go_terms <- cluster3_go_results$res.table
+sig_cluster3_go_terms$pval <- as.numeric(sig_cluster3_go_terms$pval)
+p <- barplot_topgo(sig_cluster3_go_terms)
+p + ggtitle("GO Terms for Cluster 3", subtitle = "BRAF, RAF1, CDC42, MAP3K2, MAP3K9") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+#### Cluster 4
+
+```{r}
+cluster4_genes <- c('BCL2L11', 'CASP8')
+cluster4_go_results <-  topGOterms(fg.genes = cluster4_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster4_go_results$res.table[,"qval"] <- p.adjust(cluster4_go_results$res.table$pval, method="BH")
+head(cluster4_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster4_go_terms <- cluster4_go_results$res.table
+sig_cluster4_go_terms$pval <- as.numeric(sig_cluster4_go_terms$pval)
+p <- barplot_topgo(sig_cluster4_go_terms)
+p + ggtitle("GO Terms for Cluster 4", subtitle = "BCL2L11, CASP8") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+
+#### Cluster 5
+
+```{r}
+cluster5_genes <- c('RELB', 'MAP3K5', 'MAP2K3', 'MAPK7')
+cluster5_go_results <-  topGOterms(fg.genes = cluster5_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster5_go_results$res.table[,"qval"] <- p.adjust(cluster5_go_results$res.table$pval, method="BH")
+head(cluster5_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster5_go_terms <- cluster5_go_results$res.table
+sig_cluster5_go_terms$pval <- as.numeric(sig_cluster5_go_terms$pval)
+p <- barplot_topgo(sig_cluster5_go_terms)
+p + ggtitle("GO Terms for Cluster 5", subtitle = "RELB, MAP3K5, MAP2K3, MAPK7") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+#### Cluster 6
+
+```{r}
+cluster6_genes <- c('IRAK4', 'BAX', 'SMAD4', 'TSC2', 'CREB1', 'ATF4')
+cluster6_go_results <-  topGOterms(fg.genes = cluster6_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster6_go_results$res.table[,"qval"] <- p.adjust(cluster6_go_results$res.table$pval, method="BH")
+head(cluster6_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster6_go_terms <- cluster6_go_results$res.table
+sig_cluster6_go_terms$pval <- as.numeric(sig_cluster6_go_terms$pval)
+p <- barplot_topgo(sig_cluster6_go_terms)
+p + ggtitle("GO Terms for Cluster 6", subtitle = "IRAK4, BAX, SMAD4, TSC2, CREB1, ATF4") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+#### Cluster 7
+
+```{r}
+cluster7_genes <- c('CEBPA', 'JUN', 'ERG')
+cluster7_go_results <-  topGOterms(fg.genes = cluster7_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster7_go_results$res.table[,"qval"] <- p.adjust(cluster7_go_results$res.table$pval, method="BH")
+head(cluster7_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster7_go_terms <- cluster7_go_results$res.table
+sig_cluster7_go_terms$pval <- as.numeric(sig_cluster7_go_terms$pval)
+p <- barplot_topgo(sig_cluster7_go_terms)
+p + ggtitle("GO Terms for Cluster 7", subtitle = "CEBPA, JUN, ERG") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+
+#### Cluster 8
+
+```{r}
+cluster8_genes <- c('ELK1', 'E2F1')
+cluster8_go_results <-  topGOterms(fg.genes = cluster8_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster8_go_results$res.table[,"qval"] <- p.adjust(cluster8_go_results$res.table$pval, method="BH")
+head(cluster8_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster8_go_terms <- cluster8_go_results$res.table
+sig_cluster8_go_terms$pval <- as.numeric(sig_cluster8_go_terms$pval)
+p <- barplot_topgo(sig_cluster8_go_terms)
+p + ggtitle("GO Terms for Cluster 8", subtitle = "ELK1, E2F1") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+#### Cluster 9
+
+```{r}
+cluster9_genes <- c('PRKACA', 'CXXC4', 'GLI1')
+cluster9_go_results <-  topGOterms(fg.genes = cluster9_genes,
+                      bg.genes = physical_regulators,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster9_go_results$res.table[,"qval"] <- p.adjust(cluster9_go_results$res.table$pval, method="fdr")
+head(cluster9_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster9_go_terms <- cluster9_go_results$res.table
+sig_cluster9_go_terms$pval <- as.numeric(sig_cluster9_go_terms$pval)
+p <- barplot_topgo(sig_cluster9_go_terms)
+p + ggtitle("GO Terms for Cluster 9", subtitle = "PRKACA, CXXC4, GLI1") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+# 2. Discussion
+
+The previous analysis shows that 7 of the 9 non-singleton clusters are significantly enriched for at least one GO term associated to a biological processes when considering the raw p-values obtained from the topGO analysis which are assumed to be not affected by multiple testing.

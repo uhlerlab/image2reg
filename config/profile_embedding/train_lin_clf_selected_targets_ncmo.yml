@@ -1,25 +1,29 @@
 output_dir: 'data/experiments/morph_embeddings'
-module: src.experiments.train_model
-class: TrainModelExperiment
+module: src.experiments.profile_embeddings
+class: BaseProfileEmbeddingExperiment
 run_params:
   data_config: {'feature_label_file':'data/experiments/image_preprocessing/full_pipeline/nuclei_ncmo_features.csv.gz',
-                      'data_key':'profile', 'label_key':'label',
+                      'data_key':'profile', 'label_key':'label', 'index_key': 'label',
                       'label_col':'gene_symbol',
-                      'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
-                      'exclude_features':['image_file'],
+                      'target_list':['AKT1S1', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDC42', 'CDKN1A', 'CEBPA',
+                                     'CREB1', 'CXXC4', 'DIABLO', 'E2F1', 'ELK1', 'EMPTY', 'ERG', 'FGFR3', 'FOXO1',
+                                     'GLI1', 'HRAS', 'IRAK4', 'JUN', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7',
+                                     'MOS', 'MYD88', 'PIK3R2', 'PRKACA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'SMAD4',
+                                     'SMO', 'SRC', 'SREBF1', 'TRAF2', 'TSC2', 'WWTR1'],
+                      'exclude_features':['image_file', 'centroid-0', 'centroid-1'],
                       'slide_image_name_col': "slide_image_name"}
 
-  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 176},
+  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':42, 'input_dim': 177},
                        'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.00005},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'morph_profile'
   num_epochs: 2000
-  early_stopping: 100
-  train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 32
+  early_stopping: 10
+  train_val_test_split: [0.6, 0.15, 0.25]
+  batch_size: 64
   random_state: 1234
-  save_freq: 50
+  save_freq: 200
 
 pipeline:
   - method: initialize_profile_data_set
@@ -27,4 +31,7 @@ pipeline:
   - method: initialize_domain_config
   - method: train_models
   - method: visualize_loss_evolution
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true"
 

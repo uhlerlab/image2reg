@@ -1,10 +1,10 @@
-output_dir: "data/experiments/image_preprocessing"
+output_dir: "data/experiments/rohban/images/preprocessing"
 module: "src.preprocessing.image_preprocessing"
 class: "ImageDatasetPreprocessor"
 
 run_params:
-  image_input_dir: "data/images/raw/"
-  metadata_file: "data/images/metadata/metadata_images.csv"
+  image_input_dir: "data/resources/images/rohban/illum_corrected"
+  metadata_file: "data/resources/images/rohban/metadata/metadata_images.csv"
   raw_image_col_name: "Image_FileName_OrigHoechst"
   illum_image_col_name: "Image_FileName_IllumHoechst"
   plate_col_name: "Image_Metadata_Plate"
@@ -29,7 +29,7 @@ pipeline:
 #
   - method: get_nuclear_crops
     params:
-      label_image_input_dir: "data/experiments/image_preprocessing/unet_segmentation"
+      label_image_input_dir: "data/resources/images/rohban/unet_masks"
       nuclei_count_col_name: "Image_Count_Nuclei"
       min_area: 400
       max_area: 4000

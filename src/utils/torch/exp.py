@@ -9,7 +9,7 @@ import torch
 from sklearn.metrics import balanced_accuracy_score
 from tqdm import tqdm
 
-from src.helper.models import DomainConfig, DomainModelConfig, LatentClassifierConfig
+from src.helper.models import DomainConfig, DomainModelConfig, BatchModelConfig
 from src.utils.torch.evaluation import visualize_image_ae_performance
 from src.utils.torch.general import get_device
 
@@ -22,7 +22,7 @@ def model_train_val_test_loop(
     lamb: float = 0.01,
     device: str = None,
     save_freq: int = -1,
-    latent_clf_config: LatentClassifierConfig = None,
+    batch_clf_config: BatchModelConfig = None,
 ) -> Tuple[dict, dict, dict]:
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -81,7 +81,7 @@ def model_train_val_test_loop(
                 phase=phase,
                 device=device,
                 epoch=i,
-                latent_clf_config=latent_clf_config,
+                batch_clf_config=batch_clf_config,
             )
 
             logging.debug(
@@ -116,26 +116,32 @@ def model_train_val_test_loop(
                     )
                 )
 
-            if "latent_clf_loss" in epoch_statistics:
+            if "adv_batch_clf_loss" in epoch_statistics:
                 logging.debug(
-                    "Latent classification loss for {} domain: {:.8f}".format(
-                        domain_config.name, epoch_statistics["latent_clf_loss"]
+                    "Adversarial batch classification loss for {} domain: {:.8f}"
+                    .format(domain_config.name, epoch_statistics["adv_batch_clf_loss"])
+                )
+
+            if "batch_clf_loss" in epoch_statistics:
+                logging.debug(
+                    "Batch classification loss for {} domain: {:.8f}".format(
+                        domain_config.name, epoch_statistics["batch_clf_loss"]
                     )
                 )
 
-            if "latent_clf_accuracy" in epoch_statistics:
+            if "batch_clf_accuracy" in epoch_statistics:
                 logging.debug(
-                    "Latent classification accuracy for domain {}: {:.8f}".format(
-                        domain_config.name, epoch_statistics["latent_clf_accuracy"]
+                    "Batch classification accuracy for domain {}: {:.8f}".format(
+                        domain_config.name, epoch_statistics["batch_clf_accuracy"]
                     )
                 )
 
-            if "latent_clf_balanced_accuracy" in epoch_statistics:
+            if "batch_clf_balanced_accuracy" in epoch_statistics:
                 logging.debug(
-                    "Latent classification balanced accuracy for domain {}: {:.8f}"
+                    "Batch classification balanced accuracy for domain {}: {:.8f}"
                     .format(
                         domain_config.name,
-                        epoch_statistics["latent_clf_balanced_accuracy"],
+                        epoch_statistics["batch_clf_balanced_accuracy"],
                     )
                 )
 
@@ -154,7 +160,12 @@ def model_train_val_test_loop(
 
                 # TODO undo changes that triggers early stopping based on accuracy not loss (for single target vs control desired)
                 # if epoch_total_loss < best_total_loss:
-                if epoch_statistics["clf_balanced_accuracy"] > best_accuracy:
+                if (
+                    batch_clf_config is None
+                    and epoch_statistics["clf_balanced_accuracy"] > best_accuracy
+                ) or (
+                    batch_clf_config is not None and epoch_total_loss < best_total_loss
+                ):
                     best_epoch = i
                     es_counter = 0
                     best_total_loss = epoch_total_loss
@@ -207,7 +218,11 @@ def model_train_val_test_loop(
 
     if "test" in domain_config.data_loader_dict:
         epoch_statistics = process_single_epoch(
-            domain_config=domain_config, lamb=lamb, phase="test", device=device
+            domain_config=domain_config,
+            lamb=lamb,
+            phase="test",
+            device=device,
+            batch_clf_config=batch_clf_config,
         )
 
         logging.debug("TEST LOSS STATISTICS")
@@ -240,23 +255,30 @@ def model_train_val_test_loop(
                 )
             )
 
-        if "latent_clf_loss" in epoch_statistics:
+        if "adv_batch_clf_loss" in epoch_statistics:
             logging.debug(
-                "Latent classification loss for {} domain: {:.8f}".format(
-                    domain_config.name, epoch_statistics["latent_clf_loss"]
+                "Adversarial batch classification loss for {} domain: {:.8f}".format(
+                    domain_config.name, epoch_statistics["adv_batch_clf_loss"]
                 )
             )
 
-        if "latent_clf_accuracy" in epoch_statistics:
+        if "batch_clf_loss" in epoch_statistics:
             logging.debug(
-                "Latent classification accuracy for domain {}: {:.8f}".format(
-                    domain_config.name, epoch_statistics["latent_clf_accuracy"]
+                "Batch classification loss for {} domain: {:.8f}".format(
+                    domain_config.name, epoch_statistics["batch_clf_loss"]
                 )
             )
-        if "latent_clf_balanced_accuracy" in epoch_statistics:
+
+        if "batch_clf_accuracy" in epoch_statistics:
             logging.debug(
-                "Latent classification balanced accuracy for domain {}: {:.8f}".format(
-                    domain_config.name, epoch_statistics["latent_clf_balanced_accuracy"]
+                "Batch classification accuracy for domain {}: {:.8f}".format(
+                    domain_config.name, epoch_statistics["batch_clf_accuracy"]
+                )
+            )
+        if "batch_clf_balanced_accuracy" in epoch_statistics:
+            logging.debug(
+                "Batch classification balanced accuracy for domain {}: {:.8f}".format(
+                    domain_config.name, epoch_statistics["batch_clf_balanced_accuracy"]
                 )
             )
 
@@ -313,7 +335,7 @@ def process_single_epoch(
     phase: str = "train",
     device: str = "cuda:0",
     epoch: int = -1,
-    latent_clf_config=None,
+    batch_clf_config=None,
 ) -> dict:
     # Get domain configurations for the domain
     domain_model_config = domain_config.domain_model_config
@@ -322,19 +344,22 @@ def process_single_epoch(
     data_key = domain_config.data_key
     label_key = domain_config.label_key
     extra_feature_key = domain_config.extra_feature_key
+    batch_key = domain_config.batch_key
 
     # Initialize epoch statistics    recon_loss = 0
     recon_loss = 0
     clf_loss = 0
     n_correct = 0
     n_total = 0
-    latent_clf_loss = 0
-    latent_n_correct = 0
-    latent_n_total = 0
+    adv_batch_clf_loss = 0
+    batch_clf_loss = 0
+    batch_n_correct = 0
+    batch_n_total = 0
     total_loss = 0
     labels = np.array([])
     preds = np.array([])
-    latent_preds = np.array([])
+    batch_preds = np.array([])
+    batch_labels = np.array([])
 
     model_base_type = domain_model_config.model.model_base_type.lower()
 
@@ -345,8 +370,12 @@ def process_single_epoch(
         # Set model_configs
         domain_model_config.inputs = samples[data_key]
         domain_model_config.labels = samples[label_key]
+
         if extra_feature_key is not None:
             domain_model_config.extra_features = samples[extra_feature_key]
+
+        if batch_key is not None:
+            domain_model_config.batch_labels = samples[batch_key]
 
         batch_statistics = process_single_batch(
             domain_model_config=domain_model_config,
@@ -354,7 +383,7 @@ def process_single_epoch(
             phase=phase,
             device=device,
             model_base_type=model_base_type,
-            latent_clf_config=latent_clf_config,
+            batch_clf_config=batch_clf_config,
         )
         if "recon_loss" in batch_statistics:
             recon_loss += batch_statistics["recon_loss"]
@@ -374,17 +403,23 @@ def process_single_epoch(
         if "labels" in batch_statistics:
             labels = np.append(labels, batch_statistics["labels"])
 
-        if "latent_preds" in batch_statistics:
-            latent_preds = np.append(latent_preds, batch_statistics["latent_preds"])
+        if "adv_batch_clf_loss" in batch_statistics:
+            adv_batch_clf_loss += batch_statistics["adv_batch_clf_loss"]
 
-        if "latent_clf_loss" in batch_statistics:
-            latent_clf_loss += batch_statistics["latent_clf_loss"]
+        if "batch_preds" in batch_statistics:
+            batch_preds = np.append(batch_preds, batch_statistics["batch_preds"])
 
-        if "latent_n_correct" in batch_statistics:
-            latent_n_correct += batch_statistics["latent_n_correct"]
+        if "batch_labels" in batch_statistics:
+            batch_labels = np.append(batch_labels, batch_statistics["batch_labels"])
 
-        if "latent_n_total" in batch_statistics:
-            latent_n_total += batch_statistics["latent_n_total"]
+        if "batch_clf_loss" in batch_statistics:
+            batch_clf_loss += batch_statistics["batch_clf_loss"]
+
+        if "batch_n_correct" in batch_statistics:
+            batch_n_correct += batch_statistics["batch_n_correct"]
+
+        if "batch_n_total" in batch_statistics:
+            batch_n_total += batch_statistics["batch_n_total"]
 
         total_loss += batch_statistics["total_loss"]
 
@@ -400,15 +435,15 @@ def process_single_epoch(
     else:
         clf_bac = -1
 
-    if latent_n_total != 0:
-        latent_clf_accuracy = latent_n_correct / latent_n_total
+    if batch_n_total != 0:
+        batch_clf_accuracy = batch_n_correct / batch_n_total
     else:
-        latent_clf_accuracy = -1
+        batch_clf_accuracy = -1
 
-    if len(latent_preds) > 0:
-        latent_clf_bac = balanced_accuracy_score(labels, latent_preds)
+    if len(batch_preds) > 0:
+        batch_clf_bac = balanced_accuracy_score(batch_labels, batch_preds)
     else:
-        latent_clf_bac = -1
+        batch_clf_bac = -1
 
     total_loss /= len(data_loader.dataset)
 
@@ -423,10 +458,13 @@ def process_single_epoch(
         epoch_statistics["clf_accuracy"] = clf_accuracy
         epoch_statistics["clf_balanced_accuracy"] = clf_bac
 
-    if latent_clf_config is not None:
-        epoch_statistics["latent_clf_loss"] = latent_clf_loss
-        epoch_statistics["latent_clf_accuracy"] = latent_clf_accuracy
-        epoch_statistics["latent_clf_balanced_accuracy"] = latent_clf_bac
+    if batch_clf_config is not None:
+        epoch_statistics["adv_batch_clf_loss"] = adv_batch_clf_loss / len(
+            data_loader.dataset
+        )
+        epoch_statistics["batch_clf_loss"] = batch_clf_loss / len(data_loader.dataset)
+        epoch_statistics["batch_clf_accuracy"] = batch_clf_accuracy
+        epoch_statistics["batch_clf_balanced_accuracy"] = batch_clf_bac
 
     return epoch_statistics
 
@@ -438,7 +476,7 @@ def process_single_batch(
     phase: str = "train",
     device: str = "cuda:0",
     model_base_type: str = None,
-    latent_clf_config: LatentClassifierConfig = None,
+    batch_clf_config: BatchModelConfig = None,
 ) -> dict:
     # Get all parameters of the configuration for domain i
     model = domain_model_config.model
@@ -446,6 +484,7 @@ def process_single_batch(
     inputs = domain_model_config.inputs
     labels = domain_model_config.labels
     extra_features = domain_model_config.extra_features
+    batch_labels = domain_model_config.batch_labels
     train = domain_model_config.trainable
 
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, verbose=True)
@@ -459,16 +498,11 @@ def process_single_batch(
     else:
         model.eval()
 
-    if latent_clf_config is not None:
-        latent_clf = latent_clf_config.classifier
-        latent_clf_loss_function = latent_clf_config.loss_function
-        latent_clf_optim = latent_clf_config.optimizer
-        latent_clf.to(device)
-        if phase == "train":
-            latent_clf.train()
-            latent_clf_optim.zero_grad()
-        else:
-            latent_clf.eval()
+    if batch_clf_config is not None:
+        batch_clf = batch_clf_config.model
+        batch_clf_loss_function = batch_clf_config.loss_function
+        batch_clf_optim = batch_clf_config.optimizer
+        batch_clf.to(device)
 
     # Forward pass of the classifier
     inputs = inputs
@@ -477,7 +511,13 @@ def process_single_batch(
     if extra_features is not None:
         extra_features = extra_features.float().to(device)
 
-    outputs = model(inputs, extra_features)
+    if batch_labels is not None:
+        batch_labels = batch_labels.float().to(device)
+        outputs = model(inputs, extra_features, batch_labels)
+    else:
+        outputs = model(inputs, extra_features)
+
+    total_loss = 0
 
     if model_base_type is None or model_base_type not in ["ae", "clf"]:
         raise RuntimeError("Unknown classifier given. No base type defined.")
@@ -486,25 +526,34 @@ def process_single_batch(
         recons = outputs["recons"]
         latents = outputs["latents"]
         recon_loss = domain_model_config.loss_function(inputs, recons)
-        total_loss = recon_loss
+        total_loss += recon_loss
 
     elif model_base_type == "clf":
         clf_outputs = outputs["outputs"]
+        latents = outputs["latents"]
         clf_loss = domain_model_config.loss_function(clf_outputs, labels)
         _, preds = torch.max(clf_outputs, 1)
         n_total = preds.size(0)
         n_correct = torch.sum(torch.eq(labels, preds)).item()
-        total_loss = clf_loss
+        total_loss += clf_loss
     else:
         raise RuntimeError("Unknown classifier type: {}".format(model_base_type))
 
-    if latent_clf_config is not None:
-        latent_clf_outputs = latent_clf(latents, extra_features)
-        latent_clf_loss = latent_clf_loss_function(latent_clf_outputs, labels)
-        _, latent_preds = torch.max(latent_clf_outputs, 1)
-        latent_n_total = preds.size(0)
-        latent_n_correct = torch.sum(torch.eq(labels, preds)).item()
-        total_loss += lamb * latent_clf_loss
+    if batch_clf_config is not None:
+        batch_clf.eval()
+        batch_clf_outputs = batch_clf(latents, extra_features)["outputs"]
+        # Todo hard-coded for max batch which is encoded as label 0
+        pseudo_batch_labels = torch.zeros_like(batch_labels.max(dim=1)[1])
+        pseudo_batch_labels = torch.randint_like(batch_labels.max(dim=1)[1], low=0, high=batch_labels.max(dim=1)[1].max()+1)
+        pseudo_batch_clf_loss = batch_clf_loss_function(
+            batch_clf_outputs, pseudo_batch_labels
+        )
+        _, pseudo_batch_preds = torch.max(batch_clf_outputs, 1)
+        # batch_n_total = batch_preds.size(0)
+        pseudo_batch_n_correct = torch.sum(
+            torch.eq(pseudo_batch_labels, pseudo_batch_preds)
+        ).item()
+        total_loss += lamb * pseudo_batch_clf_loss
 
     # Backpropagate loss and update parameters if we are in the training phase
     if phase == "train":
@@ -518,6 +567,30 @@ def process_single_batch(
     batch_size = labels.size(0)
     total_loss_item = total_loss.item() * batch_size
 
+    # Train batch classifier
+    if batch_clf_config:
+        model.eval()
+        with torch.no_grad():
+            latents = model(inputs, extra_features, batch_labels)["latents"]
+
+        if phase == "train":
+            batch_clf.train()
+            batch_clf_optim.zero_grad()
+
+        batch_clf_outputs = batch_clf(latents, extra_features)["outputs"]
+        batch_clf_loss = batch_clf_loss_function(
+            batch_clf_outputs, batch_labels.max(dim=1)[1]
+        )
+        _, batch_preds = torch.max(batch_clf_outputs, 1)
+        batch_n_total = batch_preds.size(0)
+        batch_n_correct = torch.sum(
+            torch.eq(batch_labels.max(dim=1)[1], batch_preds)
+        ).item()
+
+        if phase == "train":
+            batch_clf_loss.backward()
+            batch_clf_optim.step()
+
     batch_statistics = dict()
 
     if model_base_type in ["ae", "vae"]:
@@ -528,12 +601,18 @@ def process_single_batch(
         batch_statistics["n_total"] = n_total
         batch_statistics["preds"] = preds.detach().cpu().numpy()
         batch_statistics["labels"] = labels.detach().cpu().numpy()
-    if latent_clf_config is not None:
-        batch_statistics["latent_clf_loss"] = latent_clf_loss.item() * batch_size
-        batch_statistics["latent_n_correct"] = latent_n_correct
-        batch_statistics["latent_n_total"] = latent_n_total
-        batch_statistics["latent_preds"] = latent_preds.detach().cpu().numpy()
-        batch_statistics["labels"] = labels.detach().cpu().numpy()
+    if batch_clf_config is not None:
+        batch_statistics["adv_batch_clf_loss"] = (
+            pseudo_batch_clf_loss.item() * lamb * batch_size
+        )
+        batch_statistics["adv_batch_n_correct"] = pseudo_batch_n_correct
+        batch_statistics["batch_clf_loss"] = batch_clf_loss.item() * batch_size
+        batch_statistics["batch_n_correct"] = batch_n_correct
+        batch_statistics["batch_n_total"] = batch_n_total
+        batch_statistics["batch_preds"] = batch_preds.detach().cpu().numpy()
+        batch_statistics["batch_labels"] = (
+            batch_labels.max(dim=1)[1].detach().cpu().numpy()
+        )
 
     batch_statistics["total_loss"] = total_loss_item
 

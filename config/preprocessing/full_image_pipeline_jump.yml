@@ -1,0 +1,31 @@
+output_dir: "data/experiments/jump/images/preprocessing/full_pipeline"
+module: "src.preprocessing.image_preprocessing"
+class: "ImageJUMPDatasetPreprocessor"
+
+run_params:
+  image_input_dir: "data/resources/images/jump/raw"
+  illum_image_dir: "data/resources/images/jump/illum_corrected"
+  metadata_file: "data/resources/images/jump/metadata/image_loc_metadata.csv.gz"
+  illum_image_col_name: "IllumImageLoc"
+  plate_col_name: "Metadata_Batch"
+  well_col_name: "Metadata_Well"
+
+pipeline:
+  - method: get_nuclear_crops
+    params:
+      label_image_input_dir: "data/resources/images/jump/unet_masks"
+      nuclei_count_col_name: "Count_Cells"
+      min_area: 400
+      max_area: 4000
+      max_bbarea: 4000
+      max_eccentricity: 1.0
+      min_solidity: 0.1
+      min_aspect_ratio: 0.1
+      n_jobs: 20
+
+  - method: save_padded_images
+    params:
+      target_size: [64,64]
+
+
+

@@ -73,20 +73,34 @@ class SimpleConvClassifier(Module):
 
 
 class ModelEnsemble(nn.Module):
-    def __init__(self, models, input_dim: int, latent_dim: int, n_output_nodes: int):
+    def __init__(
+        self,
+        models,
+        input_dim: int,
+        latent_dim: int,
+        n_output_nodes: int,
+        additional_latent_dim: int = 0,
+    ):
         super().__init__()
         self.models = nn.ModuleList(models)
         self.encoder = nn.Linear(input_dim, latent_dim)
+        self.additional_latent_dim = additional_latent_dim
         self.output_layer = nn.Sequential(
-            nn.BatchNorm1d(latent_dim),
+            nn.BatchNorm1d(latent_dim + self.additional_latent_dim),
             nn.PReLU(),
-            nn.Linear(latent_dim, n_output_nodes),
+            nn.Linear(latent_dim + self.additional_latent_dim, n_output_nodes),
         )
         self.device = get_device()
+
         # self.models.to(self.device)
         self.model_base_type = "clf"
 
-    def forward(self, inputs: List[Tensor], extra_features: Tensor = None) -> dict:
+    def forward(
+        self,
+        inputs: List[Tensor],
+        extra_features: Tensor = None,
+        batch_labels: Tensor = None,
+    ) -> dict:
         outputs = []
 
         for i in range(len(self.models)):
@@ -94,9 +108,12 @@ class ModelEnsemble(nn.Module):
             outputs.append(output["outputs"])
         # latents = torch.cat(outputs, dim=1)
         latents = self.encoder(torch.cat(outputs, dim=1))
+        expanded_latents = latents.clone()
         if extra_features is not None:
-            latents = torch.cat([latents, extra_features], dim=1)
-        outputs = self.output_layer(latents)
+            expanded_latents = torch.cat([expanded_latents, extra_features], dim=1)
+        if batch_labels is not None:
+            expanded_latents = torch.cat([expanded_latents, batch_labels], dim=1)
+        outputs = self.output_layer(expanded_latents)
         output = {"outputs": outputs, "latents": latents}
         return output
 
@@ -228,7 +245,7 @@ class LatentClassifier(nn.Module):
         hidden_dims: List = None,
         n_classes: int = 10,
         loss_fct: nn.Module = None,
-        class_weights:np.ndarray=None
+        class_weights: np.ndarray = None,
     ):
         super().__init__()
         self.latent_dim = latent_dim
@@ -293,7 +310,7 @@ class SimpleDiscriminator(nn.Module, ABC):
                 nn.Sequential(
                     nn.Linear(self.latent_dim + self.extra_feature_dim, hidden_dims[0]),
                     nn.ReLU(),
-                    nn.BatchNorm1d(self.hidden_dims[0]),
+                    #nn.BatchNorm1d(self.hidden_dims[0]),
                 )
             ]
             for i in range(0, len(self.hidden_dims) - 1):
@@ -301,7 +318,7 @@ class SimpleDiscriminator(nn.Module, ABC):
                     nn.Sequential(
                         nn.Linear(self.hidden_dims[i], self.hidden_dims[i + 1]),
                         nn.ReLU(),
-                        nn.BatchNorm1d(self.hidden_dims[i + 1]),
+                        #nn.BatchNorm1d(self.hidden_dims[i + 1]),
                     )
                 )
             model_modules.append(nn.Linear(self.hidden_dims[-1], self.n_classes))
@@ -309,9 +326,13 @@ class SimpleDiscriminator(nn.Module, ABC):
         else:
             self.model = nn.Linear(self.latent_dim, self.n_classes)
 
-    def forward(self, input: Tensor, extra_features: Tensor = None) -> dict:
+    def forward(
+        self, input: Tensor, extra_features: Tensor = None, batch_labels: Tensor = None
+    ) -> dict:
         if extra_features is not None:
             input = torch.cat([input, extra_features], dim=1)
+        if batch_labels is not None:
+            input = torch.cat([input, batch_labels], dim=1)
         outputs = self.model(input.float().to(self.device))
         return {"outputs": outputs, "latents": input}
 
@@ -331,7 +352,7 @@ class SimpleClassifier(nn.Module):
                 nn.Sequential(
                     nn.Linear(self.input_dim, self.hidden_dims[0]),
                     nn.ReLU(),
-                    nn.BatchNorm1d(self.hidden_dims[0]),
+                    #nn.BatchNorm1d(self.hidden_dims[0]),
                 )
             )
             for i in range(1, len(self.hidden_dims)):
@@ -339,7 +360,7 @@ class SimpleClassifier(nn.Module):
                     nn.Sequential(
                         nn.Linear(self.hidden_dims[i - 1], self.hidden_dims[i]),
                         nn.ReLU(),
-                        nn.BatchNorm1d(self.hidden_dims[i]),
+                        #nn.BatchNorm1d(self.hidden_dims[i]),
                     )
                 )
             modules.append(nn.Linear(self.hidden_dims[-1], self.n_output_nodes))

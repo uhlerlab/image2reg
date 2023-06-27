@@ -1,0 +1,57 @@
+output_dir: 'data/experiments/image_embeddings/jump/specificity_target_emb_cv_strat/fold_0/'
+module: src.experiments.image_embeddings
+class: ImageEmbeddingExperiment
+run_params:
+  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/jump/full_pipeline/padded_nuclei',
+                'nuclei_metadata_file':'data/experiments/image_preprocessing/jump/full_pipeline/padded_nuclei_metadata.csv.gz',
+                'slide_image_dir': 'data/images/jump/illum_corrected',
+                'data_key':'images', 'label_key':'label', 'index_key':'image_file',
+                'pseudo_rgb':True,
+                'train_target_list': ['AKT1S1', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDKN1A', 'CREB1', 'DIABLO',
+                                'ELK1', 'EMPTY', 'ERG', 'FGFR3', 'HRAS', 'IRAK4', 'JUN', 'MAP3K2', 'MAP3K5', 'MAP3K9',
+                                'MYD88', 'PIK3R2', 'PRKACA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'SMAD4', 'SRC', 'SREBF1',
+                                'TRAF2', 'TSC2','WWTR1'],
+                'plate_col': 'batch',
+                }
+
+  model_config: {'model_config':{
+                        'type':'ensemble',
+                        'input_dim': 1024,
+                        'latent_dim': 1024,
+                        'n_output_nodes': 32,
+                        'component_dicts':[
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0},
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0}
+                        ]
+                 },
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.001},
+                 'loss_config':{'type':'ce'}}
+
+  domain_name: 'image'
+  num_epochs: 300
+  early_stopping: 5
+  batch_size: 32
+  random_state: 1234
+  save_freq: 50
+  train_val_test_split: [0.33, 0.33, 0.34]
+
+pipeline:
+  - method: initialize_image_data_set
+    params:
+      multi_image: True
+  - method: initialize_data_transform_pipeline
+    params:
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: load_model
+    params:
+      weights_fname: "data/experiments/image_embeddings/jump/specificity_target_emb_cv_strat/fold_0/nuclei_regions/best_model_weights.pth"
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true"
+      dataset_types: ["test"]
+  - method: extract_and_save_latents
+

@@ -11,7 +11,7 @@ import torch
 from PIL import Image
 from imblearn.under_sampling import RandomUnderSampler
 from skimage.io import imread
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder
 from torch import Tensor
 from torch.utils.data import Dataset, Subset, ConcatDataset
 from torchvision import transforms
@@ -65,7 +65,7 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
             self.feature_labels = self.feature_labels.loc[
                 self.feature_labels[label_col].isin(target_list), :
             ]
-        if "EMPTY" in target_list:
+        if target_list is not None and "EMPTY" in target_list:
             idc = np.array(list(range(len(self.feature_labels)))).reshape(-1, 1)
             labels = self.feature_labels[self.label_col]
             idc, _ = RandomUnderSampler(
@@ -103,7 +103,9 @@ class TorchProfileSlideDataset(LabeledSlideDataset):
             )
         )
         sc = StandardScaler()
+        # sc = RobustMAD()
         self.features = sc.fit_transform(self.features)
+        self.features = np.clip(self.features, -15, 15)
 
     def __len__(self):
         return len(self.features)
@@ -124,34 +126,39 @@ class TorchImageSlideDataset(LabeledSlideDataset):
         image_file_col: str = "image_file",
         plate_col: str = "plate",
         label_col: str = "gene_symbol",
+        batch_col: str = "batch",
         slide_image_name_col: str = "slide_image_name",
         extra_features: List = None,
         nuclei_density_col: str = "nuclei_count_image",
         elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
+        selected_batches: List = None,
         target_list: List = None,
         n_control_samples: int = None,
-        transform_pipeline: transforms.Compose = None,
         pseudo_rgb: bool = False,
         nmco_feature_file: str = None,
+        train_target_list: List = None,
     ):
         super().__init__()
         self.image_dir = image_dir
         self.metadata_file = metadata_file
         self.image_file_col = image_file_col
         self.plate_col = plate_col
+        self.batch_col = batch_col
         self.label_col = label_col
         self.metadata = pd.read_csv(self.metadata_file, index_col=0)
         self.extra_features = extra_features
         self.slide_image_name_col = slide_image_name_col
         self.target_list = target_list
+        self.train_target_list = train_target_list
+        self.batch_labels = None
 
         if self.target_list is not None:
             self.metadata = self.metadata.loc[
                 self.metadata[label_col].isin(target_list), :
             ]
             self.target_list = sorted(self.target_list)
-        else:
-            self.target_list = sorted(list(set(self.metadata[label_col])))
+        # else:
+        #     self.target_list = sorted(list(set(self.metadata[label_col])))
         if n_control_samples is not None and "EMPTY_nan" in list(
             self.metadata[label_col]
         ):
@@ -163,6 +170,14 @@ class TorchImageSlideDataset(LabeledSlideDataset):
                 sampling_strategy=target_n_samples, random_state=1234
             ).fit_resample(idc, labels)
             self.metadata = self.metadata.iloc[idc.flatten(), :]
+
+        if selected_batches is not None and batch_col in self.metadata.columns:
+            self.metadata = self.metadata.loc[
+                self.metadata.loc[:, batch_col].isin(selected_batches)
+            ]
+            logging.debug(
+                "Subset data to selected batches: {}".format(selected_batches)
+            )
 
         logging.debug(
             "Label counts: %s", dict(Counter(np.array(self.metadata[self.label_col]))),
@@ -207,8 +222,29 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             self.nmco_features = None
 
         self.labels = np.array(self.metadata.loc[:, label_col])
-        le = LabelEncoder().fit(self.labels)
+        le = LabelEncoder()
+        if self.train_target_list is not None and self.target_list is None:
+            unique_labels = self.train_target_list + sorted(
+                list(set(self.labels) - set(self.train_target_list))
+            )
+            le.classes_ = np.array(unique_labels)
+        elif self.train_target_list is None and self.target_list is None:
+            le.fit(self.labels)
+        else:
+            le.classes_ = np.array(self.target_list)
         self.labels = le.transform(self.labels)
+        self.target_list = np.array(list(le.classes_))
+
+        if self.batch_col in self.metadata.columns:
+            self.batch_labels = np.array(self.metadata.loc[:, batch_col])
+            batch_counter = Counter(self.batch_labels)
+            batch_categories = [
+                sorted(batch_counter, key=batch_counter.get, reverse=True)
+            ]
+            batch_ohe = OneHotEncoder(categories=batch_categories)
+            self.batch_labels = batch_ohe.fit_transform(
+                self.batch_labels.reshape(-1, 1)
+            ).toarray()
 
         if nuclei_density_col in self.metadata.columns:
             self.nuclei_densities = np.array(
@@ -254,6 +290,9 @@ class TorchImageSlideDataset(LabeledSlideDataset):
             "image_file": os.path.split(image_loc)[1],
             "slide_image_file": self.slide_image_names[idx],
         }
+
+        if self.batch_labels is not None:
+            sample["batch"] = self.batch_labels[idx]
 
         if self.extra_features is not None:
             extra_feature_vec = []
@@ -317,12 +356,15 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
         slide_mask_dir: str = None,
         image_file_col: str = "image_file",
         plate_col: str = "plate",
+        batch_col: str = "batch",
         label_col: str = "gene_symbol",
         slide_image_name_col: str = "slide_image_name",
         extra_features: List = None,
         nuclei_density_col: str = "nuclei_count_image",
         elongation_ratio_col: str = "aspect_ratio_cluster_ratio",
         target_list: List = None,
+        train_target_list: List = None,
+        selected_batches: List = None,
         n_control_samples: int = None,
         transform_pipeline: transforms.Compose = None,
         pseudo_rgb: bool = False,
@@ -339,10 +381,12 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             nuclei_density_col=nuclei_density_col,
             elongation_ratio_col=elongation_ratio_col,
             target_list=target_list,
+            train_target_list=train_target_list,
             n_control_samples=n_control_samples,
-            transform_pipeline=transform_pipeline,
             pseudo_rgb=pseudo_rgb,
             nmco_feature_file=nmco_feature_file,
+            batch_col=batch_col,
+            selected_batches=selected_batches,
         )
         self.nuclei_image_dir = nuclei_image_dir
         self.nuclei_metadata = self.metadata
@@ -401,6 +445,8 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             centroid=centroid,
         )
         gene_label = self.labels[idx]
+        # binary_nuclei_image = (nuclei_image > 0).float()
+        # binary_slide_image = (binary_nuclei_image >0).float()
 
         sample = {
             "id": nuclei_image_loc,
@@ -410,7 +456,15 @@ class TorchMultiImageSlideDataset(TorchImageSlideDataset):
             "label": gene_label,
             "image_file": os.path.split(nuclei_image_loc)[1],
             "slide_image_file": os.path.split(slide_image_loc)[1],
+            # "binary_nuclei_image": binary_nuclei_image,
+            # 'binary_slide_image':binary_slide_image,
+            # "binary_nuclei_region_image": [binary_nuclei_image, slide_image],
+            # "nuclei_binary_region_image": [nuclei_image, binary_slide_image],
+            # "binary_images": [binary_nuclei_image, binary_slide_image]
         }
+
+        if self.batch_labels is not None:
+            sample["batch"] = self.batch_labels[idx]
 
         if self.extra_features is not None:
             extra_feature_vec = []

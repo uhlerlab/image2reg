@@ -69,16 +69,32 @@ class LogAnalyzer(object):
                         self.val_bacc.append(bacc)
                     elif mode == "test":
                         self.test_bacc = bacc
-                elif "best model" in line:
+                elif "best model" in line.lower():
                     self.best_epoch = int(words[-1]) - 1
-
         if len(self.train_acc) > 0:
             self.best_train_acc = self.train_acc[self.best_epoch]
+        else:
+            self.train_acc = -1
+        if len(self.val_acc) > 0:
             self.best_val_acc = self.val_acc[self.best_epoch]
+        else:
+            self.best_val_acc = -1
+        if len(self.train_bacc) > 0:
             self.best_train_bacc = self.train_bacc[self.best_epoch]
+        else:
+            self.best_train_bacc = -1
+        if len(self.val_bacc) > 0:
             self.best_val_bacc = self.val_bacc[self.best_epoch]
-        self.best_train_loss = self.train_loss[self.best_epoch]
-        self.best_val_loss = self.val_loss[self.best_epoch]
+        else:
+            self.best_val_bacc = -1
+        if len(self.train_loss) > 0:
+            self.best_train_loss = self.train_loss[self.best_epoch]
+        else:
+            self.best_train_loss = np.infty
+        if len(self.val_loss) > 0:
+            self.best_val_loss = self.val_loss[self.best_epoch]
+        else:
+            self.best_val_loss = np.infty
 
     def __str__(self):
         return (

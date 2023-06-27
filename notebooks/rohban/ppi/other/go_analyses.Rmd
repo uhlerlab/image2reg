@@ -1,0 +1,233 @@
+---
+title: 'GO of the gene clusters in the physical space'
+author: "Daniel Paysan"
+date: "06/07/2022"
+output: html_document
+---
+
+This notebook conducts a GO analysis to characterize the gene clusters identified in the physical space.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/home/daniel/PycharmProjects/image2reg/")
+```
+
+# 0. Environmental setup
+
+First, we load the required packages.
+
+```{r environmental setup}
+require("topGO")
+require("KEGGREST")
+require("org.Hs.eg.db")
+require("GeneAnswers")
+require("EnrichmentBrowser")
+```
+Next, we load a function that enables a simple GO analysis using the topGO API.
+
+```{r}
+# taken from https://github.com/karthikshekhar/CellTypeMIMB/blob/master/utilities.R
+topGOterms = function(fg.genes = NULL,
+                      bg.genes = NULL,
+                      organism = "Mouse",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 100) {
+  if (is.null(fg.genes) | is.null(bg.genes)) {
+    stop("Error : Both gene lists are empty")
+  }
+  
+  require(topGO)
+  if (organism == "Mouse") {
+    mapping.use = "org.Mm.eg.db"
+    require(org.Mm.eg.db)
+  } else if (organism == "Human") {
+    mapping.use = "org.Hs.eg.db"
+    require(org.Hs.eg.db)
+  } else {
+    stop("Error : Organisms other than mouse not supported currently")
+  }
+  
+  n = length(bg.genes)
+  geneList = integer(n)
+  names(geneList) = bg.genes
+  geneList[intersect(names(geneList), fg.genes)] = 1
+  print(paste0(
+    "Total ",
+    length(geneList),
+    " genes. ",
+    sum(geneList),
+    " genes in the foreground"
+  ))
+  geneList = factor(geneList)
+  
+  if (ontology.use %in% c("BP", "CC", "MF")) {
+    print(paste0("Using Ontology : ", ontology.use))
+  } else {
+    stop("Error: Ontology not available. Should be one of BP, CC or MF")
+  }
+  # Make GO object
+  GOdata <- new(
+    "topGOdata",
+    description = "GOanalysis",
+    ontology = ontology.use,
+    allGenes = geneList,
+    annot = annFUN.org,
+    mapping = mapping.use,
+    ID = "SYMBOL",
+    nodeSize = 10
+  )
+  print(paste0(
+    "Using the ",
+    stats.use,
+    " statistic with the ",
+    algorithm.use,
+    " algorithm"
+  ))
+  res.result <-
+    runTest(GOdata, statistic = stats.use, algorithm = algorithm.use)
+  to.return = list()
+  to.return$GOdata = GOdata
+  
+  allGO = usedGO(object = GOdata) 
+  
+  to.return$res.table <-
+    GenTable(GOdata,
+             pval = res.result,
+             topNodes = length(allGO),
+             numChar = num.char)
+  return(to.return)
+}
+```
+
+
+# 1. Gene Ontology analyses
+
+We now conduct the gene ontology analysis for the individual clusters and correct the computed p-values for multiple testing using the Bonferroni-Holm procedure.
+To characterize each cluster, we look at the top-10 GO terms.
+
+
+The background is given by all identified physical regulator genes.
+
+```{r}
+all_genes <- c('CEBPA', 'CXXC4', 'E2F1', 'ERG', 'JUN', 'FGFR3', 'MAP3K5', 'MAPK7', 'MOS', 'PIK3R2', 'PRKCE', 'RELB', 'SRC', 'TRAF2', 'WWTR1', 'ATF4', 'BAX', 'CREB1', 'ELK1', 'IRAK4', 'SMAD4', 'TSC2', 'AKT1S1', 'BRAF', 'CDC42', 'DIABLO', 'FOXO1', 'GLI1', 'MAP2K3', 'MAP3K2', 'MAP3K9', 'MYD88', 'PRKACA', 'RAF1', 'RHOA', 'SMO', 'SREBF1', 'CDKN1A', 'BCL2L11', 'CASP8', 'HRAS')
+```
+
+
+```{r}
+selected_genes <- c('SREBF1', 'WWTR1', 'FOXO1', 'DIABLO', 'MYD88', 'RHOA', 'SMO')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('PIK3R2', 'TRAF2', 'FGFR3', 'AKT1S1', 'PRKCE', 'MOS', 'SRC')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('BRAF', 'RAF1', 'CDC42', 'MAP3K2', 'MAP3K9')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('BCL2L11', 'CASP8')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('RELB', 'MAP3K5', 'MAP2K3', 'MAPK7')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('IRAK4', 'BAX', 'SMAD4', 'TSC2', 'CREB1', 'ATF4')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('CEBPA', 'JUN', 'ERG')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('ELK1', 'E2F1')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```
+
+```{r}
+selected_genes <- c('PRKACA', 'CXXC4', 'GLI1')
+steiner_go_results <-  topGOterms(fg.genes = selected_genes,
+                      bg.genes = all_genes,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+steiner_go_results$res.table[,"FDR"] <- p.adjust(steiner_go_results$res.table$pval, method="fdr")
+head(steiner_go_results$res.table, 10)
+```

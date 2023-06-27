@@ -9,7 +9,7 @@ from torch.optim import Adam, RMSprop
 from torch.optim import Optimizer
 from torchvision import transforms, models
 
-from src.helper.models import DomainConfig
+from src.helper.models import DomainConfig, BatchModelConfig
 from src.models.ae import VanillaConvAE
 from src.models.clf import (
     resnet18,
@@ -29,7 +29,7 @@ from src.utils.torch.transforms import (
     CustomRandomHorizontalFlip,
     CustomRandomVerticalFlip,
     CustomCompose,
-    CustomNormalize,
+    CustomNormalize, CustomBinarize,
 )
 
 
@@ -45,7 +45,11 @@ def get_optimizer_for_model(optimizer_dict: dict, model: Module) -> Optimizer:
 
 
 def initialize_model_ensemble(
-    input_dim: int, n_output_nodes: int, latent_dim: int, component_dicts: List[dict]
+        input_dim: int,
+        n_output_nodes: int,
+        latent_dim: int,
+        component_dicts: List[dict],
+        additional_latent_dim: int = 0,
 ):
     models = []
     for component_dict in component_dicts:
@@ -55,6 +59,7 @@ def initialize_model_ensemble(
         latent_dim=latent_dim,
         models=models,
         n_output_nodes=n_output_nodes,
+        additional_latent_dim=additional_latent_dim,
     )
     return model
 
@@ -78,18 +83,18 @@ def get_model_from_model_dict(model_dict):
 
 
 def get_domain_configuration(
-    name: str,
-    model_dict: dict,
-    optimizer_dict: dict,
-    loss_fct_dict: dict,
-    data_loader_dict: dict,
-    data_key: str,
-    label_key: str,
-    index_key: str = None,
-    extra_feature_key: str = None,
-    train_model: bool = True,
+        name: str,
+        model_dict: dict,
+        optimizer_dict: dict,
+        loss_fct_dict: dict,
+        data_loader_dict: dict,
+        data_key: str,
+        label_key: str,
+        index_key: str = None,
+        extra_feature_key: str = None,
+        batch_key: str = None,
+        train_model: bool = True,
 ) -> DomainConfig:
-
     model = get_model_from_model_dict(model_dict)
     optimizer = get_optimizer_for_model(optimizer_dict=optimizer_dict, model=model)
 
@@ -122,11 +127,44 @@ def get_domain_configuration(
         data_key=data_key,
         label_key=label_key,
         index_key=index_key,
-        extra_feature_key=extra_feature_key,
         train_model=train_model,
+        extra_feature_key=extra_feature_key,
+        batch_key=batch_key,
     )
 
     return domain_config
+
+
+def get_batch_model_configuration(
+        model_dict: dict, optimizer_dict: dict, loss_dict: dict,
+) -> BatchModelConfig:
+    model = get_model_from_model_dict(model_dict)
+    optimizer = get_optimizer_for_model(optimizer_dict=optimizer_dict, model=model)
+
+    loss_fct_type = loss_dict.pop("type")
+    if loss_fct_type == "mae":
+        loss_function = L1Loss()
+    elif loss_fct_type == "mse":
+        loss_function = MSELoss()
+    elif loss_fct_type == "bce":
+        loss_function = BCELoss()
+    elif loss_fct_type == "bce_ll":
+        loss_function = BCEWithLogitsLoss()
+    elif loss_fct_type == "ce":
+        if "weight" in loss_dict:
+            weight = torch.FloatTensor(loss_dict["weight"]).to(get_device())
+        else:
+            weight = None
+        loss_function = CrossEntropyLoss(weight)
+    else:
+        raise NotImplementedError(
+            'Unknown loss function type "{}"'.format(loss_fct_type)
+        )
+
+    batch_model_config = BatchModelConfig(
+        model=model, loss_function=loss_function, optimizer=optimizer
+    )
+    return batch_model_config
 
 
 def get_randomflips_transformation_dict():
@@ -138,8 +176,8 @@ def get_randomflips_transformation_dict():
                 transforms.ToTensor(),
             ]
         ),
-        "val": transforms.Compose([transforms.ToTensor(),]),
-        "test": transforms.Compose([transforms.ToTensor(),]),
+        "val": transforms.Compose([transforms.ToTensor(), ]),
+        "test": transforms.Compose([transforms.ToTensor(), ]),
     }
     return data_transforms
 
@@ -173,6 +211,38 @@ def get_nuclei_image_transformations_dict(input_size):
     return data_transforms
 
 
+def get_binary_nuclei_image_transformations_dict(input_size):
+    data_transforms = {
+        "train": transforms.Compose(
+            [
+                CustomBinarize(),
+                transforms.Resize(input_size),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                ToRGBTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "val": transforms.Compose(
+            [
+                CustomBinarize(),
+                transforms.Resize(input_size),
+                ToRGBTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "test": transforms.Compose(
+            [
+                CustomBinarize(),
+                transforms.Resize(input_size),
+                ToRGBTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+    }
+    return data_transforms
+
+
 def get_slide_image_transformations_dict(input_size):
     data_transforms = {
         "train": CustomCompose(
@@ -195,6 +265,41 @@ def get_slide_image_transformations_dict(input_size):
         ),
         "test": CustomCompose(
             [
+                CustomCenteredCrop(448),
+                CustomResize(input_size),
+                ToRGBTensor(),
+                CustomNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+    }
+    return data_transforms
+
+
+def get_binary_slide_image_transformations_dict(input_size):
+    data_transforms = {
+        "train": CustomCompose(
+            [
+                CustomBinarize(),
+                CustomCenteredCrop(448),
+                CustomResize(input_size),
+                CustomRandomHorizontalFlip(p=0.5),
+                CustomRandomVerticalFlip(p=0.5),
+                ToRGBTensor(),
+                CustomNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "val": CustomCompose(
+            [
+                CustomBinarize(),
+                CustomCenteredCrop(448),
+                CustomResize(input_size),
+                ToRGBTensor(),
+                CustomNormalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            ]
+        ),
+        "test": CustomCompose(
+            [
+                CustomBinarize(),
                 CustomCenteredCrop(448),
                 CustomResize(input_size),
                 ToRGBTensor(),
@@ -281,13 +386,13 @@ def get_image_net_nonrandom_transformations_dict(input_size):
 
 
 def initialize_imagenet_model(
-    model_name,
-    n_output_nodes,
-    fix_feature_extractor: bool = False,
-    pretrained: bool = True,
-    fix_first_k_layers=None,
-    n_extra_features: int = 0,
-    dropout_rate: float = 0,
+        model_name,
+        n_output_nodes,
+        fix_feature_extractor: bool = False,
+        pretrained: bool = True,
+        fix_first_k_layers=None,
+        n_extra_features: int = 0,
+        dropout_rate: float = 0,
 ):
     r""" Method to get an initialized a Imagenet CNN classifier.
 
@@ -416,7 +521,7 @@ def initialize_imagenet_model(
 
 
 def set_parameter_requires_grad(
-    model, fix_feature_extractor: bool = False, fix_first_k_layers: int = None
+        model, fix_feature_extractor: bool = False, fix_first_k_layers: int = None
 ):
     r""" Method to set prevent the update of certain parameters in a given classifier.
 

@@ -1,5 +1,8 @@
 import logging
 from typing import List
+import pandas as pd
+from scipy.stats import median_absolute_deviation
+from sklearn.base import BaseEstimator, TransformerMixin
 
 from src.data.datasets import (
     TorchImageSlideDataset,
@@ -53,6 +56,7 @@ def init_multi_image_dataset(
     plate_col: str = "plate",
     slide_image_name_col: str = "slide_image_name",
     target_list: List = None,
+    train_target_list: List = None,
     n_control_samples=None,
     pseudo_rgb: bool = False,
     extra_features: List = None,
@@ -78,6 +82,7 @@ def init_multi_image_dataset(
         nmco_feature_file=nmco_feature_file,
         extra_features=extra_features,
         slide_image_name_col=slide_image_name_col,
+        train_target_list=train_target_list,
     )
     logging.debug("Samples loaded: {}".format(len(image_dataset)))
     return image_dataset

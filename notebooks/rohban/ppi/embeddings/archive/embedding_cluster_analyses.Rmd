@@ -1,0 +1,153 @@
+---
+title: "Cluster analyses of the node embeddings"
+output: html_notebook
+---
+
+
+# 0. Environmental setup
+
+```{r}
+
+require("Seurat")
+require("fgsea")
+require("topGO")
+require("KEGGREST")
+require("org.Hs.eg.db")
+require("GeneAnswers")
+require("EnrichmentBrowser")
+require("VennDiagram")
+require("RColorBrewer")
+require("ggplot2")
+require("gridExtra")
+
+# taken from https://github.com/karthikshekhar/CellTypeMIMB/blob/master/utilities.R
+topGOterms = function(fg.genes = NULL,
+                      bg.genes = NULL,
+                      organism = "Mouse",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      topnodes.print = 20,
+                      num.char = 100) {
+  if (is.null(fg.genes) | is.null(bg.genes)) {
+    stop("Error : Both gene lists are empty")
+  }
+  
+  require(topGO)
+  if (organism == "Mouse") {
+    mapping.use = "org.Mm.eg.db"
+    require(org.Mm.eg.db)
+  } else if (organism == "Human") {
+    mapping.use = "org.Hs.eg.db"
+    require(org.Hs.eg.db)
+  } else {
+    stop("Error : Organisms other than mouse not supported currently")
+  }
+  
+  n = length(bg.genes)
+  geneList = integer(n)
+  names(geneList) = bg.genes
+  geneList[intersect(names(geneList), fg.genes)] = 1
+  print(paste0(
+    "Total ",
+    length(geneList),
+    " genes. ",
+    sum(geneList),
+    " genes in the foreground"
+  ))
+  geneList = factor(geneList)
+  
+  if (ontology.use %in% c("BP", "CC", "MF")) {
+    print(paste0("Using Ontology : ", ontology.use))
+  } else {
+    stop("Error: Ontology not available. Should be one of BP, CC or MF")
+  }
+  # Make GO object
+  GOdata <- new(
+    "topGOdata",
+    description = "GOanalysis",
+    ontology = ontology.use,
+    allGenes = geneList,
+    annot = annFUN.org,
+    mapping = mapping.use,
+    ID = "SYMBOL",
+    nodeSize = 10
+  )
+  print(paste0(
+    "Using the ",
+    stats.use,
+    " statistic with the ",
+    algorithm.use,
+    " algorithm"
+  ))
+  res.result <-
+    runTest(GOdata, statistic = stats.use, algorithm = algorithm.use)
+  to.return = list()
+  to.return$GOdata = GOdata
+  to.return$res.table <-
+    GenTable(GOdata,
+             pval = res.result,
+             topNodes = topnodes.print,
+             numChar = num.char)
+  return(to.return)
+}
+```
+
+## 1. Read in data
+
+```{r}
+bg = c('CREB5', 'THBS1', 'WWTR1', 'COL5A1', 'KRT8', 'SDC2', 'CEBPA', 'VIM', 'DIABLO', 'IRF7', 'MYD88', 'CDC42', 'TPX2', 'CCNB1', 'FBN2', 'PKIA', 'PRKCA', 'SPC25', 'NDN', 'HSPB1', 'MAP3K9', 'CDK6', 'RAF1', 'CDK1', 'BAX', 'FBLN1', 'DHRS2', 'APPBP2', 'TNNC1', 'TNNT2', 'BRAF', 'MCM5', 'FKBP4', 'CLSPN', 'ELK1', 'TSC2', 'AKT1S1', 'DDIT3', 'KIF2C', 'EEF1A2', 'ALOX5', 'HSP90AB1', 'COL4A1', 'CDC42EP1', 'IRAK4', 'CCNE1', 'PRC1', 'FOSL2', 'DDAH2', 'MDFI', 'UBE2C', 'CNN1', 'MKI67', 'CDH1', 'CDC20', 'NCAPH', 'EIF4EBP1', 'MAP2K3', 'LGALS1', 'CLU', 'PLK1', 'CENPA', 'CASP8', 'MKNK1', 'SYCE1', 'CENPE', 'BMP4', 'SOCS1', 'IGFBP5', 'MAGED1', 'MAP3K2', 'S100A2', 'NDC80', 'RHOA', 'KRT18', 'BCL2L11', 'CSNK2B', 'COL1A1', 'STK3', 'KIF23', 'ARMCX2', 'TONSL', 'INHBA', 'MMP2', 'ATF4', 'IRS1', 'BIRC5', 'IKBKB', 'CDKN1A', 'KRT81', 'E2F1', 'CREB1', 'LDOC1', 'CRYAB', 'MBP', 'KLK6', 'RELB', 'NUF2', 'ATF2', 'MAP3K5', 'TK1', 'HRAS', 'AQP1', 'CCNB2', 'IGF1R', 'CKS2', 'BIRC3', 'MAGEA1', 'CYBA', 'MAGEA11', 'EPB41L3', 'TRAF1', 'MAPK7', 'FSTL1', 'RUNX1', 'GSK3B', 'BUB1', 'CCNA2', 'AURKA', 'SMAD4', 'KIF15', 'TGFB1', 'YES1', 'KRT15', 'MCM3', 'GTSE1', 'LBH', 'BUB1B', 'CDC45', 'JUN', 'MCM4', 'SDHA', 'MCM10', 'MAGEA4', 'NCF2', 'MCM7', 'RRM2', 'SPARC', 'COL4A2', 'PDGFRB', 'ERG', 'SREBF1', 'MDC1', 'SFN', 'TPM1', 'CDCA2', 'PRKCE', 'BEX1', 'TNNT1', 'SKP2', 'FOS', 'CARHSP1', 'TRIB3', 'TRIP6', 'SRC', 'FN1', 'PRKACA', 'MLST8', 'KPNA2', 'AURKB', 'CDC6', 'TCF4', 'UBE2S')
+```
+
+
+
+### Cluster 0
+```{r}
+fg = c('AKT1S1', 'ALOX5', 'APPBP2', 'AQP1', 'ARMCX2', 'ATF2', 'ATF4', 'BAX', 'BEX1', 'BIRC3', 'BMP4', 'BRAF', 'CARHSP1', 'CASP8', 'CDC42', 'CDC42EP1', 'CDH1', 'CDK6', 'CEBPA', 'CLU', 'CNN1', 'CREB1', 'CREB5', 'CSNK2B', 'CYBA', 'DDAH2', 'DDIT3', 'DHRS2', 'DIABLO', 'EEF1A2', 'EIF4EBP1', 'ELK1', 'EPB41L3', 'ERG', 'FBLN1', 'FBN2', 'FKBP4', 'FOS', 'FOSL2', 'FSTL1', 'GSK3B', 'HRAS', 'HSP90AB1', 'HSPB1', 'IGF1R', 'IKBKB', 'INHBA', 'IRAK4', 'IRF7', 'IRS1', 'JUN', 'KPNA2', 'KRT15', 'KRT18', 'KRT8', 'KRT81', 'LDOC1', 'LGALS1', 'MAGEA1', 'MAGEA4', 'MAGED1', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7', 'MBP', 'MDC1', 'MDFI', 'MKNK1', 'MLST8', 'MYD88', 'NCF2', 'NDN', 'PDGFRB', 'PKIA', 'PRKACA', 'PRKCA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'RUNX1', 'S100A2', 'SDC2', 'SDHA', 'SFN', 'SMAD4', 'SOCS1', 'SRC', 'SREBF1', 'STK3', 'SYCE1', 'TCF4', 'TK1', 'TNNC1', 'TNNT1', 'TNNT2', 'TPM1', 'TRAF1', 'TRIB3', 'TRIP6', 'TSC2', 'UBE2C', 'VIM', 'WWTR1', 'YES1')
+
+GO.bp.cluster0.genes <-
+  topGOterms(
+    fg.genes = fg,
+    bg.genes = bg,
+    organism = "Human",
+    topnodes.print = 50,
+    ontology.use = 'BP',
+    stats.use = 'fisher'
+  )
+GO.bp.cluster0.genes
+```
+
+
+### Cluster 1
+
+```{r}
+fg = c('AURKA', 'AURKB', 'BIRC5', 'BUB1', 'BUB1B', 'CCNA2', 'CCNB1', 'CCNB2', 'CCNE1', 'CDC20', 'CDC45', 'CDC6', 'CDCA2', 'CDK1', 'CDKN1A', 'CENPA', 'CENPE', 'CKS2', 'CLSPN', 'E2F1', 'GTSE1', 'KIF15', 'KIF23', 'KIF2C', 'MCM10', 'MCM3', 'MCM4', 'MCM5', 'MCM7', 'MKI67', 'NCAPH', 'NDC80', 'NUF2', 'PLK1', 'PRC1', 'RRM2', 'SKP2', 'SPC25', 'TONSL', 'TPX2', 'UBE2S')
+
+GO.bp.cluster1.genes <-
+  topGOterms(
+    fg.genes = fg,
+    bg.genes = bg,
+    organism = "Human",
+    topnodes.print = 50,
+    ontology.use = 'BP',
+    stats.use = 'fisher'
+  )
+GO.bp.cluster1.genes
+```
+
+### Cluster 2
+
+```{r}
+fg = c('BCL2L11', 'COL1A1', 'COL4A1', 'COL4A2', 'COL5A1', 'CRYAB', 'FN1', 'IGFBP5', 'KLK6', 'LBH', 'MAGEA11', 'MMP2', 'SPARC', 'TGFB1', 'THBS1')
+
+GO.bp.cluster2.genes <-
+  topGOterms(
+    fg.genes = fg,
+    bg.genes = bg,
+    organism = "Human",
+    topnodes.print = 50,
+    ontology.use = 'BP',
+    stats.use = 'fisher'
+  )
+GO.bp.cluster2.genes
+```

@@ -1,12 +1,12 @@
-output_dir: 'data/experiments/image_embeddings/specificity_target_emb_loto/GENE/'
+output_dir: 'data/experiments/rohban/images/embeddings/leave_one_target_out/training/GENE/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperimentCustomSplit
 run_params:
-  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
-                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/loto_cv_stratified/GENE/nuclei_md_GENE_loo_train.csv',
-                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/loto_cv_stratified/GENE/nuclei_md_GENE_loo_val.csv',
-                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/loto_cv_stratified/GENE/nuclei_md_GENE_loo_test.csv',
-                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+  data_config: {'nuclei_image_dir':'data/experiments/rohban/images/preprocessing/full_pipeline/padded_nuclei',
+                      'train_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/loto_cv_stratified//GENE/nuclei_md_GENE_loo_train.csv',
+                      'val_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/loto_cv_stratified//GENE/nuclei_md_GENE_loo_val.csv',
+                      'test_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/loto_cv_stratified//GENE/nuclei_md_GENE_loo_test.csv',
+                      'slide_image_dir': 'data/experiments/rohban/images/preprocessing/full_pipeline/filtered',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
                       'pseudo_rgb':True}
 
@@ -41,9 +41,6 @@ pipeline:
       data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-#  - method: load_model
-#    params:
-#      weights_fname: ""
   - method: train_models
   - method: evaluate_test_performance
   - method: visualize_loss_evolution
@@ -51,4 +48,7 @@ pipeline:
     params:
       normalize: "true"
   - method: extract_and_save_latents
+  - method: save_preds_labels
+    params:
+      dataset_types: [ "test" ]
 

@@ -1,12 +1,12 @@
-output_dir: 'data/experiments/image_embeddings/specificity_target_emb_cv_strat/fold_1/'
+output_dir: 'data/experiments/rohban/images/embeddings/four_fold_cv/fold_1/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperimentCustomSplit
 run_params:
-  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
-                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_train_fold_1.csv',
-                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_val_fold_1.csv',
-                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/specific_targets_cv_stratified/nuclei_md_test_fold_1.csv',
-                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+  data_config: {'nuclei_image_dir':'data/experiments/rohban/images/preprocessing/full_pipeline/padded_nuclei',
+                      'train_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/specific_targets_cv_stratified/nuclei_md_train_fold_1.csv',
+                      'val_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/specific_targets_cv_stratified/nuclei_md_val_fold_1.csv',
+                      'test_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/specific_targets_cv_stratified/nuclei_md_test_fold_1.csv',
+                      'slide_image_dir': 'data/experiments/rohban/images/preprocessing/full_pipeline/filtered',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
                       'pseudo_rgb':True}
 
@@ -27,8 +27,8 @@ run_params:
 
   domain_name: 'image'
   num_epochs: 300
-  early_stopping: 10
-  batch_size: 64
+  early_stopping: 5
+  batch_size: 32
   random_state: 1234
   save_freq: 50
 
@@ -41,12 +41,9 @@ pipeline:
       data_transform_pipelines: ["nuclei_image", "slide_image"]
   - method: initialize_data_loader_dict
   - method: initialize_domain_config
-#  - method: train_models
-  - method: load_model
-    params:
-      weights_fname: "data/experiments/image_embeddings/specificity_target_emb_cv_strat/final_1024_newnodeset/fold_1/best_model_weights.pth"
-#  - method: evaluate_test_performance
-#  - method: visualize_loss_evolution
+  - method: train_models
+  - method: evaluate_test_performance
+  - method: visualize_loss_evolution
   - method: plot_confusion_matrices
     params:
       normalize: "true"

@@ -1,34 +1,42 @@
 output_dir: 'data/experiments/morph_embeddings'
-module: src.experiments.train_model
-class: TrainModelExperiment
+module: src.experiments.profile_embeddings
+class: BaseProfileEmbeddingExperiment
 run_params:
   data_config: {'feature_label_file':'data/images/metadata/nuclei_profiles_hoechst_cleaned.csv',
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'labels',
-                      'target_list':["ARNTL", "ATG5", "BAX", "CASP8", "CCND1", "CEBPA", "DVL2", "ERG", "JUN"],
+                      'index_key':'label',
+                      'target_list':['AKT1S1', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDC42', 'CDKN1A', 'CEBPA', 'CREB1', 'CXXC4', 'DIABLO', 'E2F1', 'ELK1', 'EMPTY', 'ERG', 'FGFR3', 'FOXO1', 'GLI1', 'HRAS', 'IRAK4', 'JUN', 'MAP2K3', 'MAP3K2', 'MAP3K5', 'MAP3K9', 'MAPK7', 'MOS', 'MYD88', 'PIK3R2', 'PRKACA', 'PRKCE', 'RAF1', 'RELB', 'RHOA', 'SMAD4', 'SMO', 'SRC', 'SREBF1', 'TRAF2', 'TSC2', 'WWTR1'],
                       'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",
                           "Nuclei_Location_CenterMassIntensity_X_Hoechst",
                           "Nuclei_Location_CenterMassIntensity_Y_Hoechst",
                           "Nuclei_Location_Center_X", "Nuclei_Location_Center_Y",
-                          "Nuclei_Location_MaxIntensity_X_Hoechst", "Nuclei_Location_MaxIntensity_X_Hoechst",
+                          "Nuclei_Location_MaxIntensity_X_Hoechst",
+                          "Nuclei_Location_MaxIntensity_X_Hoechst",
                           "Nuclei_Neighbors_FirstClosestObjectNumber_1",
                           "Nuclei_Neighbors_SecondClosestObjectNumber_1",
-                          "Nuclei_AreaShape_Orientation", "Nuclei_Neighbors_AngleBetweenNeighbors_1",
-                          "Nuclei_Neighbors_FirstClosestDistance_1", "Nuclei_Neighbors_SecondClosestDistance_1",
-                          "Nuclei_Neighbors_PercentTouching_1"],
+                          "Nuclei_AreaShape_Orientation",
+                          "Nuclei_Neighbors_AngleBetweenNeighbors_1",
+                          "Nuclei_Neighbors_NumberOfNeighbors_1",
+                          "Nuclei_Neighbors_FirstClosestDistance_1",
+                          "Nuclei_Neighbors_SecondClosestDistance_1",
+                          "Nuclei_Neighbors_PercentTouching_1",
+                          "Nuclei_Children_Cytoplasm_Count",
+                          "Nuclei_Children_Cells_Count"
+                      ],
                       'slide_image_name_col': "ImageNumber"}
 
-  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':9, 'input_dim': 121},
+  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':42, 'input_dim': 118},
                        'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
                        'loss_config':{'type':'ce'}}
 
   domain_name: 'morph_profile'
   num_epochs: 2000
-  early_stopping: 20
-  train_val_test_split: [0.7, 0.2, 0.1]
-  batch_size: 32
+  early_stopping: 10
+  train_val_test_split: [0.6, 0.15, 0.25]
+  batch_size: 64
   random_state: 1234
-  save_freq: 50
+  save_freq: 200
 
 pipeline:
   - method: initialize_profile_data_set
@@ -36,4 +44,7 @@ pipeline:
   - method: initialize_domain_config
   - method: train_models
   - method: visualize_loss_evolution
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true"
 

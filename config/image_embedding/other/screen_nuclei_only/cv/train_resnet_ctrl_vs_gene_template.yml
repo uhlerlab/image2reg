@@ -1,0 +1,41 @@
+output_dir: '/media/paysan_d/wd_datastore/image2reg/data/experiments/image_embeddings/nuclei_screen/fold_id/'
+module: src.experiments.image_embeddings
+class: ImageEmbeddingExperimentCustomSplit
+run_params:
+  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
+                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_train_fold_id.csv',
+                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_val_fold_id.csv',
+                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_test_fold_id.csv',
+                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+                      'data_key':'nuclei_image', 'label_key':'label', 'index_key':'image_file',
+                      'pseudo_rgb':True}
+
+  model_config: {'model_config':{
+                        'type':'ResNet18',
+                        'pretrained': True,
+                        'fix_feature_extractor': False,
+                        'n_output_nodes': 2,
+                 },
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                 'loss_config':{'type':'ce'}}
+
+  domain_name: 'image'
+  num_epochs: 300
+  early_stopping: 5
+  batch_size: 32
+  random_state: 1234
+  save_freq: 50
+
+pipeline:
+  - method: initialize_image_data_set
+    params:
+      multi_image: True
+  - method: initialize_data_transform_pipeline
+    params:
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: train_models
+  - method: evaluate_test_performance
+  - method: visualize_loss_evolution
+

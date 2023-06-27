@@ -4,6 +4,7 @@ from typing import Union, Tuple
 import numpy as np
 import torch
 import torchvision.transforms.functional
+from PIL import Image
 from torch import Tensor
 from torch_geometric.data import Data
 from torch_geometric.transforms import BaseTransform
@@ -83,6 +84,17 @@ class ClearBorders(object):
     def __repr__(self):
         return self.__class__.__name__ + "(size={})".format(self.size)
 
+
+class CustomBinarize(object):
+    def __init__(self, threshold=0):
+        self.threshold=threshold
+
+    def __call__(self, img, kwargs=None):
+        img = np.array(img).astype(np.uint8)
+        img = img > self.threshold
+        img = (img *255).astype(np.uint8)
+        img = Image.fromarray(img)
+        return img
 
 class CustomCenteredCrop(object):
     def __init__(self, size):

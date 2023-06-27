@@ -1,12 +1,12 @@
-output_dir: 'data/experiments/image_embeddings/specificity_screen_cv/fold_id/'
+output_dir: 'data/experiments/rohban/images/screen/nuclei_region/fold_id/'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperimentCustomSplit
 run_params:
-  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/full_pipeline/padded_nuclei',
-                      'train_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_train_fold_id.csv',
-                      'val_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_val_fold_id.csv',
-                      'test_nuclei_metadata_file':'data/experiments/image_preprocessing/screen_splits/GENE/nuclei_md_test_fold_id.csv',
-                      'slide_image_dir': 'data/experiments/image_preprocessing/full_pipeline/filtered',
+  data_config: {'nuclei_image_dir':'data/experiments/rohban/images/preprocessing/full_pipeline/padded_nuclei',
+                      'train_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/screen_splits/GENE/nuclei_md_train_fold_id.csv',
+                      'val_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/screen_splits/GENE/nuclei_md_val_fold_id.csv',
+                      'test_nuclei_metadata_file':'data/experiments/rohban/images/preprocessing/screen_splits/GENE/nuclei_md_test_fold_id.csv',
+                      'slide_image_dir': 'data/experiments/rohban/images/preprocessing/full_pipeline/filtered',
                       'data_key':'images', 'label_key':'label', 'index_key':'image_file',
                       'pseudo_rgb':True}
 

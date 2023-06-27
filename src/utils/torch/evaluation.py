@@ -5,7 +5,7 @@ import imageio
 import numpy as np
 import torch
 from sklearn.decomposition import PCA
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, balanced_accuracy_score
 from sklearn.preprocessing import StandardScaler
 from torch.nn import Module
 from torch.utils.data import Dataset, DataLoader
@@ -24,6 +24,7 @@ def get_latent_representations_for_model(
     label_key: str = "label",
     extra_feature_key: str = None,
     index_key: str = "id",
+    batch_key: str = "batch",
     device: str = "cuda:0",
 ) -> dict:
     # create Dataloader
@@ -50,7 +51,12 @@ def get_latent_representations_for_model(
         else:
             extra_features = None
 
-        output = model(input, extra_features)
+        if batch_key is not None:
+            batch_labels = sample[batch_key].float().to(device)
+        else:
+            batch_labels = None
+
+        output = model(input, extra_features, batch_labels)
         latents = output["latents"]
         latent_representations.extend(latents.detach().cpu().numpy())
 
@@ -196,6 +202,7 @@ def get_confusion_matrix(
     all_preds, all_labels, _ = get_preds_labels(
         domain_config=domain_config, dataset_type=dataset_type
     )
+    print("Balanced accuracy", balanced_accuracy_score(all_labels, all_preds))
     return confusion_matrix(all_labels, all_preds, normalize=normalize)
 
 
@@ -216,7 +223,13 @@ def get_preds_labels(domain_config: DomainConfig, dataset_type: str = "test"):
             extra_features = sample[domain_config.extra_feature_key].float().to(device)
         else:
             extra_features = None
-        outputs = model(inputs, extra_features)["outputs"]
+        if domain_config.batch_key is not None:
+            batch_labels = sample[domain_config.batch_key].float().to(device)
+            outputs = model(inputs, extra_features, batch_labels)["outputs"]
+        else:
+            batch_labels = None
+            outputs = model(inputs, extra_features)["outputs"]
+
         _, preds = torch.max(outputs, 1)
 
         all_labels.extend(list(labels.detach().cpu().numpy()))

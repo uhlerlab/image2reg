@@ -33,6 +33,9 @@ from src.utils.torch.model import (
     get_nuclei_image_transformations_dict,
     get_randomflips_transformation_dict,
     get_slide_image_transformations_dict,
+    get_model_from_model_dict,
+    get_batch_model_configuration, get_binary_nuclei_image_transformations_dict,
+    get_binary_slide_image_transformations_dict,
 )
 
 
@@ -44,6 +47,7 @@ class BaseImageEmbeddingExperiment:
         domain_name: str,
         save_freq: int = -1,
         pseudo_rgb: bool = False,
+        batch_model_config: dict = None,
     ):
 
         self.data_transform_pipeline_dicts = []
@@ -52,6 +56,7 @@ class BaseImageEmbeddingExperiment:
         self.data_key = None
         self.label_key = None
         self.extra_feature_key = None
+        self.batch_key = None
         self.index_key = None
         self.domain_config = None
         self.data_config = data_config
@@ -59,6 +64,7 @@ class BaseImageEmbeddingExperiment:
         self.domain_name = domain_name
         self.save_freq = save_freq
         self.pseudo_rgb = pseudo_rgb
+        self.batch_model_config = batch_model_config
 
     def initialize_image_data_set(self, multi_image: bool = False):
         self.data_key = self.data_config.pop("data_key")
@@ -70,6 +76,8 @@ class BaseImageEmbeddingExperiment:
             self.extra_feature_key = "extra_features"
         if "index_key" in self.data_config:
             self.index_key = self.data_config.pop("index_key")
+        if "batch_key" in self.data_config:
+            self.batch_key = self.data_config.pop("batch_key")
 
         if multi_image:
             self.data_set = init_multi_image_dataset(**self.data_config)
@@ -98,10 +106,15 @@ class BaseImageEmbeddingExperiment:
                 self.data_transform_pipeline_dicts.append(
                     get_nuclei_image_transformations_dict(224)
                 )
-            elif data_transform_pipelines == "randomflips":
+            elif data_transform_pipeline == "randomflips":
                 self.data_transform_pipeline_dicts.append(
                     get_randomflips_transformation_dict()
                 )
+
+            elif data_transform_pipeline == "binary_nuclei_image":
+                self.data_transform_pipeline_dicts.append(get_binary_nuclei_image_transformations_dict(224))
+            elif data_transform_pipeline == "binary_slide_image":
+                self.data_transform_pipeline_dicts.append(get_binary_slide_image_transformations_dict(224))
 
     def initialize_domain_config(self):
         model_config = self.model_config["model_config"]
@@ -113,13 +126,24 @@ class BaseImageEmbeddingExperiment:
         self.domain_config = get_domain_configuration(
             name=self.domain_name,
             model_dict=model_config,
+            optimizer_dict=optimizer_config,
+            loss_fct_dict=loss_config,
             data_loader_dict=None,
             data_key=self.data_key,
             label_key=self.label_key,
             index_key=self.index_key,
             extra_feature_key=self.extra_feature_key,
+            batch_key=self.batch_key,
+        )
+
+    def initialize_batch_model(self):
+        model_config = self.batch_model_config["model_config"]
+        optimizer_config = self.batch_model_config["optimizer_config"]
+        loss_config = self.batch_model_config["loss_config"]
+        self.batch_model_config = get_batch_model_configuration(
+            model_dict=model_config,
             optimizer_dict=optimizer_config,
-            loss_fct_dict=loss_config,
+            loss_dict=loss_config,
         )
 
     def load_model(self, weights_fname):
@@ -162,7 +186,7 @@ class BaseImageEmbeddingExperiment:
         plot_confusion_matrices(
             confusion_matrices,
             output_dir=self.output_dir,
-            display_labels=sorted(self.target_list),
+            display_labels=self.data_set.target_list,
         )
 
 
@@ -230,9 +254,9 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
         dh.get_data_loader_dicts(shuffle=True)
         self.data_loader_dicts = dh.data_loader_dicts
         self.label_weights = dh.dataset.label_weights
-        self.dataset = dh.dataset
+        self.data_set = dh.dataset
 
-    def train_models(self,):
+    def train_models(self, lamb: int = 0):
         self.loss_dicts = []
         self.best_loss_dicts = []
         initial_model_weights = copy.deepcopy(
@@ -259,6 +283,7 @@ class ImageEmbeddingExperimentCV(BaseExperimentCV, BaseImageEmbeddingExperiment)
                 early_stopping=self.early_stopping,
                 device=self.device,
                 save_freq=self.save_freq,
+                lamb=lamb,
             )
             self.loss_dicts.append(loss_dict)
             self.best_loss_dicts.append(best_loss_dict)
@@ -283,6 +308,7 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         random_state: int = 42,
         save_freq: int = -1,
         pseudo_rgb: bool = False,
+        batch_model_config: dict = None,
     ):
         BaseExperiment.__init__(
             self,
@@ -300,6 +326,7 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
             domain_name=domain_name,
             save_freq=save_freq,
             pseudo_rgb=pseudo_rgb,
+            batch_model_config=batch_model_config,
         )
 
         self.trained_model = None
@@ -331,11 +358,15 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
         self.data_loader_dict = dh.data_loader_dict
         self.label_weights = dh.dataset.label_weights
         self.data_set = dh.dataset
+        self.target_list = self.data_set.target_list
 
     def initialize_domain_config(self):
         super().initialize_domain_config()
 
-    def train_models(self):
+    def initialize_batch_model(self):
+        super().initialize_batch_model()
+
+    def train_models(self, lamb=0):
         self.domain_config.data_loader_dict = self.data_loader_dict
         (
             self.trained_model,
@@ -348,6 +379,8 @@ class ImageEmbeddingExperiment(BaseExperiment, BaseImageEmbeddingExperiment):
             early_stopping=self.early_stopping,
             device=self.device,
             save_freq=self.save_freq,
+            batch_clf_config=self.batch_model_config,
+            lamb=lamb,
         )
 
     def load_model(self, weights_fname):
@@ -412,6 +445,7 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
         random_state: int = 42,
         save_freq: int = -1,
         pseudo_rgb: bool = False,
+        batch_model_config: dict = None,
     ):
         super().__init__(
             output_dir=output_dir,
@@ -425,6 +459,7 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
             random_state=random_state,
             save_freq=save_freq,
             pseudo_rgb=pseudo_rgb,
+            batch_model_config=batch_model_config,
         )
 
         self.test_nuclei_metadata_file = None
@@ -446,6 +481,8 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
             self.extra_feature_key = "extra_features"
         if "index_key" in self.data_config:
             self.index_key = self.data_config.pop("index_key")
+        if "batch_key" in self.data_config:
+            self.batch_key = self.data_config.pop("batch_key")
 
         self.train_nuclei_metadata_file = self.data_config.pop(
             "train_nuclei_metadata_file"
@@ -507,8 +544,11 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
         super().initialize_domain_config()
         self.domain_config.data_loader_dict = self.data_loader_dict
 
-    def train_models(self):
-        super().train_models()
+    def initialize_batch_model(self):
+        super().initialize_batch_model()
+
+    def train_models(self, lamb: int = 0):
+        super().train_models(lamb=lamb)
 
     def load_model(self, weights_fname):
         super().load_model(weights_fname=weights_fname)
