@@ -30,14 +30,14 @@ conda create --name image2reg python==3.8
 The final step of the installation consists of the installation of additional required packages which can be efficiently done via:
 ```
 conda activate image2reg
-pip install -r requirements.txt
+bash scripts/installation/setup_environment_cuda.sh
 ```
 Note that this installs the requried [Pytorch](https://pytorch.org/) associated packages with GPU accelaration using CUDA v11.1, which we had used to develop and run the code in this repository. Further, please note that some packages are not available from the anaconda cloud, which is why we use pip to install all packages. Using only pip for the installation avoids potentially broken environments. We have tested the installation on multiple hardware systems to ensure that it works as expected.
 
 If no GPU is available on your system, please install the required packages without GPU support via: 
 ```
 conda activate image2reg
-pip install -r requirements_cpu.txt
+bash scripts/installation/setup_environment_cpu.sh
 ```
 Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
 Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``. Similarly, please also consult the official documentation of Pytorch Geometric, which can be found [here](https://pytorch-geometric.readthedocs.io/en/latest/) in case that you encounter any problems with the installation of the packages ``torch-geometric, torch-scatter, torch-sparse, torch-spline-conv``.
