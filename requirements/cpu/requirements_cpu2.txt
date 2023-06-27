@@ -219,7 +219,6 @@ toolz==0.11.1
 torch==1.8.1+cpu
 torchvision==0.9.1+cpu
 torchaudio==0.8.1
-torch-cluster==1.5.9
 tornado==6.1
 tqdm==4.62.2
 traitlets==5.0.5
