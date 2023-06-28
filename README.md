@@ -87,7 +87,7 @@ Please edit the config file to specify the location of the raw imaging data from
 The raw image data of the perturbation screen of the JUMP consortium by Chandrasekaran et al. (2023) is preprocessed similar to the data from Rohban et al. (2017).
 The full preprocessing pipeline can be run via
 ```
-python run.py --config full_image_pipeline_jump.yml
+python run.py --config config/preprocessing/full_image_pipeline_jump.yml
 ```
 As before please edit the config file to specify the location of the raw imaging data of the JUMP data set on your system.
 
