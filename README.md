@@ -66,8 +66,7 @@ Additional intermediate outputs of the presented analyses including i.a. trained
 ## Reproducing the paper results
 The following description summarizes the steps to reproduce the results presented in the paper. To avoid long-run times (due to e.g. the large-scale screen to identify impactful gene perturbations), intermediate results can be downloaded from the referenced data resources mentioned above.
 
-*Note that, solely running all experiments and analyses described in the paper took more than 150 hours of pure computation time on the used hardware setup due to the complexity of the computations and the size of the data sets.
-Please also note that while we have tried to set the file locations in the notebooks, scripts and config files referenced below such that the code can be run with as little updates as possible, in the scripts a few absolute paths (always given in the first line of the script) are required to be updated by the user to ensure that the relative paths are pointing to the right file locations. Moreover, if you prefer to store the data differently than the structure used in our data repository, additional changes of the file locations might be required.*
+*Note that, solely running all experiments and analyses described in the paper took more than 200 hours of pure computation time on the used hardware setup due to the complexity of the computations and the size of the data sets. The different notebooks and scripts reference the locations of the required files according to the structure provided in our intermediate data repository. Thus, our code can be run without changing any file paths if the intermediate data repository is used. However, if you prefer to store the data differently than the structure used in our data repository, additional changes of the file locations in several scripts will be required. We are happy to assist in these cases.*
 
 ### 1. Data preprocessing
 
@@ -78,7 +77,6 @@ The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline.yml
 ```
-Please edit the config file to specify the location of the raw imaging data from Rohban et al. of your system.
 
 *A version of the output of the preprocessing pipeline, which e.g. contains the segmented single-nuclei images is available in our data repository at ``experiments/rohban/images/preprocessing/full_pipeline``.*
 
@@ -89,7 +87,6 @@ The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline_jump.yml
 ```
-As before please edit the config file to specify the location of the raw imaging data of the JUMP data set on your system.
 
 *A version of the output of the preprocessing pipeline for the JUMP data set is available in our data repository at ``data/experiments/jump/images/preprocessing/full_pipeline``.*
 
@@ -119,8 +116,6 @@ The screen can be automatically run by calling
 bash scripts/experiments/run_screen.sh
 ```
 
-Note that the path of the first line of the script needs to be adjusted to reflect the home directory of the code base.
-
 Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/rohban/other/cv_screen_data_splits.ipynb``` and ```notebooks/rohban/other/create_screen_configs.ipynb``` provide functions to efficiently generate the resources required by the script to complete the screen.
 
 *The results of the screen which include e.g. the trained convolutional neural networks and the log files describing the performance of the network on the individual binary classification tasks are available from our data repository at ``data/experiments/rohban/images/screen/nuclei_region``.*
@@ -137,7 +132,7 @@ The related experiment can be run by calling
 bash scripts/experiment/run_selected_targets.sh
 ```
 
-As before the path in the first line needs to be adjusted and the required config files as well as data resource are assumed to be available. The corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/rohban/other/cv_specific_targets_data_split.ipynb```.
+The script uses data files and config files used by the script need to be available. The corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/rohban/other/cv_specific_targets_data_split.ipynb```.
 
 *A version of the output generated during this experiment are available in our data repository at ```experiments/rohban/images/embeddings/four_fold_cv```.*
 
