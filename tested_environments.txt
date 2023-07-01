@@ -1,4 +1,4 @@
-The setup of the computional environment was tested on the following systems:
+The setup of the computational environment was tested on the following systems:
 
 System 1
 --------
@@ -38,5 +38,5 @@ NVIDIA GTX 1080 w.  CUDA v10.1
 
 
 Please note that the code was developed and all experiments were run using system 1.
-System 2-4 were only used to validate and test the setup of the computional environment due to time constraints. Please also note that the PyTorch version installed during the described installation procedure might only compatible with CUDA v11.1.74 as running the code was performed solely on the system containing that CUDA version.
+System 2-4 were only used to validate and test the setup of the computational environment due to time constraints. Please also note that the PyTorch version installed during the described installation procedure might only compatible with CUDA v11.1.74 as running the code was performed solely on the system containing that CUDA version.
 
