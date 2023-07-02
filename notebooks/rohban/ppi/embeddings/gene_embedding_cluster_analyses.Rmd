@@ -16,12 +16,130 @@ knitr::opts_knit$set(root.dir = "/home/paysan_d/PycharmProjects/image2reg/")
 require("clusterProfiler")
 require("ReactomePA")
 require("ggplot2")
+require("topGO")
+require("KEGGREST")
+require("org.Hs.eg.db")
+require("GeneAnswers")
+require("EnrichmentBrowser")
+require("ggplot2")
+require("stringr")
+```
+
+```{r}
+# taken from https://github.com/karthikshekhar/CellTypeMIMB/blob/master/utilities.R
+topGOterms = function(fg.genes = NULL,
+                      bg.genes = NULL,
+                      organism = "Mouse",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 100) {
+  if (is.null(fg.genes) | is.null(bg.genes)) {
+    stop("Error : Both gene lists are empty")
+  }
+  
+  require(topGO)
+  if (organism == "Mouse") {
+    mapping.use = "org.Mm.eg.db"
+    require(org.Mm.eg.db)
+  } else if (organism == "Human") {
+    mapping.use = "org.Hs.eg.db"
+    require(org.Hs.eg.db)
+  } else {
+    stop("Error : Organisms other than mouse not supported currently")
+  }
+  
+  n = length(bg.genes)
+  geneList = integer(n)
+  names(geneList) = bg.genes
+  geneList[intersect(names(geneList), fg.genes)] = 1
+  print(paste0(
+    "Total ",
+    length(geneList),
+    " genes. ",
+    sum(geneList),
+    " genes in the foreground"
+  ))
+  geneList = factor(geneList)
+  
+  if (ontology.use %in% c("BP", "CC", "MF")) {
+    print(paste0("Using Ontology : ", ontology.use))
+  } else {
+    stop("Error: Ontology not available. Should be one of BP, CC or MF")
+  }
+  # Make GO object
+  GOdata <- new(
+    "topGOdata",
+    description = "GOanalysis",
+    ontology = ontology.use,
+    allGenes = geneList,
+    annot = annFUN.org,
+    mapping = mapping.use,
+    ID = "SYMBOL",
+    nodeSize = 10
+  )
+  print(paste0(
+    "Using the ",
+    stats.use,
+    " statistic with the ",
+    algorithm.use,
+    " algorithm"
+  ))
+  res.result <-
+    runTest(GOdata, statistic = stats.use, algorithm = algorithm.use)
+  to.return = list()
+  to.return$GOdata = GOdata
+  
+  allGO = usedGO(object = GOdata) 
+  
+  to.return$res.table <-
+    GenTable(GOdata,
+             pval = res.result,
+             topNodes = length(allGO),
+             numChar = num.char)
+  return(to.return)
+}
+```
+
+
+```{r}
+barplot_topgo <- function(data){
+  p <- ggplot(data[1:5,], aes(x=Term, y=-log10(pval))) + 
+    geom_bar(stat="identity", fill = "#FF6666") + 
+    scale_x_discrete(labels = function(x) str_wrap(x, width = 25))+
+    geom_hline(yintercept = c(-log10(0.05)),
+    linetype = c("dashed"),
+    colour = c("black"),
+    size = c(0.5))+
+  theme_bw(base_size = 10) +
+  theme(
+    legend.position = 'right',
+    legend.background = element_rect(),
+    plot.title = element_text(angle = 0, size = 16, face = 'bold', vjust = 1),
+    plot.subtitle = element_text(angle = 0, size = 10, face = 'bold', vjust = 1),
+    plot.caption = element_text(angle = 0, size = 10, face = 'bold', vjust = 1),
+
+    axis.text.x = element_text(angle = 0, size = 10, face = 'bold', hjust = 1.10),
+    axis.text.y = element_text(angle = 0, size = 10, face = 'bold', vjust = 0.5),
+    axis.title = element_text(size = 10, face = 'bold'),
+    axis.title.x = element_text(size = 10, face = 'bold'),
+    axis.title.y = element_text(size = 10, face = 'bold'),
+    axis.line = element_line(colour = 'black'),
+
+    #Legend
+    legend.key = element_blank(), # removes the border
+    legend.key.size = unit(1, "cm"), # Sets overall area/size of the legend
+    legend.text = element_text(size = 10, face = "bold"), # Text size
+    title = element_text(size = 14, face = "bold")) +
+  coord_flip()
+  return(p)
+}
 ```
 
 # 1. Read in data
 
 ```{r}
-cluster_data <- read.csv("data/other/all_gene_embeddings_clusters.csv", row.names = 1)
+cluster_data <- read.csv("data/experiments/rohban/interactome/cluster_infos/all_gene_embeddings_clusters.csv", row.names = 1)
 ```
 
 # 2. Enrichment analysis
@@ -53,4 +171,177 @@ dotplot(compareGO, font.size=15, showCategory=3,) + theme(
   axis.text.y = element_text(face="bold", 
                              size=15))
 ```
+
+
+# Bar plots
+
+```{r}
+cluster_data <- read.csv("data/experiments/rohban/interactome/cluster_infos/all_gene_embeddings_clusters.csv", row.names = 1)
+universe <- cluster_data$gene
+gene_clusters <- list()
+for (i in sort(unique(cluster_data$cluster))){
+  gene_clusters[[as.character(i)]] <- cluster_data[cluster_data$cluster == i, "gene"]
+}
+```
+
+
+## Enrichment cluster 1
+
+```{r}
+cluster0_genes <- gene_clusters[["0"]]
+cluster0_go_results <-  topGOterms(fg.genes = cluster0_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster0_go_results$res.table[,"qval"] <- p.adjust(cluster0_go_results$res.table$pval, method="fdr")
+head(cluster0_go_results$res.table, 10)
+```
+
+```{r, fig.height=4, fig.width=6}
+sig_cluster0_go_terms <- cluster0_go_results$res.table
+sig_cluster0_go_terms$pval <- as.numeric(sig_cluster0_go_terms$pval)
+p <- barplot_topgo(sig_cluster0_go_terms)
+p + ggtitle("GO Terms for Cluster 1", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+## Enrichment Cluster 2
+
+```{r, fig.height=4, fig.width=6}
+cluster1_genes <- gene_clusters[["1"]]
+cluster1_go_results <-  topGOterms(fg.genes = cluster1_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster1_go_results$res.table[,"qval"] <- p.adjust(cluster1_go_results$res.table$pval, method="fdr")
+
+sig_cluster1_go_terms <- cluster1_go_results$res.table
+sig_cluster1_go_terms$pval <- as.numeric(sig_cluster1_go_terms$pval)
+p <- barplot_topgo(sig_cluster1_go_terms)
+p + ggtitle("GO Terms for Cluster 2", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+## Enrichment Cluster 3
+
+```{r, fig.height=4, fig.width=6}
+cluster2_genes <- gene_clusters[["2"]]
+cluster2_go_results <-  topGOterms(fg.genes = cluster2_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster2_go_results$res.table[,"qval"] <- p.adjust(cluster2_go_results$res.table$pval, method="fdr")
+
+sig_cluster2_go_terms <- cluster2_go_results$res.table
+sig_cluster2_go_terms$pval <- as.numeric(sig_cluster2_go_terms$pval)
+p <- barplot_topgo(sig_cluster2_go_terms)
+p + ggtitle("GO Terms for Cluster 3", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+# Enrichment of Cluster 4
+
+```{r, fig.height=4, fig.width=6}
+cluster3_genes <- gene_clusters[["3"]]
+cluster3_go_results <-  topGOterms(fg.genes = cluster3_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster3_go_results$res.table[,"qval"] <- p.adjust(cluster3_go_results$res.table$pval, method="fdr")
+
+sig_cluster3_go_terms <- cluster3_go_results$res.table
+sig_cluster3_go_terms$pval <- as.numeric(sig_cluster3_go_terms$pval)
+p <- barplot_topgo(sig_cluster3_go_terms)
+p + ggtitle("GO Terms for Cluster 4", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+## Enirchment of Cluster 5
+
+```{r, fig.height=4, fig.width=6}
+cluster4_genes <- gene_clusters[["4"]]
+cluster4_go_results <-  topGOterms(fg.genes = cluster4_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster4_go_results$res.table[,"qval"] <- p.adjust(cluster4_go_results$res.table$pval, method="fdr")
+
+sig_cluster4_go_terms <- cluster4_go_results$res.table
+sig_cluster4_go_terms$pval <- as.numeric(sig_cluster4_go_terms$pval)
+p <- barplot_topgo(sig_cluster4_go_terms)
+p + ggtitle("GO Terms for Cluster 5", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+## Enrichment Cluster 6
+
+```{r, fig.height=4, fig.width=6}
+cluster5_genes <- gene_clusters[["5"]]
+cluster5_go_results <-  topGOterms(fg.genes = cluster5_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster5_go_results$res.table[,"qval"] <- p.adjust(cluster5_go_results$res.table$pval, method="fdr")
+
+sig_cluster5_go_terms <- cluster5_go_results$res.table
+sig_cluster5_go_terms$pval <- as.numeric(sig_cluster5_go_terms$pval)
+p <- barplot_topgo(sig_cluster5_go_terms)
+p + ggtitle("GO Terms for Cluster 6", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+# Enrichment Cluster 7
+
+```{r, fig.height=4, fig.width=6}
+cluster6_genes <- gene_clusters[["6"]]
+cluster6_go_results <-  topGOterms(fg.genes = cluster6_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster6_go_results$res.table[,"qval"] <- p.adjust(cluster6_go_results$res.table$pval, method="fdr")
+
+sig_cluster6_go_terms <- cluster6_go_results$res.table
+sig_cluster6_go_terms$pval <- as.numeric(sig_cluster6_go_terms$pval)
+p <- barplot_topgo(sig_cluster6_go_terms)
+p + ggtitle("GO Terms for Cluster 7", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
+## Enrichment for Cluster 8
+
+```{r, fig.height=4, fig.width=6}
+cluster7_genes <- gene_clusters[["7"]]
+cluster7_go_results <-  topGOterms(fg.genes = cluster7_genes,
+                      bg.genes = universe,
+                      organism = "Human",
+                      ontology.use = "BP",
+                      stats.use = "fisher",
+                      algorithm.use = "weight01",
+                      num.char = 70)
+cluster7_go_results$res.table[,"qval"] <- p.adjust(cluster7_go_results$res.table$pval, method="fdr")
+
+sig_cluster7_go_terms <- cluster7_go_results$res.table
+sig_cluster7_go_terms$pval <- as.numeric(sig_cluster7_go_terms$pval)
+p <- barplot_topgo(sig_cluster7_go_terms)
+p + ggtitle("GO Terms for Cluster 8", subtitle = "") + 
+  labs(x="GO term", y="-log10(raw p value)")
+```
+
 
