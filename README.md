@@ -101,6 +101,8 @@ In the following, we will refer to this data set as "our data repository". Note 
 ## Reproducing the paper results
 The following description summarizes the steps to reproduce the results presented in the paper. To avoid long-run times (due to e.g. the large-scale screen to identify impactful gene perturbations), intermediate results can be downloaded from the referenced data resources mentioned above.
 
+**Please be aware that the following steps will partially overwrite the content in the ``data`` repository, i.e. the notebooks are set up such that their output is saved to same location as in the intermediate data repository. If you would like to simply reproduce the figures in our manuscript, please skip to the respective *Reproducing the paper's figures* section.**
+
 *Note that, solely running all experiments and analyses described in the paper took more than 200 hours of pure computation time on the used hardware setup due to the complexity of the computations and the size of the data sets. The different notebooks and scripts reference the locations of the required files according to the structure provided in our intermediate data repository. Thus, our code can be run without changing any file paths if the intermediate data repository is used. However, if you prefer to store the data differently than the structure used in our data repository, additional changes of the file locations in several scripts will be required. We are happy to assist in these cases.*
 
 ### 1. Data preprocessing
@@ -253,6 +255,46 @@ Finally, gene perturbation embeddings are obtained as for the Rohban data by ave
 #### 6.2. Evaluation of the effectiveness of our pipeline
 
 Using the computed gene perturbation embeddings, we evaluate our pipeline on predicting the targets of over novel/unseen 75 overexpression condition in the JUMP data set using the functionalities in the notebook ```notebooks/jump/translation/jump_translation_prediction_final.ipynb```.
+
+---
+
+## Reproducing the paper's figures
+
+In the following we provide for each panel of the figures in the main text and the supplemental material of our paper the respective notebooks that were used to create these panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
+
+### Main figures
+
+#### Figure 1
+#### Figure 2
+#### Figure 3
+#### Figure 4
+
+### Supplemental Figures
+
+#### Figure S1
+#### Figure S2
+#### Figure S3
+#### Figure S4
+#### Figure S5
+#### Figure S6
+#### Figure S7
+#### Figure S8
+#### Figure S9
+#### Figure S10
+#### Figure S11
+#### Figure S12
+#### Figure S13
+#### Figure S14
+#### Figure S15
+#### Figure S16
+#### Figure S17
+#### Figure S18
+#### Figure S19
+#### Figure S20
+#### Figure S21
+#### Figure S22
+#### Figure S23
+#### Figure S24
 
 ---
 
