@@ -112,6 +112,7 @@ The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline.yml
 ```
+**Please skip that step if you are using our intermediate data repository and have not download the raw image data from Rohban et al. (2017).**  This is because the script requires the raw image data from Rohban et al. (2017) to be downloaded and the respective content of the ``ilum_corrected`` image files to be located at ``image2reg/data/resources/images/rohban/illum_corrected``. By default the download script ``scripts/data/download_rohban_data.sh will download it to that location if run from within the``image2reg`` directory.**
 
 *A version of the output of the preprocessing pipeline, which e.g. contains the segmented single-nuclei images is available in our data repository at ``experiments/rohban/images/preprocessing/full_pipeline``.*
 
@@ -164,7 +165,7 @@ To infer the image embeddings the convolutional neural network is trained on a m
 
 The related experiment can be run by calling
 ```
-bash scripts/experiment/run_selected_targets.sh
+bash scripts/experiments/run_selected_targets.sh
 ```
 
 The script uses data files and config files used by the script need to be available. The corresponding data is part of the available optional data resources but can also be efficiently generated from the output of the output of image preprocessing step (see step 1.1.) using the notebook ```notebooks/rohban/other/cv_specific_targets_data_split.ipynb```.
