@@ -55,8 +55,40 @@ Note that the following data resources are only required if you want to reproduc
 
 The raw data including the images of the perturbation screen by [Rohban et. al, 2017](https://doi.org/10.7554/eLife.24060), the images from the JUMP data set by [Chandrasekaran et al, 2023](https://doi.org/10.1101/2023.03.23.534023) and the gene expression and protein-protein interaction data are publicly available from the sources described in the paper.
 
-To facilitate the download of the two image data sets, we have provided some additional code. The raw images of the Rohban data set and the associated morphological profiles can be downloaded using the script in ``scripts/data/download_rohban_data.sh``. Please note that the script requires the [Aspera Client](https://www.ibm.com/products/aspera?utm_content=SRCWW&p1=Search&p4=43700074866463662&p5=p&gclid=CjwKCAjwm4ukBhAuEiwA0zQxk2sPzQlK4wH4MJJdL1Jwiw9QnYncuvghaJrocgIILEMFAHfDHRGJNBoC9wwQAvD_BwE&gclsrc=aw.ds) to be installed in the system. The raw images and profiles of the JUMP data set can be downloaded using the notebook ``notebooks/jump/eda/data_extraction.ipynb``. If you encounter an error saying ascp command not found while running the download script, please verify that the Aspera client is installed. To install it on linux follow e.g. the tutorial found [here](https://www.biostars.org/p/9528910/).
+To facilitate the download of the two image data sets, we have provided some additional code. 
 
+### Data from Rohban et al. (2017)
+The raw images of the Rohban data set and the associated morphological profiles can be downloaded using 
+
+```
+bash scripts/data/download_rohban_data.sh
+```
+The script requires the [Aspera Client](https://www.ibm.com/products/aspera?utm_content=SRCWW&p1=Search&p4=43700074866463662&p5=p&gclid=CjwKCAjwm4ukBhAuEiwA0zQxk2sPzQlK4wH4MJJdL1Jwiw9QnYncuvghaJrocgIILEMFAHfDHRGJNBoC9wwQAvD_BwE&gclsrc=aw.ds) to be installed in the system. This is because the server which contains the imaging data (and which is not maintained by us) only provides access to the data using the Aspera client.
+If you encounter an error saying ascp command not found while running the download script, please verify that the Aspera client is installed.
+
+To install you the Aspera client on Linux you can run the following code (Taken from the tutorial [here](https://www.biostars.org/p/9528910/)).
+```
+wget https://ak-delivery04-mul.dhe.ibm.com/sar/CMA/OSA/0adrj/0/ibm-aspera-connect_4.1.3.93_linux.tar.gz
+tar zxvf ibm-aspera-connect_4.1.3.93_linux.tar.gz
+bash ibm-aspera-connect_4.1.3.93_linux.sh
+```
+By default the Aspera client will be installed in ``$HOME/.aspera/connect/bin/``, please add the respective directory to your ``$PATH`` environment variable, e.g. via
+
+```
+export PATH=$PATH:$HOME/.aspera/connect/bin
+```
+To verify the installation try running the ```ascp``` command in the terminal, if you see usage instructions of the client as an output it is correctly installed and you should be able to run the data retrieval script ``scrips/data/download_rohban_data.sh`` as described above. Please note if the script seems to be stuck after outputting ``Download imaging data...``, there might be an issue with the connection to the IDR server, where the data is located. In that case likely your firewall configuration block the access to the server. In that case please try a different network connection and/or use our intermediate data respository described below instead. 
+
+### JUMP-CP imaging data set
+The raw images and profiles of the JUMP data set can be downloaded using the notebook ``notebooks/jump/eda/data_extraction.ipynb``. 
+To run the code please start the jupyter server via
+```
+jupyter notebook
+```
+and navigate to the respective notebook. Executing the cells and following the descriptions in the notebook will download the raw and respective metadata. If you encounter an error saying ascp command not found while running the download script, please verify that the Aspera client is installed. To install it on linux follow e.g. the tutorial found [here](https://www.biostars.org/p/9528910/).
+
+
+### IOur data repository
 Additional intermediate outputs of the presented analyses including i.a. trained neural network models, the inferred gene-gene interactome, computed image, perturbation gene and regulatory gene embeddings can be downloaded from the PSI Data Catalog using the DOI: [10.16907/febfd200-8b72-48ba-8704-01e842314697](https://doi.psi.ch/detail/10.16907%2Ffebfd200-8b72-48ba-8704-01e842314697). Please note that the data is currently stored to the linked archive tape system and will be available to download from the above DOI by July 12th, 2023 the latest. In the meantime the same data can be retrieved from our [Google Drive]([https://www.dropbox.com/scl/fo/g95nz15u62billl2x0682/h?dl=0&rlkey=tl7edxbf0swu7cdabnbsidm9l](https://drive.google.com/drive/folders/18ITp40Hz1ZcXXKlCJz21_ujqZkzliz_b?usp=sharing)). 
 
 In the following, we will refer to this data set as "our data repository". Note that the intermediate results and the respective data in our data repository are optional and were generated as a results of the steps described in the following.
