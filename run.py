@@ -18,7 +18,7 @@ sys.path.append(".")
 from src.utils.basic.general import get_timestamp, key_in_dict
 
 # set logging configuration
-os.makedirs("log", exist_ok=True)
+os.makedirs("logs", exist_ok=True)
 log_filename = "logs/logs" + get_timestamp() + ".log"
 logging.basicConfig(
     level=logging.DEBUG,
