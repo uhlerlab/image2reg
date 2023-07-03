@@ -1,0 +1,64 @@
+Show in New WindowClear OutputExpand/Collapse Output
+R version 4.0.3 (2020-10-10)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.6 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=de_CH.UTF-8        LC_COLLATE=en_US.UTF-8     LC_MONETARY=de_CH.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                  LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] clusterProfiler_3.18.1 stringr_1.4.1          ggplot2_3.4.0          org.Hs.eg.db_3.12.0    topGO_2.42.0           SparseM_1.81           GO.db_3.12.1          
+ [8] AnnotationDbi_1.52.0   IRanges_2.24.1         S4Vectors_0.28.1       Biobase_2.50.0         graph_1.68.0           BiocGenerics_0.36.1   
+
+loaded via a namespace (and not attached):
+ [1] matrixStats_0.62.0  enrichplot_1.10.2   bit64_4.0.5         RColorBrewer_1.1-3  tools_4.0.3         utf8_1.2.2          R6_2.5.1            DBI_1.1.3          
+ [9] colorspace_2.0-3    withr_2.5.0         tidyselect_1.2.0    gridExtra_2.3       bit_4.0.4           compiler_4.0.3      cli_3.4.1           scatterpie_0.1.8   
+[17] shadowtext_0.1.2    labeling_0.4.2      scales_1.2.1        yulab.utils_0.0.5   digest_0.6.30       rmarkdown_2.20      DOSE_3.16.0         pkgconfig_2.0.3    
+[25] htmltools_0.5.5     fastmap_1.1.1       rlang_1.0.6         rstudioapi_0.14     RSQLite_2.2.18      farver_2.1.1        generics_0.1.3      BiocParallel_1.24.1
+[33] GOSemSim_2.16.1     dplyr_1.0.10        magrittr_2.0.3      Matrix_1.5-3        Rcpp_1.0.9          munsell_0.5.0       fansi_1.0.3         viridis_0.6.2      
+[41] lifecycle_1.0.3     stringi_1.7.8       yaml_2.3.7          ggraph_2.1.0        MASS_7.3-58.2       plyr_1.8.8          qvalue_2.22.0       grid_4.0.3         
+[49] blob_1.2.3          ggrepel_0.9.2       DO.db_2.9           crayon_1.5.2        lattice_0.20-45     graphlayouts_0.8.3  cowplot_1.1.1       splines_4.0.3      
+[57] knitr_1.42          pillar_1.8.1        fgsea_1.16.0        igraph_1.3.5        reshape2_1.4.4      fastmatch_1.1-3     glue_1.6.2          evaluate_0.18      
+[65] ggfun_0.0.8         downloader_0.4      data.table_1.14.4   BiocManager_1.30.19 vctrs_0.5.0         tweenr_2.0.2        gtable_0.3.1        purrr_0.3.5        
+[73] polyclip_1.10-4     tidyr_1.2.1         assertthat_0.2.1    cachem_1.0.7        xfun_0.38           ggforce_0.4.1       tidygraph_1.2.2     viridisLite_0.4.1  
+[81] tibble_3.1.8        rvcheck_0.2.1       memoise_2.0.1      
+Show in New WindowClear OutputExpand/Collapse Output
+R version 4.0.3 (2020-10-10)
+Platform: x86_64-pc-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.6 LTS
+
+Matrix products: default
+BLAS:   /usr/lib/x86_64-linux-gnu/blas/libblas.so.3.9.0
+LAPACK: /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.9.0
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C               LC_TIME=de_CH.UTF-8        LC_COLLATE=en_US.UTF-8     LC_MONETARY=de_CH.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=de_CH.UTF-8       LC_NAME=C                  LC_ADDRESS=C               LC_TELEPHONE=C             LC_MEASUREMENT=de_CH.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats4    parallel  stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] BiocManager_1.30.19    clusterProfiler_3.18.1 stringr_1.4.1          ggplot2_3.4.0          org.Hs.eg.db_3.12.0    topGO_2.42.0           SparseM_1.81          
+ [8] GO.db_3.12.1           AnnotationDbi_1.52.0   IRanges_2.24.1         S4Vectors_0.28.1       Biobase_2.50.0         graph_1.68.0           BiocGenerics_0.36.1   
+
+loaded via a namespace (and not attached):
+ [1] matrixStats_0.62.0  enrichplot_1.10.2   bit64_4.0.5         RColorBrewer_1.1-3  bslib_0.4.1         tools_4.0.3         utf8_1.2.2          R6_2.5.1           
+ [9] DBI_1.1.3           colorspace_2.0-3    withr_2.5.0         tidyselect_1.2.0    gridExtra_2.3       bit_4.0.4           compiler_4.0.3      cli_3.4.1          
+[17] scatterpie_0.1.8    sass_0.4.2          shadowtext_0.1.2    labeling_0.4.2      scales_1.2.1        yulab.utils_0.0.5   digest_0.6.30       rmarkdown_2.20     
+[25] DOSE_3.16.0         pkgconfig_2.0.3     htmltools_0.5.5     fastmap_1.1.1       rlang_1.0.6         rstudioapi_0.14     RSQLite_2.2.18      jquerylib_0.1.4    
+[33] farver_2.1.1        generics_0.1.3      jsonlite_1.8.3      BiocParallel_1.24.1 GOSemSim_2.16.1     dplyr_1.0.10        magrittr_2.0.3      Matrix_1.5-3       
+[41] Rcpp_1.0.9          munsell_0.5.0       fansi_1.0.3         viridis_0.6.2       lifecycle_1.0.3     stringi_1.7.8       yaml_2.3.7          ggraph_2.1.0       
+[49] MASS_7.3-58.2       plyr_1.8.8          qvalue_2.22.0       grid_4.0.3          blob_1.2.3          ggrepel_0.9.2       DO.db_2.9           crayon_1.5.2       
+[57] lattice_0.20-45     graphlayouts_0.8.3  cowplot_1.1.1       splines_4.0.3       knitr_1.42          pillar_1.8.1        fgsea_1.16.0        igraph_1.3.5       
+[65] reshape2_1.4.4      fastmatch_1.1-3     glue_1.6.2          evaluate_0.18       ggfun_0.0.8         downloader_0.4      data.table_1.14.4   vctrs_0.5.0        
+[73] tweenr_2.0.2        gtable_0.3.1        purrr_0.3.5         polyclip_1.10-4     tidyr_1.2.1         assertthat_0.2.1    cachem_1.0.7        xfun_0.38          
+[81] ggforce_0.4.1       tidygraph_1.2.2     viridisLite_0.4.1   tibble_3.1.8        rvcheck_0.2.1       memoise_2.0.1      

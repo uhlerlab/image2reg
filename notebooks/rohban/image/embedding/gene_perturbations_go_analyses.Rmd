@@ -1,30 +1,49 @@
 ---
-title: 'Enrichment analysis of the gene clusters in the physical space'
+title: 'Enrichment analysis of the gene clusters in the image-based gene embedding space'
 author: "Daniel Paysan"
 date: "06/07/2022"
 output: html_document
 ---
 
-This notebook conducts a GO analysis to characterize the gene clusters identified in the physical space.
+This notebook conducts a GO analysis to characterize the gene clusters identified in the image-based gene embedding space.
+Please update the file path for root.dir argument to the location of the image2reg repository.
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "/home/daniel/PycharmProjects/image2reg/")
+knitr::opts_knit$set(root.dir = "/home/paysan_d/PycharmProjects/image2reg/")
 ```
 
 # 0. Environmental setup
 
-First, we load the required packages.
+First, we install or load the required packages.
+
+Please skip the following code chunk if the packages in the next one are already installed.
+
+```{r}
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", version = "3.11")
+
+BiocManager::install("topGO")
+BiocManager::install("org.Hs.eg.db")
+install.packages("tidyverse")
+```
+
+
+Please make sure that the versions of the installed packages match those we have used to ensure reproducibility of the results.
+The version numbers are given in the output of the following cell.
 
 ```{r environmental setup}
 require("topGO")
-require("KEGGREST")
 require("org.Hs.eg.db")
-require("GeneAnswers")
-require("EnrichmentBrowser")
 require("ggplot2")
 require("stringr")
 ```
+Please make sure that the versions of the installed packages match those we have used to ensure reproducibility of the results.
+The version numbers are given in the output of the following cell.
+```{r}
+sessionInfo()
+```
+
 Next, we load a function that enables a simple GO analysis using the topGO API.
 
 ```{r}
@@ -392,6 +411,8 @@ p + ggtitle("GO Terms for Cluster 9", subtitle = "PRKACA, CXXC4, GLI1") +
   labs(x="GO term", y="-log10(raw p value)")
 ```
 
-# 2. Discussion
+```{r}
+#save.image(file = "other/gene_pert_go_analyses.Rdata")
+sessionInfo()
+```
 
-The previous analysis shows that 7 of the 9 non-singleton clusters are significantly enriched for at least one GO term associated to a biological processes when considering the raw p-values obtained from the topGO analysis which are assumed to be not affected by multiple testing.
