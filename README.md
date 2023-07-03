@@ -262,20 +262,18 @@ Using the computed gene perturbation embeddings, we evaluate our pipeline on pre
 
 To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
 
-### Main figures
-
-#### Figure 1
+### Figure 1
 - The panels A and B were created without the use of the code.
-#### Figure 2
+### Figure 2
 - Panel A and B were created without the use of the code.
 - Panel C was created using the notebook ``notebooks/rohban/image/screen/screen_analysis_cv_final.ipynb``
 - Panel D was created using the notebook ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``
 - Panel E was created using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb``
-#### Figure 3
+### Figure 3
 - Panel A was created using the notebook ``notebooks/rohban/ppi/preprocessing/inference_preparation_full_pruning.ipynb`` and visualizing the inferred Prize Collecting Steiner tree that is derived by the notebook ``notebooks/rohban/ppi/inference/interactome_inference/final.ipynb`` and is saved as the file ``spearman_sol_cv.graphml`` via opening it and visualizing it using [Cytoscape]().
 - Panel B is created using the notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_clustering.ipynb``.
 - Panel C is created using the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``
-#### Figure 4
+### Figure 4
 - Panel A was created without the use of the code.
 - Panel B was created using the notebook ``notebooks/rohban/translation/mapping/translational_mapping_loto_gridsearch_final.ipynb``
 - Panel C was created using the notebook ``notebooks/jump/translation/jump_translation_prediction_final.ipynb``
