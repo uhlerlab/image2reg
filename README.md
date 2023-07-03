@@ -43,7 +43,8 @@ bash scripts/installation/setup_environment_cpu.sh
 Note that without GPU accelaration the run time of the code with respect to the training and evaluation of the neural networks is significantly longer.
 Please also refer to the official Pytorch installation guide, which can be found [here](https://pytorch.org/get-started/locally/), in case you encounter any problems regarding the installation of packages such as ``torch, torchvision and torchaudio``. Similarly, please also consult the official documentation of Pytorch Geometric, which can be found [here](https://pytorch-geometric.readthedocs.io/en/latest/) in case that you encounter any problems with the installation of the packages ``torch-geometric, torch-scatter, torch-sparse, torch-spline-conv``.
 
-**Note that installing all additional packages as described before is highly recommended to recreate the environment the code was developed in.**
+**Note that installing all packages with the GPU accelaration of PyTorch using CUDA as described before is highly recommended to recreate the environment the code was developed in.**
+
 
 In total the estimated installation time is 10-20 minutes depending on the speed of the available internet connection to download the required software packages.
 
@@ -100,6 +101,8 @@ In the following, we will refer to this data set as "our data repository". Note 
 
 ## Reproducing the paper results
 The following description summarizes the steps to reproduce the results presented in the paper. To avoid long-run times (due to e.g. the large-scale screen to identify impactful gene perturbations), intermediate results can be downloaded from the referenced data resources mentioned above.
+
+**Please be aware that the following steps will partially overwrite the content in the ``data`` repository, i.e. the notebooks are set up such that their output is saved to same location as in the intermediate data repository. If you would like to simply reproduce the figures in our manuscript, please skip to the respective *Reproducing the paper's figures* section.**
 
 *Note that, solely running all experiments and analyses described in the paper took more than 200 hours of pure computation time on the used hardware setup due to the complexity of the computations and the size of the data sets. The different notebooks and scripts reference the locations of the required files according to the structure provided in our intermediate data repository. Thus, our code can be run without changing any file paths if the intermediate data repository is used. However, if you prefer to store the data differently than the structure used in our data repository, additional changes of the file locations in several scripts will be required. We are happy to assist in these cases.*
 
@@ -189,8 +192,15 @@ The analyses of the image embeddings and visualization of their representation c
 
 #### 2.4. Analyses of the gene perturbation embeddings
 
-The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb`` and ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017).
+The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb`` and ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017). 
 
+To run the referenced .Rmd files, please install R and RStudio following the official installation instructions provided [here](https://posit.co/download/rstudio-desktop/).
+The setup used by us to run the experiments described in our paper used RStudio v.1.3.959 and R version 4.0.3. The R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd`` contain all the code to install the required additional R packages.
+If you encounter any problems while installing the ``topGO`` package in the R notebook, please make sure that ``libpng-dev`` is installed. If it is not installed you can install it via
+```
+sudo apt get install libpng-dev
+```
+ 
 ---
 
 ### 3. Inference and analyses of the gene-gene interactome
@@ -253,6 +263,29 @@ Finally, gene perturbation embeddings are obtained as for the Rohban data by ave
 #### 6.2. Evaluation of the effectiveness of our pipeline
 
 Using the computed gene perturbation embeddings, we evaluate our pipeline on predicting the targets of over novel/unseen 75 overexpression condition in the JUMP data set using the functionalities in the notebook ```notebooks/jump/translation/jump_translation_prediction_final.ipynb```.
+
+---
+
+## Reproducing the paper's figures
+
+To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
+
+### Figure 1
+- The panels A and B were created without the use of the code.
+### Figure 2
+- Panel A and B were created without the use of the code.
+- Panel C was created using the notebook ``notebooks/rohban/image/screen/screen_analysis_cv_final.ipynb``
+- Panel D was created using the notebook ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``
+- Panel E was created using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb``
+### Figure 3
+- Panel A was created using the notebook ``notebooks/rohban/ppi/preprocessing/inference_preparation_full_pruning.ipynb`` and visualizing the inferred Prize Collecting Steiner tree that is derived by the notebook ``notebooks/rohban/ppi/inference/interactome_inference/final.ipynb`` and is saved as the file ``spearman_sol_cv.graphml`` via opening it and visualizing it using [Cytoscape]().
+- Panel B is created using the notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_clustering.ipynb``.
+- Panel C is created using the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``
+### Figure 4
+- Panel A was created without the use of the code.
+- Panel B was created using the notebook ``notebooks/rohban/translation/mapping/translational_mapping_loto_gridsearch_final.ipynb``
+- Panel C was created using the notebook ``notebooks/jump/translation/jump_translation_prediction_final.ipynb``
+
 
 ---
 
