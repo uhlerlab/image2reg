@@ -189,8 +189,8 @@ The analyses of the image embeddings and visualization of their representation c
 
 #### 2.4. Analyses of the gene perturbation embeddings
 
-The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb`` and ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017).
-
+The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb`` and ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017). The R notebook as well as any other R notebooks mentioned in the following were run using RStudio v.1.3.959 and R version 4.0.3. Please follow the official installation instruction to install this software, which can be found [here](https://posit.co/download/rstudio-desktop/).
+ 
 ---
 
 ### 3. Inference and analyses of the gene-gene interactome
