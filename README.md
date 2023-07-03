@@ -112,7 +112,7 @@ The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline.yml
 ```
-**Please skip that step if you are using our intermediate data repository and have not download the raw image data from Rohban et al. (2017).**  This is because the script requires the raw image data from Rohban et al. (2017) to be downloaded and the respective content of the ``ilum_corrected`` image files to be located at ``image2reg/data/resources/images/rohban/illum_corrected``. By default the download script ``scripts/data/download_rohban_data.sh will download it to that location if run from within the``image2reg`` directory.**
+**Please skip that step if you are using our intermediate data repository and have not download the raw image data from Rohban et al. (2017).**  This is because the script requires the raw image data from Rohban et al. (2017) to be downloaded and the respective content of the ``ilum_corrected`` image files to be located at ``image2reg/data/resources/images/rohban/illum_corrected``. By default the download script ``scripts/data/download_rohban_data.sh will download all data including the ``illum_corrected`` directory to ``image2reg/data/resources/images/rohban/raw`` if run from within the``image2reg`` directory. Please simply copy the downloaded ``illum_corrected`` directory to the ``image2reg/data/resources/images/rohban/`` directory. Assuming you have downloaded in the intermediate data, you can then rerun the preprocessing as defined above. Please again note that since the raw data from Rohban et al. (2017) is not managed by us, we cannot provide all raw image files directly as part of our intermediate data repository.**
 
 *A version of the output of the preprocessing pipeline, which e.g. contains the segmented single-nuclei images is available in our data repository at ``experiments/rohban/images/preprocessing/full_pipeline``.*
 
@@ -177,7 +177,7 @@ To obtain the image embeddings in the leave-one-target-out evaluation scheme the
 bash scripts/experiments/run_loto_selected_targets.sh
 ```
 
-The required for the experiments are again available as part of the optional data resources or can be efficiently generated using the notebooks ```notebooks/rohban/other/create_loto_configs.ipynb``` and ```notebooks/other/loto_data_splits.ipynb```.
+The required metadata files for the experiments are again available as part of the optional data resources or can be efficiently generated using the notebooks ```notebooks/rohban/other/create_loto_configs.ipynb``` and ```notebooks/rohban/other/loto_data_splits.ipynb```.
 
 *A version of the thereby obtained image embeddings are available in our data repository at ```experiments/rohban/images/embeddings/leave_one_target_out.csv```.*
 
