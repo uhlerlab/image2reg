@@ -81,6 +81,9 @@ export PATH=$PATH:$HOME/.aspera/connect/bin
 To verify the installation try running the ```ascp``` command in the terminal, if you see usage instructions of the client as an output it is correctly installed and you should be able to run the data retrieval script ``scripts/data/download_rohban_data.sh`` as described above. Please note if the script seems to be stuck after outputting ``Download imaging data...``, there might be an issue with the connection to the IDR server, where the data is located. In that case likely your firewall configuration block the access to the server. In that case please try a different network connection and/or use our intermediate data respository described below instead. 
 
 ### JUMP-CP imaging data set
+
+**Please note that this step should only be run after the intermediate data repository was downloaded or the results of the Rohban analyses was reproduced. This is required as the download script will only download image data for the selected 175 OE conditions to save disk storage and as only these can be used for the additional validation of our pipeline on the JUMP-CP data set.**
+
 The raw images and profiles of the JUMP data set can be downloaded using the notebook ``notebooks/jump/eda/data_extraction.ipynb``. 
 To run the code please start the jupyter server via
 ```
