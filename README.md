@@ -194,12 +194,17 @@ The analyses of the image embeddings and visualization of their representation c
 
 The cluster analyses of the inferred gene perturbation embeddings are performed using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb`` and ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``. Gene ontology analyses were performed using the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd``. Note that the preprocessed morphological profiles are available from the optional data resources but can be obtained by simply removing all features associated to channels other than the DNA channel from profiles available by Rohban et al. (2017). 
 
-To run the referenced .Rmd files, please install R and RStudio following the official installation instructions provided [here](https://posit.co/download/rstudio-desktop/).
+---
+*To run the referenced .Rmd files, please install R and RStudio following the official installation instructions provided [here](https://posit.co/download/rstudio-desktop/).
 The setup used by us to run the experiments described in our paper used RStudio v.1.3.959 and R version 4.0.3. The R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd`` contain all the code to install the required additional R packages.
-If you encounter any problems while installing the ``topGO`` package in the R notebook, please make sure that ``libpng-dev`` is installed. If it is not installed you can install it via
+If you encounter any problems while installing the ``topGO`` package in the R notebook, please make sure that the required binaries are installed as defined in the output e.g. install ``libpng-dev`` via 
 ```
-sudo apt get install libpng-dev
+sudo apt install libpng-dev
 ```
+if the R output identifies that package as missing during the installation.
+Please further note that the results were produced using the previously described version of R and RStudio as well as the additional R packages as defined in the notebook ``notebooks/rohban/image/embedding/gene_perturbation_go_analyses_rsessioninfo.txt`` and ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses_rsessioninfo.txt`` respectively.
+Since the gene sets used in the GO analysis are subject to change, there might be slight differences if other versions of in particular the packages ``clusterProfiler`` (should be version 3.18.1), ``topGO`` (should be version 2.42.0), ``org.Hs.db.eg`` (should be version 3.12.0) are installed.
+To facilitate reproducing the results, we also provide the whole R environment in the Github repository as the file ``other/gene_pert_go_analyses.Rdata`` for the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd`` and ``other/gene_embedding_cluster_data.Rdata`` for the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``, which is refered to in section 4.*
  
 ---
 
@@ -280,7 +285,7 @@ To further facilitate the running of our code to reproduce the main figures, we 
 ### Figure 3
 - Panel A was created using the notebook ``notebooks/rohban/ppi/preprocessing/inference_preparation_full_pruning.ipynb`` and visualizing the inferred Prize Collecting Steiner tree that is derived by the notebook ``notebooks/rohban/ppi/inference/interactome_inference/final.ipynb`` and is saved as the file ``spearman_sol_cv.graphml`` via opening it and visualizing it using [Cytoscape]().
 - Panel B is created using the notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_clustering.ipynb``.
-- Panel C is created using the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``
+- Panel C is created using the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``; a compiled version is available as the file notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.html.
 ### Figure 4
 - Panel A was created without the use of the code.
 - Panel B was created using the notebook ``notebooks/rohban/translation/mapping/translational_mapping_loto_gridsearch_final.ipynb``
