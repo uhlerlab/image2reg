@@ -115,7 +115,7 @@ nbformat==5.1.3
 nest-asyncio==1.5.1
 networkx==2.7.1
 nf1==0.0.4
-nmco @ git+https://github.com/GVS-Lab/chrometrics.git
+nmco @ git+https://github.com/GVS-Lab/chrometrics.git@ce86d3787c661e8a59d26fcf4498efb8fd5ecc5a
 node2vec==0.4.3
 nose==1.3.7
 notebook==6.4.0
@@ -125,7 +125,7 @@ numpy==1.22.3
 olefile==0.46
 opencv-python==4.5.2.52
 packaging==20.9
-pandas==1.3.1
+pandas==1.5.1
 pandocfilters==1.4.2
 panel==0.12.1
 param==1.11.1
