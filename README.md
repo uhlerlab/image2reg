@@ -260,7 +260,7 @@ Using the computed gene perturbation embeddings, we evaluate our pipeline on pre
 
 ## Reproducing the paper's figures
 
-In the following we provide for each panel of the figures in the main text and the supplemental material of our paper the respective notebooks that were used to create these panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
+To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
 
 ### Main figures
 
@@ -269,32 +269,6 @@ In the following we provide for each panel of the figures in the main text and t
 #### Figure 3
 #### Figure 4
 
-### Supplemental Figures
-
-#### Figure S1
-#### Figure S2
-#### Figure S3
-#### Figure S4
-#### Figure S5
-#### Figure S6
-#### Figure S7
-#### Figure S8
-#### Figure S9
-#### Figure S10
-#### Figure S11
-#### Figure S12
-#### Figure S13
-#### Figure S14
-#### Figure S15
-#### Figure S16
-#### Figure S17
-#### Figure S18
-#### Figure S19
-#### Figure S20
-#### Figure S21
-#### Figure S22
-#### Figure S23
-#### Figure S24
 
 ---
 
