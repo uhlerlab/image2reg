@@ -21,7 +21,7 @@ fi
 chmod 777 -R rohban
 cd rohban
 
-output_dir = 'raw'
+output_dir='raw'
 
 if [ -d "$output_dir" ]; then
 	echo "$output_dir already exist. Exiting to prevent data loss..."
