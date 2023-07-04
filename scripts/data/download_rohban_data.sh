@@ -3,7 +3,7 @@ echo "Starting download of the data from Rohban et al. (2017): IDR0033"
 cd "$(dirname "$0")"
 cd ../..
 
-output_dir = "./data/resources/images/rohban/raw"
+output_dir = './data/resources/images/rohban/raw'
 
 if [ -d "$output_dir" ]; then
 	echo "$output_dir already exist. Exiting to prevent data loss..."
