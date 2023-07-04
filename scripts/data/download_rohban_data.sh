@@ -3,8 +3,6 @@ echo "Starting download of the data from Rohban et al. (2017): IDR0033"
 cd "$(dirname "$0")"
 cd ../..
 
-output_dir = './data/resources/images/rohban/raw'
-
 if ! [ -d "data" ]; then
 	mkdir data
 fi
