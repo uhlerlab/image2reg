@@ -10,7 +10,7 @@ Please update the file path for root.dir argument to the location of the image2r
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "/home/paysan_d/PycharmProjects/image2reg/")
+knitr::opts_knit$set(root.dir = normalizePath("../../../.."))
 ```
 
 # 0. Environmental setup
