@@ -5,6 +5,26 @@ cd ../..
 
 output_dir = './data/resources/images/rohban/raw'
 
+if ! [ -d "data" ]; then
+	mkdir data
+fi
+chmod 777 -R data
+cd data
+
+if ! [ -d "resources" ]; then
+	mkdir resources
+fi
+chmod 777 -R resources
+cd data
+
+if ! [ -d "rohban" ]; then
+	mkdir rohban
+fi
+chmod 777 -R rohban
+cd rohban
+
+output_dir = 'raw'
+
 if [ -d "$output_dir" ]; then
 	echo "$output_dir already exist. Exiting to prevent data loss..."
 else
