@@ -26,7 +26,7 @@ output_dir = 'raw'
 if [ -d "$output_dir" ]; then
 	echo "$output_dir already exist. Exiting to prevent data loss..."
 else
-	mkdir -p "$output_dir"
+	mkdir "$output_dir"
 	chmod 777 -R "$output_dir"
 	cd "$output_dir" || exit
 	echo "Downloading ssh key..."
