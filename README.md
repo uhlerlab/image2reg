@@ -294,7 +294,7 @@ Using the computed gene perturbation embeddings, we evaluate our pipeline on pre
 
 ## Reproducing the paper's figures
 
-To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations. Please note that to run the notebooks the required software packages as described in the **Installation/Environmental setup** section need to be installed. Additionally, the R and RStudio is required to run the .Rmd files (R notebooks). Please refer to the final part of section 2.4. of the section **Reproducing the paper's results** for details on how to install these.
+To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations. Please note that to run the notebooks the required software packages as described in the **Installation/Environmental setup** section need to be installed. Additionally, the R and RStudio is required to run the .Rmd files (R notebooks). Please refer to the final part of section 2.4. of the section **Reproducing the paper results** for details on how to install these.
 
 ### Figure 1
 - The panels A and B were created without the use of the code.
