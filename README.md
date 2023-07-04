@@ -121,9 +121,21 @@ The full preprocessing pipeline can be run via
 ```
 python run.py --config config/preprocessing/full_image_pipeline.yml
 ```
+
 **Please skip that step if you are using our intermediate data repository and have not download the raw image data from Rohban et al. (2017).**  This is because the script requires the raw image data from Rohban et al. (2017) to be downloaded and the respective content of the ``ilum_corrected`` image files to be located at ``data/resources/images/rohban/illum_corrected``. By default the download script ``scripts/data/download_rohban_data.sh will download all data including the ``illum_corrected`` directory to ``image2reg/data/resources/images/rohban/raw`` if run from within the``image2reg`` directory. Please simply copy the downloaded ``illum_corrected`` directory to the ``data/resources/images/rohban/`` directory. Assuming you have downloaded in the intermediate data, you can then rerun the preprocessing as defined above. Please again note that since the raw data from Rohban et al. (2017) is not managed by us, we cannot provide all raw image files directly as part of our intermediate data repository.**
 
-*A version of the output of the preprocessing pipeline, which e.g. contains the segmented single-nuclei images is available in our data repository at ``experiments/rohban/images/preprocessing/full_pipeline``.*
+*A version of the output of the preprocessing pipeline, which e.g. contains the segmented single-nuclei images is available in our data repository at ``experiments/rohban/images/preprocessing/full_pipeline``.
+
+<details>
+  <summary>Additional remarks</summary>
+
+ If you have run the above mentioned command. Please find the output of the pipeline in a new directory in the same directory. By default everytime ``python run.py`` is run an output directory named according to the timestep of the execution of the command will be created in the outpud directory specificied in the respetive config file provided as the --config argument. All outputs generated as part of the execution of the command will be stored in this directory. This was done to prevent the scripts from overwriting existing data.*
+
+The UNet segmentation masks were obtained required for the preprocessing of the two imaging data sets are contained in the intermediate data repository located in the directory defined in the configuration file. If you are not using the intermediate data repository, please specifify the location of the segmentation masks for the images as the ``label_image_input_dir`` attribute in the ``config/preprocessing/full_image_pipeline.yml``. For each raw image the referenced directory must contained a segmentation mask with the same file name.
+
+</details>
+
+----
 
 #### 1.2. Imaging data from JUMP
 
