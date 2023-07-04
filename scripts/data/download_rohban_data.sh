@@ -13,7 +13,7 @@ if ! [ -d "resources" ]; then
 	mkdir resources
 fi
 chmod 777 -R resources
-cd data
+cd resources
 
 if ! [ -d "rohban" ]; then
 	mkdir rohban
