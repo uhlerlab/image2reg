@@ -131,7 +131,7 @@ python run.py --config config/preprocessing/full_image_pipeline.yml
 
  If you have run the above mentioned command. Please find the output of the pipeline in a new directory in the same directory. By default everytime ``python run.py`` is run an output directory named according to the timestep of the execution of the command will be created in the outpud directory specificied in the respetive config file provided as the --config argument. All outputs generated as part of the execution of the command will be stored in this directory. This was done to prevent the scripts from overwriting existing data.*
 
-The UNet segmentation masks were obtained required for the preprocessing of the two imaging data sets are contained in the intermediate data repository located in the directory defined in the configuration file. If you are not using the intermediate data repository, please specifify the location of the segmentation masks for the images as the ``label_image_input_dir`` attribute in the ``config/preprocessing/full_image_pipeline.yml``. For each raw image the referenced directory must contained a segmentation mask with the same file name.
+The UNet segmentation masks required for the preprocessing of the two imaging data sets are contained in the intermediate data repository located in the directory defined in the configuration file. If you are not using the intermediate data repository, please specifify the location of the segmentation masks for the images as the ``label_image_input_dir`` attribute in the ``config/preprocessing/full_image_pipeline.yml``. For each raw image the referenced directory must contained a segmentation mask with the same file name.
 
 </details>
 
