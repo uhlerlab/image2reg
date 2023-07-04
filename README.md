@@ -221,7 +221,10 @@ sudo apt install libpng-dev
 ```
 if the R output identifies that package as missing during the installation.
 Please further note that the results were produced using the previously described version of R and RStudio as well as the additional R packages as defined in the notebook ``notebooks/rohban/image/embedding/gene_perturbation_go_analyses_rsessioninfo.txt`` and ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses_rsessioninfo.txt`` respectively.
-Since the gene sets used in the GO analysis are subject to change, there might be slight differences if other versions of in particular the packages ``clusterProfiler`` (should be version 3.18.1), ``topGO`` (should be version 2.42.0), ``org.Hs.db.eg`` (should be version 3.12.0) are installed.
+
+
+*Since the gene sets used in the GO analysis are subject to change, there might be slight differences if other versions of in particular the packages ``clusterProfiler`` (should be version 3.18.1), ``topGO`` (should be version 2.42.0), ``org.Hs.db.eg`` (should be version 3.12.0) are installed.
+
 To facilitate reproducing the results, we also provide the whole R environment in the Github repository as the file ``other/gene_pert_go_analyses.Rdata`` for the R notebook ``notebooks/rohban/image/embedding/gene_perturbations_go_analyses.Rmd`` and ``other/gene_embedding_cluster_data.Rdata`` for the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``, which is refered to in section 4.*
  
 ---
@@ -291,7 +294,7 @@ Using the computed gene perturbation embeddings, we evaluate our pipeline on pre
 
 ## Reproducing the paper's figures
 
-To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations.
+To further facilitate the running of our code to reproduce the main figures, we here provide a list of the notebooks used to generate the corresponding panels. If our intermediate data repository was downloaded all notebooks can be run without the need of changing any file locations. Please note that to run the notebooks the required software packages as described in the **Installation/Environmental setup** section need to be installed. Additionally, the R and RStudio is required to run the .Rmd files (R notebooks). Please refer to the final part of section 2.4. of the section **Reproducing the paper's results** for details on how to install these.
 
 ### Figure 1
 - The panels A and B were created without the use of the code.
