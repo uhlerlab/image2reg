@@ -95,7 +95,8 @@ and navigate to the respective notebook. Executing the cells and following the d
 ### Our data repository
 Additional intermediate outputs of the presented analyses including i.a. trained neural network models, the inferred gene-gene interactome, computed image, perturbation gene and regulatory gene embeddings can be downloaded from the PSI Data Catalog using the DOI: [10.16907/febfd200-8b72-48ba-8704-01e842314697](https://doi.psi.ch/detail/10.16907%2Ffebfd200-8b72-48ba-8704-01e842314697) since **July 17th, 2023**.
 Please note that the intermediate data repository is 795GB in size and the time it takes to prepare the data donwload from the PSI Data Catalog depends on the workload and the assoiciated waiting queue length of the Swiss Data Center that hosts the PSI Data Catalog taoe archive system.
-The archiving job on the data has only been completed on July 17th, 2023. In the meantime we had also made the same data available on our [Google Drive](https://drive.google.com/drive/folders/18ITp40Hz1ZcXXKlCJz21_ujqZkzliz_b?usp=sharing), where we will keep the data available until the paper review is complete. 
+
+The archiving job on the data has been completed on July 17th, 2023. In the meantime we had also made the same data available on our [Google Drive](https://drive.google.com/drive/folders/18ITp40Hz1ZcXXKlCJz21_ujqZkzliz_b?usp=sharing), where we will keep the data available until the paper review is complete. 
 For your convenience, you can either download the two tar archives (``experiments`` and ``resources``) as two large files or download the files individually from the respective folders (``experiments`` and ``resources``) if you choose to download the data from the the Google Drive.
 
 
