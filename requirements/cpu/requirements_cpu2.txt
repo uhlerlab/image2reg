@@ -58,7 +58,7 @@ greenlet==1.1.2
 grequests==0.6.0
 gseapy==0.10.6
 h5py==3.2.1
-hdbscan==0.8.27
+hdbscan==0.8.33
 HeapDict==1.0.1
 holoviews==1.14.5
 idna==2.10

@@ -8,6 +8,12 @@ The repository contains the code for the main methodology and analyses described
  ![](https://github.com/dpaysan/image2reg/blob/389a275421f9d5508685ba0feb30f051085c54b2/imag2reg_pipeline.png)
 
 ---
+## Changelog
+
+### August 2nd, 2023
+On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely. Please refer to the corresponding issue on the hdbscan package site [here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600). In the meantime an updated version of the ``hdbscan`` package (v.0.8.33) has been released that resolves these issues with a hotfix. We have updated the requirements file of our package accordingly to install this version when running the described installation script. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+
+---
 
 ## System requirements
 
