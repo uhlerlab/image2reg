@@ -20,7 +20,7 @@ echo "Inference of the image embeddings complete."
 echo ""
 
 echo "Translation of the image embeddings to predict the overexpression target out of sample."
-echo "If you would like to run the translation after randomly permuting the image embeddings which is equivalent to the random baseline, please type in: y, otherwise simply press enter"
+echo "If you would like to run the translation after randomly permuting the image embeddings which is equivalent to the random baseline, please type in: yes, otherwise simply press enter"
 echo ""
 read -p "Run pipeline in random mode [no]: " random_mode
 random_mode=${random_mode:-no}

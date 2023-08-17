@@ -32,8 +32,24 @@ else
 	echo ""
 fi
 
+
 echo ""
 echo "------------------------------"
+
+echo "The demo also requires some intermediate data, e.g. the trained convolutional neural network image encoder to be available."
+echo "All resources for the demo are located in the directory called demo located within the image2reg repository."
+echo "If the repository is missing, it will be automatically downloaded."
+
+if ! [ -d "demo" ]
+then
+	echo "Data directory for the demo not found. Downloading..."
+	echo ""
+	wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=FILEID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1H89cywD1kCP0MNnYEJJ2_sQDe73EL1Y2" -O demo.zip && rm -rf /tmp/cookies.txt
+	echo ""
+	echo "Unzipping the directory..."
+	unzip -q demo.zip
+	rm demo.zip
+fi
 
 echo "Please select for which of the five example conditions you would like to run our pipeline."
 echo "Note that independent of the choice the pipeline was trained without any use of the image information from the selected condition as our pipeline is used for out-of-sample prediction of unknown gene perturbations from chromatin images."
