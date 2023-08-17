@@ -1,0 +1,32 @@
+output_dir: "demo/SREBF1/images/preprocessed"
+module: "src.preprocessing.image_preprocessing"
+class: "ImageDatasetPreprocessor"
+
+run_params:
+  image_input_dir: "demo/SREBF1/images/raw"
+  metadata_file: "demo/SREBF1/images/metadata/images_md.csv"
+  raw_image_col_name: "Image_FileName_OrigHoechst"
+  illum_image_col_name: "Image_FileName_IllumHoechst"
+  plate_col_name: "Image_Metadata_Plate"
+  well_col_name: "Image_Metadata_Well"
+
+pipeline:
+  - method: get_nuclear_crops
+    params:
+      label_image_input_dir: "demo/SREBF1/images/unet_masks"
+      nuclei_count_col_name: "Image_Count_Nuclei"
+      min_area: 400
+      max_area: 4000
+      max_bbarea: 4000
+      max_eccentricity: 1.0
+      min_solidity: 0.1
+      min_aspect_ratio: 0.1
+      extract_ncmo_features: False
+      n_jobs: 15
+
+  - method: save_padded_images
+    params:
+      target_size: [64,64]
+
+
+
