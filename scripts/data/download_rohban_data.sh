@@ -15,6 +15,12 @@ fi
 chmod 777 -R resources
 cd resources
 
+if ! [ -d "images" ]; then
+	mkdir images
+fi
+chmod 777 -R images
+cd images
+
 if ! [ -d "rohban" ]; then
 	mkdir rohban
 fi

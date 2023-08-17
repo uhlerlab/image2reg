@@ -1,4 +1,5 @@
 output_dir: "data/experiments/rohban/images/preprocessing"
+#output_dir: "/media/paysan_d/wd_datastore/i2r_test/data/experiments/rohban/images/preprocessing"
 module: "src.preprocessing.image_preprocessing"
 class: "ImageDatasetPreprocessor"
 

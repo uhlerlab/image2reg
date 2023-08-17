@@ -235,6 +235,7 @@ class ImageDatasetPreprocessor:
                 )
             else:
                 nmco_features = None
+                
 
             for region in regions:
                 width, height = region.image.shape

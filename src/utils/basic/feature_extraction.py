@@ -324,14 +324,14 @@ def compute_nuclear_chromatin_features(
         features["min_calliper"] / features["max_calliper"]
     )
     features["frac_peri_w_posi_curvature"] = (
-        features["len_posi_curvature"] / features["perimeter"]
+        features["len_posi_curvature"].replace(to_replace="NA", value=0) / features["perimeter"]
     )
     features["frac_peri_w_neg_curvature"] = (
         features["len_neg_curvature"].replace(to_replace="NA", value=0)
         / features["perimeter"]
     )
     features["frac_peri_w_polarity_changes"] = (
-        features["npolarity_changes"] / features["perimeter"]
+        features["npolarity_changes"].replace(to_replace="NA", value=0) / features["perimeter"]
     )
 
     return features

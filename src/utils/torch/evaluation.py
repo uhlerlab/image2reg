@@ -24,7 +24,7 @@ def get_latent_representations_for_model(
     label_key: str = "label",
     extra_feature_key: str = None,
     index_key: str = "id",
-    batch_key: str = "batch",
+    batch_key: str = None,
     device: str = "cuda:0",
 ) -> dict:
     # create Dataloader

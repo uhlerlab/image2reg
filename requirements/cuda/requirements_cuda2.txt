@@ -58,7 +58,7 @@ greenlet==1.1.2
 grequests==0.6.0
 gseapy==0.10.6
 h5py==3.2.1
-hdbscan==0.8.27
+hdbscan==0.8.33
 HeapDict==1.0.1
 holoviews==1.14.5
 idna==2.10
@@ -108,7 +108,6 @@ multipledispatch==0.6.0
 mygene==3.2.2
 mypy-extensions==0.4.3
 natsort==7.1.1
-nb-black==1.0.7
 nbclient==0.5.3
 nbconvert==6.0.7
 nbformat==5.1.3

@@ -483,6 +483,7 @@ class ImageEmbeddingExperimentCustomSplit(ImageEmbeddingExperiment):
             self.index_key = self.data_config.pop("index_key")
         if "batch_key" in self.data_config:
             self.batch_key = self.data_config.pop("batch_key")
+            
 
         self.train_nuclei_metadata_file = self.data_config.pop(
             "train_nuclei_metadata_file"
