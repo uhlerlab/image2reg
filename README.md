@@ -34,7 +34,7 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 6. Obtain the prediction of the regulatory embedding for the held-out test condition and use it to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
 
 ### Step-by-step guide
-To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. If it is not installed on your system, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed. If that is the case, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
 Next please clone this repository using
 ```
