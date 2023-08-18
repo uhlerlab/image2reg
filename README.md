@@ -31,7 +31,7 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
 4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
 5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
-6. Obtain the prediction of the regulatory embedding for the held-out test condition and use to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
+6. Obtain the prediction of the regulatory embedding for the held-out test condition and use it to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
 
 ### Step-by-step guide
 To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. If it is not installed on your system, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
