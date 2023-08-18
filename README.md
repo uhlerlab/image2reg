@@ -10,6 +10,9 @@ The repository contains the code for the main methodology and analyses described
 ---
 ## Changelog
 
+### August 18th, 2023
+Due to changes of the Cython backend the installation of the automatic notebook formatter [``nb_black``]() does no longer work. Since this package is not required to run our code, we have removed it from the requirements files. Additionally, we have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
+
 ### August 2nd, 2023
 On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely. Please refer to the corresponding issue on the hdbscan package site [here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600). In the meantime an updated version of the ``hdbscan`` package (v.0.8.33) has been released that resolves these issues with a hotfix. We have updated the requirements file of our package accordingly to install this version when running the described installation script. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
 
@@ -17,9 +20,44 @@ On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of 
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
-## Installation/Environmental setup
+## Demonstration of Image2Reg
+
+### Overview
+To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained. In particular, the demonstration will:
+1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
+2. Download the required data to run the inference demonstration of our pipeline which in particular includes the chromatin images for five overexpression conditions from the dataset from Rohban et al. (2017) as well as e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images.
+3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
+4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
+5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
+6. Obtain the prediction of the regulatory embedding for the held-out test condition and use to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
+
+### Step-by-step guide
+To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. If it is not installed on your system, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+
+Next please clone this repository using
+```
+git clone https://github.com/uhlerlab/image2reg.git
+cd image2reg
+```
+
+To now run the demo, please run
+```
+source scripts/demo/image2reg_demo.sh
+```
+When run this script will first ask which conda environment should be used to run the code.
+If this is the first time you run the demonstration, please just hit enter which will install a new conda environment called ``image2reg_demo`` that will contain the correct python version and all additional packages required for our inference example to run. If you had run the demonstration before, simply type in ``image2reg_demo`` to tell the application to use the previously created environment. Please note that the installation of the image2reg environment will take a couple minutes depending on your internet connection.
+
+Once everything is installed, you will be asked to choose one of the five overexpression conditions (BRAF, JUN, RAF1, SMAD4 or SREBF1) for which you would like to run our Image2Reg pipeline. That is the selected condition will be treated as a novel unknown overexpression condition for which we would like to predict the gene targeted for overexpression. To select the desired condition, please just type it in the prompt when asked to do so. This will trigger the preprocessing of the corresponding chromatin images and the inference of the gene perturbation condition for the selected condition
+
+Finally, you will be asked if you would like to perform random or non-random inference. In the former before the kernel regression model is fit to link the gene perturbation and regulatory gene embeddings these two embeddings are randomly permuted. This will recreate the random baseline model described in the paper. However, in most cases you might not want to select that option but see how well our Image2Reg pipeline can predict the gene targeted in the held-out overexpression condition out-of-sample: for that simply hit enter when the prompt appears. The kernel regression model is then fit and you will obtain an output of the prediction of our pipeline.
+
+**If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
+
+---
+
+## Full installation and environmental setup
 
 To install the code please first clone this repository using
 ```
