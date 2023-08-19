@@ -22,6 +22,8 @@ On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of 
 
 The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
+---
+
 ## Demonstration of Image2Reg
 
 ### Overview
