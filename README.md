@@ -42,16 +42,18 @@ git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-To now run the demo, please run
+You are now ready to run the demo. There are three prompts in the demo that rewuire user input.
+1. You are asked to select the conda environment used to run the demo. If this is the first time you run the demo, please simply hit enter. This setups a new conda environment called ``image2reg_demo`` that will contain the correct python version and all additional packages required for our inference example to run.
+If this is the second this is the first time you run the demo on the system, you can use the previosuly created image2reg_demo environment by typing in: image2reg_demo when the prompt appears.
+2. You are asked to choose one of the five overexpression conditions (BRAF, JUN, RAF1, SMAD4 or SREBF1) for which you would like to run our Image2Reg pipeline. That is the selected condition will be treated as a novel unknown overexpression condition for which we would like to predict the gene targeted for overexpression. To select the desired condition, please just type it in the prompt when asked to do so. This will trigger the preprocessing of the corresponding chromatin images and the inference of the gene perturbation condition for the selected condition.
+3. You are asked if you would like to perform random or non-random inference. In the former before the kernel regression model is fit to link the gene perturbation and regulatory gene embeddings these two embeddings are randomly permuted. This will recreate the random baseline model described in the paper. To choose the random mode, type yes in the prompt. However, in most cases you might not want to select that option but see how well our Image2Reg pipeline can predict the gene targeted in the held-out overexpression condition out-of-sample: for that simply hit enter when the prompt appears. The kernel regression model is then fit and you will obtain an output of the prediction of our pipeline.
+
+To now run the demo, please simply run
 ```
 source scripts/demo/image2reg_demo.sh
 ```
-When run this script will first ask which conda environment should be used to run the code.
-If this is the first time you run the demonstration, please just hit enter which will install a new conda environment called ``image2reg_demo`` that will contain the correct python version and all additional packages required for our inference example to run. If you had run the demonstration before, simply type in ``image2reg_demo`` to tell the application to use the previously created environment. Please note that the installation of the image2reg environment will take a couple minutes depending on your internet connection.
+in a terminal.
 
-Once everything is installed, you will be asked to choose one of the five overexpression conditions (BRAF, JUN, RAF1, SMAD4 or SREBF1) for which you would like to run our Image2Reg pipeline. That is the selected condition will be treated as a novel unknown overexpression condition for which we would like to predict the gene targeted for overexpression. To select the desired condition, please just type it in the prompt when asked to do so. This will trigger the preprocessing of the corresponding chromatin images and the inference of the gene perturbation condition for the selected condition
-
-Finally, you will be asked if you would like to perform random or non-random inference. In the former before the kernel regression model is fit to link the gene perturbation and regulatory gene embeddings these two embeddings are randomly permuted. This will recreate the random baseline model described in the paper. However, in most cases you might not want to select that option but see how well our Image2Reg pipeline can predict the gene targeted in the held-out overexpression condition out-of-sample: for that simply hit enter when the prompt appears. The kernel regression model is then fit and you will obtain an output of the prediction of our pipeline.
 
 **If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
 
