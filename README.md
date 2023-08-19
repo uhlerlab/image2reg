@@ -25,13 +25,15 @@ The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained. In particular, the demonstration will:
+To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained.In particular, the demonstration will:
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
 2. Download the required data to run the inference demonstration of our pipeline which in particular includes the chromatin images for five overexpression conditions from the dataset from Rohban et al. (2017) as well as e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images.
 3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
 4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
 5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
 6. Obtain the prediction of the regulatory embedding for the held-out test condition and use it to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
+
+*Note that we have built the demo to run without a GPU to maximize its compatability.*
 
 ### Step-by-step guide
 **The run time is approximately 30 minutes.**
