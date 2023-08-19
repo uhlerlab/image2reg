@@ -38,7 +38,7 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 *Note that we have built the demo to run without a GPU to maximize its compatability.*
 
 ### Step-by-step guide
-**The run time is approximately 30 minutes.**
+**A linux system is reqired to run the demo. The run time is approximately 30 minutes.**
 
 To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed. If that is the case, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
