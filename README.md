@@ -41,7 +41,20 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 **A linux system is reqired to run the demo. 
 The run time is approximately 30 minutes.**
 
-To run the inference example, please first ensure that [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system. To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed. If that is the case, please install it following the official installation instructions which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+#### 1. Perequisites: Anaconda installation
+The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
+
+To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
+If it is not installed, you can install it via:
+```
+cd ~/
+wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+sudo bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+```
+
+This will start the installer, which will guide you through the installation of miniconda. If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+
+#### 2. Clone the repository
 
 Next please clone this repository using
 ```
@@ -49,17 +62,27 @@ git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-You are now ready to run the demo. There are three prompts in the demo that require user input.
+#### 3. Run the demo
 
-1. You are asked to select the conda environment used to run the demo. If this is the first time you run the demo, please simply hit **enter**. This setups a new conda environment called ``image2reg_demo`` that will contain the correct python version and all additional packages required for our inference example to run. If you are not running the demo for the first time on your system, you can use the previosuly created ``image2reg_demo`` environment by typing in: ``image2reg_demo`` when the prompt appears.
-2. You are asked to choose one of the five overexpression conditions (BRAF, JUN, RAF1, SMAD4 or SREBF1) for which you would like to run our Image2Reg pipeline. That is the selected condition will be treated as a novel unknown overexpression condition for which we would like to predict the gene targeted for overexpression. To select the desired condition, please just type it in the prompt when asked to do so. This will trigger the preprocessing of the corresponding chromatin images and the inference of the gene perturbation condition for the selected condition.
-3. You are asked if you would like to perform random or non-random inference. In the former before the kernel regression model is fit to link the gene perturbation and regulatory gene embeddings these two embeddings are randomly permuted. This will recreate the random baseline model described in the paper. To choose the random mode, type ``yes`` in the prompt. However, in most cases you might not want to select that option but see how well our Image2Reg pipeline can predict the gene targeted in the held-out overexpression condition out-of-sample: for that simply hit **enter** when the prompt appears. The kernel regression model is then fit and you will obtain an output of the prediction of our pipeline.
-
-To now run the demo, please simply run
+You are now ready to run the demo. The demo can be run via
 ```
 source scripts/demo/image2reg_demo.sh
 ```
-in a terminal.
+
+This command will run the demo using the default parameters which will apply our pipeline to predict that BRAF as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from Rohban et al. (2017). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
+
+#### 4. Specifying the held-out overexpression condition
+This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: BRAF, JUN, RAF1, SMAD4 and SREBF1. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
+For instance, to run our pipeline for the *JUN* overexpression condition, simply run
+```
+source scripts/demo/image2reg_demo.sh --condition JUN
+```
+
+#### 5. Advanced run settings/developer options
+In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
+1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
+2. ``--environment``: This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
+3. ``--help``: This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
 
 
 **If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
