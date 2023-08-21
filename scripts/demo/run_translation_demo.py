@@ -295,7 +295,7 @@ def run_translation_demo(embedding_dir, permute=False):
 	if permute:
 		print("")
 		print("---"*30)
-		print("Permute option was selected to assess the performance of a random baseline the regulatory and gene perturbation embeddings are randomly permuted before the kernel regression model is fit to link the two embeddings. Please run the code without the permute flag (i.e. without --random_mode) if you would like to assess the actual performance of our Image2Reg pipeline.")
+		print("Permute option was selected to assess the performance of a random baseline the regulatory and gene perturbation embeddings are randomly permuted before the kernel regression model is fit to link the two embeddings.")
 		print("---"*30)
 		  
 	nn_preds = get_nn_predictions(
