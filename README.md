@@ -38,6 +38,7 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 *Note that we have built the demo to run without a GPU to maximize its compatability.*
 
 ### Step-by-step guide
+
 **A linux system is reqired to run the demo. 
 The run time is approximately 30 minutes.**
 
