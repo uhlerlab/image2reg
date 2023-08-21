@@ -50,7 +50,7 @@ If it is not installed, you can install it via:
 ```
 cd ~/
 wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
-sudo bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 ```
 
 This will start the installer, which will guide you through the installation of miniconda. If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
