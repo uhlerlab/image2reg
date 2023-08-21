@@ -70,10 +70,10 @@ You are now ready to run the demo. The demo can be run via
 source scripts/demo/image2reg_demo.sh
 ```
 
-This command will run the demo using the default parameters which will apply our pipeline to predict that BRAF as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from Rohban et al. (2017). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
+This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
 
 #### 4. Specifying the held-out overexpression condition
-This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: BRAF, JUN, RAF1, SMAD4 and SREBF1. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
+This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
 For instance, to run our pipeline for the *JUN* overexpression condition, simply run
 ```
 source scripts/demo/image2reg_demo.sh --condition JUN
