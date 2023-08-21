@@ -98,11 +98,11 @@ git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-The software was built and tested using Python v3.8. Thus, please next install Python v3.8. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+The software was built and tested using Python v3.8.10. Thus, please next install Python v3.8.10. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
 Once miniconda is installed, you can create a conda environment running Python v3.8 in which the required software packages will be installed via:
 ```
-conda create --name image2reg python==3.8
+conda create --name image2reg python==3.8.10
 ```
 
 The final step of the installation consists of the installation of additional required packages which can be efficiently done via:
