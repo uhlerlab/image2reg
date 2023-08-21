@@ -10,16 +10,87 @@ The repository contains the code for the main methodology and analyses described
 ---
 ## Changelog
 
+### August 18th, 2023
+We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
+
 ### August 2nd, 2023
-On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely. Please refer to the corresponding issue on the hdbscan package site [here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600). In the meantime an updated version of the ``hdbscan`` package (v.0.8.33) has been released that resolves these issues with a hotfix. We have updated the requirements file of our package accordingly to install this version when running the described installation script. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
 
 ---
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS with Python v3.8 installed using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
 
-## Installation/Environmental setup
+---
+
+## Demonstration of Image2Reg
+
+### Overview
+To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained.In particular, the demonstration will:
+1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
+2. Download the required data to run the inference demonstration of our pipeline which in particular includes the chromatin images for five overexpression conditions from the dataset from Rohban et al. (2017) as well as e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images.
+3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
+4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
+5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
+6. Obtain the prediction of the regulatory embedding for the held-out test condition and use it to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
+
+*Note that we have built the demo to run without a GPU to maximize its compatability.*
+
+### Step-by-step guide
+
+**A linux system is reqired to run the demo. 
+The run time is approximately 30 minutes.**
+
+#### 1. Perequisites: Anaconda installation
+The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
+
+To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
+If it is not installed, you can install it via:
+```
+cd ~/
+wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+```
+
+This will start the installer, which will guide you through the installation of miniconda. If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+
+#### 2. Clone the repository
+
+Next please clone this repository using
+```
+git clone https://github.com/uhlerlab/image2reg.git
+cd image2reg
+```
+
+#### 3. Run the demo
+
+You are now ready to run the demo. The demo can be run via
+```
+source scripts/demo/image2reg_demo.sh
+```
+
+This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
+
+#### 4. Specifying the held-out overexpression condition
+This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
+For instance, to run our pipeline for the *JUN* overexpression condition, simply run
+```
+source scripts/demo/image2reg_demo.sh --condition JUN
+```
+
+#### 5. Advanced run settings/developer options
+In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
+1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
+2. ``--environment``: This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
+3. ``--help``: This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
+
+
+**If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
+
+---
+
+## Full installation and environmental setup
 
 To install the code please first clone this repository using
 ```
@@ -27,11 +98,11 @@ git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-The software was built and tested using Python v3.8. Thus, please next install Python v3.8. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
+The software was built and tested using Python v3.8.10. Thus, please next install Python v3.8.10. While it is theoretically not required, we have used and thus recommend the package manager [miniconda](https://docs.conda.io/en/latest/miniconda.html) to setup and manage the computational environment. To install miniconda please follow he official installation instructions, which can be found [here](https://conda.io/projects/conda/en/stable/user-guide/install/linux.html).
 
 Once miniconda is installed, you can create a conda environment running Python v3.8 in which the required software packages will be installed via:
 ```
-conda create --name image2reg python==3.8
+conda create --name image2reg python==3.8.10
 ```
 
 The final step of the installation consists of the installation of additional required packages which can be efficiently done via:
