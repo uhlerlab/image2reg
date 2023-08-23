@@ -40,7 +40,7 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 ### Step-by-step guide
 
 **A linux system is reqired to run the demo. 
-The run time is approximately 30 minutes.**
+The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.**
 
 #### 1. Perequisites: Anaconda installation
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
@@ -71,7 +71,7 @@ You are now ready to run the demo. The demo can be run via
 source scripts/demo/image2reg_demo.sh
 ```
 
-This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
+This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* is the gene targeted for overexpression in cells. To this end, it uses chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). The pipeline was set up without using any images of cells in the *BRAF*, respectively any other test condition you choose, and thus performs out of sample prediction.
 
 #### 4. Specifying the held-out overexpression condition
 This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
