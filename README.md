@@ -39,8 +39,10 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 
 ### Step-by-step guide
 
-**A linux system is reqired to run the demo. 
-The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.**
+*A linux system is reqired to run the demo.*
+
+*The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.*
+
 
 #### 1. Perequisites: Anaconda installation
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
