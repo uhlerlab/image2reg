@@ -78,6 +78,7 @@ This command will run the demo using the default parameters which will apply our
 
 #### 4. Specifying the held-out overexpression condition
 This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
+
 For instance, to run our pipeline for the *JUN* overexpression condition, simply run in a terminal
 ```
 source scripts/demo/image2reg_demo.sh --condition JUN
