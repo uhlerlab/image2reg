@@ -46,7 +46,10 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
 
 To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
-If it is not installed, you can install it via:
+If it is not installed, as follows:
+
+Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu)
+Then install miniconda via:
 ```
 cd ~/
 wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
@@ -58,7 +61,7 @@ Please note that after the installation you will have to close the terminal and 
 
 #### 2. Clone the repository
 
-Next please clone this repository using
+Next please clone this repository by running the following command in a new terminal.
 ```
 git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
@@ -66,7 +69,7 @@ cd image2reg
 
 #### 3. Run the demo
 
-You are now ready to run the demo. The demo can be run via
+You are now ready to run the demo. The demo can be run in the terminal using the command
 ```
 source scripts/demo/image2reg_demo.sh
 ```
@@ -75,7 +78,7 @@ This command will run the demo using the default parameters which will apply our
 
 #### 4. Specifying the held-out overexpression condition
 This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
-For instance, to run our pipeline for the *JUN* overexpression condition, simply run
+For instance, to run our pipeline for the *JUN* overexpression condition, simply run in a terminal
 ```
 source scripts/demo/image2reg_demo.sh --condition JUN
 ```
