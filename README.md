@@ -57,8 +57,14 @@ bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 ```
 
 This will start the installer, which will guide you through the installation of miniconda. 
-To run the installation using the default setup hit ``enter``, until you are asked to agree to the license agreement then type in ``yes``, again hit enter to use the default installation location and finally type in ``yes`` when asked to run conda init.
+To run the installation using the default setup:
+- Press ``enter``, until you are asked to agree to the license agreement
+- Type in ``yes`` when asked to accept the license agreement
+- Press enter to use the default installation location
+- Finally type in ``yes`` when asked to run conda init.
+
 If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+
 *Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.*
 
 #### 2. Clone the repository
@@ -91,6 +97,7 @@ In addition to specifying for which overexpression condition our pipeline should
 1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
 2. ``--environment``: This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
 3. ``--help``: This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
+
 
 Note that any of these arguments except for the help command can be combined to select the setup for the demo application that you like.
 As an example, if you would like to use a pre-existing conda environment e.g. ``imag2reg_demo`` and reproduce a *random* baseline prediction for our pipeline for the overexpression condition *SREBF1* run
