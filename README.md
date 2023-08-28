@@ -188,6 +188,7 @@ To verify the installation try running the ```ascp``` command in the terminal, i
 The raw images and profiles of the JUMP data set can be downloaded using the notebook ``notebooks/jump/eda/data_extraction.ipynb``. 
 To run the code please start the jupyter server via
 ```
+conda activate image2reg
 jupyter notebook
 ```
 and navigate to the respective notebook. Executing the cells and following the descriptions in the notebook will download the raw and respective metadata. If you encounter an error saying ascp command not found while running the download script, please verify that the Aspera client is installed. To install it on linux follow e.g. the tutorial found [here](https://www.biostars.org/p/9528910/).
