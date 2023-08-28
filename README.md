@@ -45,7 +45,7 @@ In particular, it will:
 *A linux system is reqired to run the demo. The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.*
 
 
-#### 1. Perequisites: Anaconda installation
+#### 1. Perequisites: Anaconda installation (2 minutes)
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
 
 To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
@@ -71,7 +71,7 @@ If you encounter any issues, please refer to the official installation guide whi
 *Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
 Please open a new terminal on your system as described above.*
 
-#### 2. Clone the repository
+#### 2. Clone the repository (3 minutes)
 
 Next please clone this repository by running the following command in a **new** terminal.
 ```
@@ -79,7 +79,7 @@ git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-#### 3. Run the demo
+#### 3. Run the demo (5-50 minutes)
 
 You are now ready to run the demo. The demo can be run in the terminal using the command
 ```
