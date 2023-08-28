@@ -61,14 +61,15 @@ bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 
 This will start the installer, which will guide you through the installation of miniconda. 
 To run the installation using the default setup:
-- Press ``enter``, until you are asked to agree to the license agreement
-- Type in ``yes`` when asked to accept the license agreement
-- Press enter to use the default installation location
+- Press ``enter``, **until** you are asked to agree to the license agreement;
+- Type in ``yes`` when asked to accept the license agreement;
+- Press enter to use the default installation location;
 - Finally type in ``yes`` when asked to run conda init.
 
 If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
 
-*Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.*
+*Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
+Please open a new terminal on your system as described above.*
 
 #### 2. Clone the repository
 
