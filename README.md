@@ -46,9 +46,9 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
 
 To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
-If it is not installed, as follows:
+If it is not installed, please install it as follows:
 
-Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu)
+Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
 Then install miniconda via:
 ```
 cd ~/
@@ -56,12 +56,14 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.
 bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 ```
 
-This will start the installer, which will guide you through the installation of miniconda. If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
-Please note that after the installation you will have to close the terminal and open a new one before continuing with the next steps.
+This will start the installer, which will guide you through the installation of miniconda. 
+To run the installation using the default setup hit enter, until you are asked to agree to the license agreement then type in ``yes``, again hit enter to use the default installation location and finally type in ``yes`` when asked to run conda init.
+If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+*Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.*
 
 #### 2. Clone the repository
 
-Next please clone this repository by running the following command in a new terminal.
+Next please clone this repository by running the following command in a **new** terminal.
 ```
 git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
@@ -84,7 +86,7 @@ For instance, to run our pipeline for the *JUN* overexpression condition, simply
 source scripts/demo/image2reg_demo.sh --condition JUN
 ```
 
-#### 5. Advanced run settings/developer options
+#### *5. Advanced run settings/developer options (Optional)*
 In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
 1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
 2. ``--environment``: This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
