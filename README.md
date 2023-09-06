@@ -71,6 +71,8 @@ If you encounter any issues, please refer to the official installation guide whi
 *Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
 Please open a new terminal on your system as described above.*
 
+#
+
 #### 2. Clone the repository (3 minutes)
 
 Next please clone this repository by running the following command in a **new** terminal.
@@ -78,6 +80,8 @@ Next please clone this repository by running the following command in a **new** 
 git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
+
+#
 
 #### 3. Run the demo (5-50 minutes)
 
@@ -96,6 +100,8 @@ For instance, to run our pipeline for the *JUN* overexpression condition, simply
 source scripts/demo/image2reg_demo.sh --condition JUN
 ```
 
+#
+
 #### *5. Advanced run settings/developer options (Optional)*
 In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
 1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
@@ -110,6 +116,8 @@ source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition S
 ```
 
 *If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.*
+
+#
 
 #### *6. Run the demo application on user-provided imaging data (Optional)*
 The above demo application applies our Image2Reg pipeline to perform out-of-sample prediction for one of five selected overexpression conditions and the corresponding imaging data from Rohban et al. (2017).
