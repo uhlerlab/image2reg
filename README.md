@@ -40,6 +40,8 @@ In particular, it will:
 
 *Note that we have built the demo to run without a GPU to maximize its compatability.*
 
+#
+
 ### Step-by-step guide
 
 *A linux system is reqired to run the demo. The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.*
