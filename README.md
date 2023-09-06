@@ -442,7 +442,7 @@ To further facilitate the running of our code to reproduce the main figures, we 
 - Panel D was created using the notebook ``notebooks/rohban/image/embedding/image_embedding_analysis.ipynb``
 - Panel E was created using the notebook ``notebooks/rohban/image/embedding/gene_perturbation_cluster_analysis.ipynb``
 ### Figure 3
-- Panel A was created using the notebook ``notebooks/rohban/ppi/preprocessing/inference_preparation_full_pruning.ipynb`` and visualizing the inferred Prize Collecting Steiner tree that is derived by the notebook ``notebooks/rohban/ppi/inference/interactome_inference/final.ipynb`` and is saved as the file ``spearman_sol_cv.graphml`` via opening it and visualizing it using [Cytoscape]().
+- Panel A was created using the notebook ``notebooks/rohban/ppi/preprocessing/inference_preparation_full_pruning.ipynb`` and visualizing the inferred Prize Collecting Steiner tree that is derived by the notebook ``notebooks/rohban/ppi/inference/interactome_inference/final.ipynb`` and is saved as the file ``spearman_sol_cv.graphml`` via opening it and visualizing it using [Cytoscape](https://cytoscape.org/).
 - Panel B is created using the notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_clustering.ipynb``.
 - Panel C is created using the R notebook ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.Rmd``; a compiled version is available as the file ``notebooks/rohban/ppi/embeddings/gene_embedding_cluster_analyses.html``.
 ### Figure 4
