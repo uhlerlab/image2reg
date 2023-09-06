@@ -118,15 +118,16 @@ To this end, the user only needs to provide the raw chromatin images and corresp
 
 If these inputs are available, simply run the following command in a terminal
 ```
+cd image2reg
 source scripts/demo/image2reg_demo_new_data.sh
 ```
-to run our demo application to perform such inference.
+to run our demo application to perform such inference. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command, if you run the code after having opened a new terminal please simply navigate to the location of the image2eg directory on your system.
 
-By default this command will first set up the conda environment used to run the code and download a data repository called ``test_data``. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before.
-Once the download is complete, the application will ask you if you have deposited the imaging data you would like to apply our pipeline to in the appropriate directories, namely all raw chromatin images in ``test_data/UNKNOWN/images/raw/plate`` and the respective nuclear segmentation masks in ``test_data/UNKNOWN/images/unet_masks/plate``.
-
-Once you have deposited the image data in the respective data directory, confirm this by typing in ``yes`` in the respective prompt you will see in the terminal that runs our demo.
-The demo will then perform all further inference steps described in the *Overview* section for the user-specified image data set and output the 10 genes that were most likely overexpressed in the cells captured in the data set (in decreasing order).
+This will trigger the following processes:
+1. The conda environment used to run the code is set up
+2. The data repository called ``test_data`` where the image data set should be deposited in is downloaded.
+3. The application will ask you to confirm that you have deposited the imaging data you would like to apply our pipeline to in the appropriate directories, namely all raw chromatin images in ``test_data/UNKNOWN/images/raw/plate`` and the respective nuclear segmentation masks in ``test_data/UNKNOWN/images/unet_masks/plate``. Please put your image data in the respective directories and type in ``yes`` to confirm it.
+4. The demo will then perform all further inference steps described in the *Overview* section for the user-specified image data set and output the 10 genes that were most likely overexpressed in the cells captured in the data set (in decreasing order).
 
 *Please note that the demo application makes use of models trained on the image data from Rohban et al. (2017). Just like any machine learning application if your imaging data differs vastly in terms of e.g. resolution, size of the cells imaged from those used in the Rohban data set, the models, in particular the image encoder model, should be retrained. The descriptions in the following section detailing how to reproduce all of our analysis from scratch together with the detailed explanations in our manuscript should provide sufficient input to perform this task. However, we are also more than happy to help you with your specific use case. Please simply open an issue in this repository and we will assist you as soon as possible.*
 
