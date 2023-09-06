@@ -14,7 +14,7 @@ The repository contains the code for the main methodology and analyses described
 We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
 
 ### August 2nd, 2023
-On **July 17th 2023** the ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+On **July 17th 2023** the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
 
 ---
 
@@ -27,7 +27,10 @@ The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained.In particular, the demonstration will:
+To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained.
+We here provide a brief overview of the functionality of the demo application for which we provide a detailed step-by-step guide below. 
+
+In particular, it will:
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
 2. Download the required data to run the inference demonstration of our pipeline which in particular includes the chromatin images for five overexpression conditions from the dataset from Rohban et al. (2017) as well as e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images.
 3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
@@ -39,51 +42,72 @@ To facilitate the use and testing of our pipeline, we have implemented an easy d
 
 ### Step-by-step guide
 
-**A linux system is reqired to run the demo. 
-The run time is approximately 30 minutes.**
+*A linux system is reqired to run the demo. The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.*
 
-#### 1. Perequisites: Anaconda installation
+
+#### 1. Perequisites: Anaconda installation (2 minutes)
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
 
 To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
-If it is not installed, you can install it via:
+If it is not installed, please install it as follows:
+
+Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
+Then install miniconda via:
 ```
 cd ~/
 wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
 ```
 
-This will start the installer, which will guide you through the installation of miniconda. If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+This will start the installer, which will guide you through the installation of miniconda. 
+To run the installation using the default setup:
+- Press ``enter``, **until** you are asked to agree to the license agreement;
+- Type in ``yes`` when asked to accept the license agreement;
+- Press enter to use the default installation location;
+- Finally type in ``yes`` when asked to run conda init.
 
-#### 2. Clone the repository
+If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
 
-Next please clone this repository using
+*Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
+Please open a new terminal on your system as described above.*
+
+#### 2. Clone the repository (3 minutes)
+
+Next please clone this repository by running the following command in a **new** terminal.
 ```
 git clone https://github.com/uhlerlab/image2reg.git
 cd image2reg
 ```
 
-#### 3. Run the demo
+#### 3. Run the demo (5-50 minutes)
 
-You are now ready to run the demo. The demo can be run via
+You are now ready to run the demo. The demo can be run in the terminal using the command
 ```
 source scripts/demo/image2reg_demo.sh
 ```
 
-This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* as the gene targeted for overexpression in cells from chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). As described, our pipeline thereby performs out of sample prediction, i.e. no images of cells in the BRAF overexpression setting were used to setup the pipeline.
+This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* is the gene targeted for overexpression in cells. To this end, it uses chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). The pipeline was set up without using any images of cells in the *BRAF*, respectively any other test condition you choose, and thus performs out of sample prediction. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command, if you run the code after having opened a new terminal please simply navigate to the location of the image2eg directory on your system.
 
 #### 4. Specifying the held-out overexpression condition
 This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
-For instance, to run our pipeline for the *JUN* overexpression condition, simply run
+
+For instance, to run our pipeline for the *JUN* overexpression condition, simply run in a terminal
 ```
 source scripts/demo/image2reg_demo.sh --condition JUN
 ```
 
-#### 5. Advanced run settings/developer options
+#### *5. Advanced run settings/developer options (Optional)*
 In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
 1. ``--random``: If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
 2. ``--environment``: This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
 3. ``--help``: This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
+
+
+Note that any of these arguments except for the help command can be combined to select the setup for the demo application that you like.
+As an example, if you would like to use a pre-existing conda environment e.g. ``imag2reg_demo`` and reproduce a *random* baseline prediction for our pipeline for the overexpression condition *SREBF1* run
+```
+source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition SREBF1 --random
+```
 
 
 **If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
@@ -164,6 +188,7 @@ To verify the installation try running the ```ascp``` command in the terminal, i
 The raw images and profiles of the JUMP data set can be downloaded using the notebook ``notebooks/jump/eda/data_extraction.ipynb``. 
 To run the code please start the jupyter server via
 ```
+conda activate image2reg
 jupyter notebook
 ```
 and navigate to the respective notebook. Executing the cells and following the descriptions in the notebook will download the raw and respective metadata. If you encounter an error saying ascp command not found while running the download script, please verify that the Aspera client is installed. To install it on linux follow e.g. the tutorial found [here](https://www.biostars.org/p/9528910/).
