@@ -452,12 +452,13 @@ To further facilitate the running of our code to reproduce the main figures, we 
 
 
 ---
-
+<!--- 
 ## Application of the pipeline to other imaging-perturbation data
 
 Our method is broadly applicable and provides a general framework to link cell images and gene regulation in genetic perturbation screens. However, the pipeline must be adjusted depending on the input data. The previously described set up as well as the selection of all hyperparameters including sizes of the cell images, architecture of the neural networks and so on should be tuned to the specific use case. The code provided in this repository including the notebooks in addition to the above description of the reproduction of the results presented in our paper should provide a general construct for such analyses, despite the fact that individual hyperparamters need to be selected by the user in dependence on the data. Please feel free to open an issue in the Github repository if you experience any issues in that context or need assistance.
 
 ---
+-->
 
 ## Questions/Issues
 
