@@ -32,7 +32,7 @@ We here provide a brief overview of the functionality of the demo application fo
 
 In particular, it will:
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
-2. Download the required data to run the inference demonstration of our pipeline which in particular includes the chromatin images for five overexpression conditions from the dataset from Rohban et al. (2017) as well as e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images.
+2. Download the required data to run the inference demonstration of our pipeline like e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images, as well as the any imaging data from Rohban et al. (2017) if required.
 3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
 4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
 5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
@@ -109,8 +109,26 @@ As an example, if you would like to use a pre-existing conda environment e.g. ``
 source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition SREBF1 --random
 ```
 
-
 **If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
+
+#### *6. Run the demo application on user-provided imaging data (Optional)*
+The above demo application applies our Image2Reg pipeline to perform out-of-sample prediction for one of five selected overexpression conditions and the corresponding imaging data from Rohban et al. (2017).
+However, our pipeline can also be applied to imaging data (i.e. chromatin images as well as corresponding nuclear segmentation masks) to predict which gene/s were most likely to be overexpressed in the captured cells.
+To this end, the user only needs to provide the raw chromatin images and corresponding nuclear segmentation masks. Thereby, each segmentation mask image should be a image, where each background pixel is marked by a value of 0 and each pixel corresponding to the area of the same nucleus is assigned the same integer value. The segmentation mask and the corresponding raw chromatin images are expected to have matching file names.
+
+If these inputs are available, simply run the following command in a terminal
+```
+source scripts/demo/image2reg_demo_new_data.sh
+```
+to run our demo application to perform such inference.
+
+By default this command will first set up the conda environment used to run the code and download a data repository called ``test_data``. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before.
+Once the download is complete, the application will ask you if you have deposited the imaging data you would like to apply our pipeline to in the appropriate directories, namely all raw chromatin images in ``test_data/UNKNOWN/images/raw/plate`` and the respective nuclear segmentation masks in ``test_data/UNKNOWN/images/unet_masks/plate``.
+
+Once you have deposited the image data in the respective data directory, confirm this by typing in ``yes`` in the respective prompt you will see in the terminal that runs our demo.
+The demo will then perform all further inference steps described in the *Overview* section for the user-specified image data set and output the 10 genes that were most likely overexpressed in the cells captured in the data set (in decreasing order).
+
+**ATTENTION: Please note that the demo application makes use of models trained on the image data from Rohban et al. (2017). Just like any machine learning application if your imaging data differs vastly in terms of e.g. resolution, size of the cells imaged from those used in the Rohban data set, the models, in particular the image encoder model, should be retrained. The descriptions in the following section detailing how to reproduce all of our analysis from scratch together with the detailed explanations in our manuscript should provide sufficient input to perform this task. However, we are also more than happy to help you with your specific use case. Please simply open an issue in this repository and we will assist you as soon as possible.**
 
 ---
 
