@@ -10,14 +10,9 @@ The repository contains the code for the main methodology and analyses described
 ---
 ## Changelog
 
-### September 6th, 2023
-We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
-
-### August 18th, 2023
-We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
-
-### August 2nd, 2023
-On **July 17th 2023** the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+- **September 6th, 2023.**&emsp;We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
+- **August 18th, 2023.**&emsp;We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
+- **August 2nd, 2023.**&emsp;On *July 17th 2023* the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
 
 ---
 
