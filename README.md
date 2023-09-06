@@ -132,6 +132,8 @@ This will trigger the following processes:
 
 *Please note that the demo application makes use of models trained on the image data from Rohban et al. (2017). Just like any machine learning application if your imaging data differs vastly in terms of e.g. resolution, size of the cells imaged from those used in the Rohban data set, the models, in particular the image encoder model, should be retrained. The descriptions in the following section detailing how to reproduce all of our analysis from scratch together with the detailed explanations in our manuscript should provide sufficient input to perform this task. However, we are also more than happy to help you with your specific use case. Please simply open an issue in this repository and we will assist you as soon as possible.*
 
+**Finally, if you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
+
 ---
 
 ## Full installation and environmental setup
