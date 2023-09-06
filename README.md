@@ -94,6 +94,8 @@ source scripts/demo/image2reg_demo.sh
 
 This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* is the gene targeted for overexpression in cells. To this end, it uses chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). The pipeline was set up without using any images of cells in the *BRAF*, respectively any other test condition you choose, and thus performs out of sample prediction. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command, if you run the code after having opened a new terminal please simply navigate to the location of the image2eg directory on your system.
 
+#
+
 #### 4. Specifying the held-out overexpression condition
 This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
 
