@@ -1,4 +1,4 @@
-output_dir: 'test_data/embeddings'
+output_dir: 'test_data/UNKNOWN/embeddings'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperimentCustomSplit
 run_params:

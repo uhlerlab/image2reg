@@ -317,18 +317,11 @@ def run_translation_demo(embedding_dir, permute=False):
     target=target, 
 	permute=permute)
 	
-	hit_idx = np.nan
-	for i in range(len(nn_preds)):
-		if nn_preds[i] == target:
-			hit_idx = i+1
-			break
+
 	
 	print(" ")
 	print("The 10 genes closest to the predicted regulatory gene embeddings for the held-out condition ({}) are:".format(target))
 	print(list(nn_preds[:10]))
-	print("")
-	print("The true overexpression target gene {} is the {} (out of {}) closest gene from the prediction.".format(target, hit_idx, len(regulatory_embs)))
-	print("---"*30)
 	print("")
 	
 
