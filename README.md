@@ -148,7 +148,7 @@ This will trigger the following processes:
 
 ---
 
-## Full installation and environmental setup to rerun all analysis from scratch 
+## Full installation and environmental setup to rerun all analyses from scratch 
 
 To install the code please first clone this repository using
 ```
