@@ -113,7 +113,7 @@ In addition to specifying for which overexpression condition our pipeline should
 3. ``--help``:    This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
 
 
-Note that any of these arguments except for the help command can be combined to select the setup for the demo application that you like.
+Note that any of these arguments except for the ``--help`` command can be combined to select the setup for the demo application that you like.
 As an example, if you would like to use a pre-existing conda environment e.g. ``imag2reg_demo`` and reproduce a *random* baseline prediction for our pipeline for the overexpression condition *SREBF1* run
 ```
 source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition SREBF1 --random
