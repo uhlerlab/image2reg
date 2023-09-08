@@ -119,8 +119,6 @@ As an example, if you would like to use a pre-existing conda environment e.g. ``
 source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition SREBF1 --random
 ```
 
-*If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.*
-
 #
 
 #### *6. Run the demo application on user-provided imaging data (Optional)*
