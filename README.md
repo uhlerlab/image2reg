@@ -133,7 +133,7 @@ If these inputs are available, simply run the following command in a terminal
 cd image2reg
 source scripts/demo/image2reg_demo_new_data.sh
 ```
-to run our demo application to perform such inference. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command, if you run the code after having opened a new terminal please simply navigate to the location of the image2eg directory on your system.
+to run our demo application to perform such inference. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command.
 
 This will trigger the following processes:
 1. The conda environment used to run the code is set up
