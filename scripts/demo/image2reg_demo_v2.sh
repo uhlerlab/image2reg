@@ -68,8 +68,8 @@ done
 echo "Starting Image2Reg demo"
 echo 
 
-echo "Selected conda environment (if empty, a new environment called image2reg_demo will be installed):  "$env"." | fold -sw 80
-echo "Selected test condition:  "$target"." | fold -sw 80
+echo "Selected conda environment (if empty, a new environment called image2reg_demo will be installed):  ""$env""." | fold -sw 80
+echo "Selected test condition:  ""$target""." | fold -sw 80
 if [ "$random" = "yes" ]
 then
 	echo "Selected random inference to recreate the random baseline." | fold -sw 80
@@ -123,25 +123,25 @@ echo ""
 echo "------------------------------" | fold -sw 80
 
 echo "Demo preparation complete..." | fold -sw 80
-echo "Starting Image22Reg pipeline to predict the gene targeted for overexpression ($target) from the corresponding chromatin images from Rohban et al. (2017)...." | fold -sw 80
+echo "Starting Image22Reg pipeline to predict the gene targeted for overexpression (""$target"") from the corresponding chromatin images from Rohban et al. (2017)...." | fold -sw 80
 echo
 
 
 if [ "$target" = "BRAF" ]
 then
-	bash scripts/demo2/run_demo_braf_arg.sh "$random"
+	bash scripts/demo/run_demo_braf_arg.sh "$random"
 elif [ "$target" = "JUN" ]
 then
-	bash scripts/demo2/run_demo_jun_arg.sh "$random"
+	bash scripts/demo/run_demo_jun_arg.sh "$random"
 elif [ "$target" = "RAF1" ]
 then
-	bash scripts/demo2/run_demo_raf1_arg.sh "$random"
+	bash scripts/demo/run_demo_raf1_arg.sh "$random"
 elif [ "$target" = "SMAD4" ]
 then
-	bash scripts/demo2/run_demo_smad4_arg.sh "$random"
+	bash scripts/demo/run_demo_smad4_arg.sh "$random"
 elif [ "$target" = "SREBF1" ]
 then
-	bash scripts/demo2/run_demo_srebf1_arg.sh "$random"
+	bash scripts/demo/run_demo_srebf1_arg.sh "$random"
 else
 	echo "Invalid target selected. Please have a look at the help of this demo by running source image2reg_demo.sh --help." | fold -sw 80
 fi
