@@ -313,7 +313,7 @@ The screen can be automatically run by calling
 bash scripts/experiments/run_screen.sh
 ```
 
-Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/rohban/other/cv_screen_data_splits.ipynb``` and ```notebooks/rohban/other/create_screen_configs.ipynb``` provide functions to efficiently generate the resources required by the script to complete the screen.
+Additionally, the script assumes that the config files specifying the individual training tasks of the model for the different perturbation targets are available. The notebooks ```notebooks/rohban/other/cv_screen_data_split.ipynb``` and ```notebooks/rohban/other/create_screen_configs.ipynb``` provide functions to efficiently generate the resources required by the script to complete the screen.
 
 *The results of the screen which include e.g. the trained convolutional neural networks and the log files describing the performance of the network on the individual binary classification tasks are available from our data repository at ``data/experiments/rohban/images/screen/nuclei_region``.*
 
