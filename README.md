@@ -345,7 +345,7 @@ The required metadata files for the experiments are again available as part of t
 
 #### 2.3. Analyses of the image embeddings
 
-The analyses of the image embeddings and visualization of their representation can be assessed using the notebook ```notebooks/rohban/image/embedding/image_embeddings_analysis.ipynb```. The cluster analysis and visualization of the inferred image embeddings in the leave-one-target-out evaluation setup can be rerun using the code in ```notebooks/image/embedding/image_embeddings_analysis_loto.ipynb```.
+The analyses of the image embeddings and visualization of their representation can be assessed using the notebook ```notebooks/rohban/image/embedding/image_embeddings_analysis.ipynb```. The cluster analysis and visualization of the inferred image embeddings in the leave-one-target-out evaluation setup can be rerun using the code in ```notebooks/rohban/image/embedding/image_embeddings_analysis_loto.ipynb```.
 
 
 #### 2.4. Analyses of the gene perturbation embeddings
