@@ -139,7 +139,8 @@ This will trigger the following processes:
 
 #
 
-<!-- **If you would like to reproduce all results of the paper from scratch please continue to the following section of the documentation. If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.** -->
+**If you would like to reproduce all results of the paper from scratch please refer to [this guide](reproducibility_guide.md). 
+If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
 
 ---
 
