@@ -1,10 +1,10 @@
-output_dir: '/media/paysan_d/wd_datastore/image2reg/data/experiments/morph_embeddings/screen'
+output_dir: 'data/experiments/rohban/images/screen/morph_profiles/screen/fold_id'
 module: src.experiments.profile_embeddings
 class: BaseProfileEmbeddingExperimentCustomSplit
 run_params:
-  data_config: {      'train_profile_metadata_file':'/media/paysan_d/wd_datastore/image2reg/data/experiments/profile_preprocessing/screen_splits/GENE/morph_md_train_fold_id.csv.gz',
-                      'val_profile_metadata_file':'/media/paysan_d/wd_datastore/image2reg/data/experiments/profile_preprocessing/screen_splits/GENE/morph_md_val_fold_id.csv.gz',
-                      'test_profile_metadata_file':'/media/paysan_d/wd_datastore/image2reg/data/experiments/profile_preprocessing/screen_splits/GENE/morph_md_test_fold_id.csv.gz',
+  data_config: {      'train_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/GENE/morph_md_train_fold_id.csv.gz',
+                      'val_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/GENE/morph_md_val_fold_id.csv.gz',
+                      'test_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/GENE/morph_md_test_fold_id.csv.gz',
                       'data_key':'profile', 'label_key':'label',
                       'label_col':'labels',
                       'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",

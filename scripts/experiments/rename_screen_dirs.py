@@ -2,10 +2,13 @@ import argparse
 import os
 import sys
 
+sys.path.append("../..")
 from src.utils.basic.io import get_file_list
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
+    sys.path.append("../..")
+    
     arg_parser = argparse.ArgumentParser(description="Script runner.")
 
     arg_parser.add_argument(
