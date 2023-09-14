@@ -57,7 +57,7 @@ done
 echo "Starting Image2Reg demo..."
 echo 
 
-echo "Selected conda environment (if empty, a new environment called image2reg_demo will be installed):  $env." | fold -sw 80 
+echo "Selected conda environment (if empty, a new environment called image2reg_demo will be installed):  ""$env""." | fold -sw 80 
 echo ""
 
 echo "Selected inference for new image data set."
@@ -147,7 +147,7 @@ echo ""
 
 sleep 2
 
-echo "Starting Image22Reg pipeline to predict the gene targeted for overexpression ($target) from the corresponding chromatin images from Rohban et al. (2017)...." | fold -sw 80
+echo "Starting Image22Reg pipeline to predict the gene targeted for overexpression (""$target"") from the corresponding chromatin images from Rohban et al. (2017)...." | fold -sw 80
 echo
 sleep 1
 

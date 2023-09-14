@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 echo "Running Image2Reg inference pipeline for BRAF..." | fold -sw 80
 echo "---------------------------------------------------" | fold -sw 80
