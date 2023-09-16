@@ -85,7 +85,7 @@ If you encounter any issues, please refer to the official installation guide whi
 *Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
 Please open a new terminal on your system as described above.*
 
-#
+
 
 ##### Option 2: Anaconda/Miniconda is installed</b></summary>
  
