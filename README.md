@@ -182,6 +182,8 @@ where you replace ``<CONDITION>`` with either ``BRAF``, ``JUN``, ``RAF1``, ``SMA
 
 We also provide some additional functionalities which are described in more detail in the following.
 
+#
+
 <details>
    <summary><b>Advanced run settings/developer options</b></summary>
  In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
