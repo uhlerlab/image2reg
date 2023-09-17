@@ -220,6 +220,11 @@ If you would like to reproduce all results of the paper from scratch please refe
 We here describe any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
 If you encounter any other errors, please open an issue in this repository and we will extend the list accordingly.
 
+| Problem | Error Message(s) | Cause | Solution |
+| --- | --- | --- | --- |
+| **Empty input directory** | *The directory ``test_data/UNKNOWN/images/raw/plate`` is empty.* | The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. | Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo |
+
+
 - **Empty input directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/raw/plate is empty.`` The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo;
 - **Empty nuclear mask directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/unet_masks/plate is empty.`` The demo requires the nuclear segmentation masks corresponding to the input raw chromatin images (i.e. the images located in ``test_data/UNKNOWN/images/raw/plate) to be located in the specified directory. Please deposit the segmentation mask images in the directory ``test_data/UNKNOWN/images/unet_masks/plate`` and restart the demo;
 - **Missing/Wrong segmentation mask**:  The demo exits with the error message: ``FileNotFoundError: [Errno 2] No such file or directory``. The demo application requires for each raw chromatin image located in ``test_data/UNKNOWN/images/raw/plate`` a respective nuclear segmentation mask to be located in ``test_data/UNKNOWN/images/unet_masks/plate`` which has the same file name as the corresponding raw chromatin image and satifies the criteria described in the Perequisites section. The error message occurs if for any raw image the corresponding mask was not found. Please make sure that all mask images are deposited in the before mentioned directory and restart the demo;
