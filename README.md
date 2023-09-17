@@ -102,7 +102,8 @@ To run the demo application to apply our Image2Reg pipeline the user needs to pr
 - **Raw chromatin images**: Single-channel (i.e. black-white) images of cells stained for the chromatin similar to those from Rohban et al. (2017). The demo will automatically download a number of example images for 10 perturbation conditions from the Rohban et al. (2017) data set.
 - **Nuclear segmentation masks**: Single-channel (i.e. black-white) images of the same size as the raw chromatin images that contain the nuclear segmentation masks. The format of the segmentation images follows the standard convention where all pixels that mark the mask of one nucleus are given the same but unique positive integer value. The background is assigned a pixel value of 0. Together with the raw chromatin images, the demo will also download the corresponding nuclear segmentation masks for these images. To associate a nuclear mask with its corresponding raw chromatin image, the demo requires the two image files to be named exactly the same.
 
-For an initial try of our pipeline, we recommend proceeding with the Step-by-Step guide and use the example images our pipeline will download.
+> [!NOTE]
+> For an initial try of our pipeline, we recommend proceeding with the Step-by-Step guide and use the example images our pipeline will download.
 
 </details>
 
@@ -162,6 +163,9 @@ This completes the demo application.
 
 </details>
 
+> [!IMPORTANT]
+> To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
+
 #
 
 #### *4. Advanced run settings/developer options (Optional)*
@@ -203,7 +207,7 @@ source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition S
 
 #
 
-#### 6. Final remarks
+#### 6. Concluding remarks
 
 We appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.
 If you would like to reproduce all results of the paper from scratch please refer to [this guide](reproducibility_guide.md). Please note that this will substantially larger computing resources and can take up to 300 hours of computation time. 
