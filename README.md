@@ -11,23 +11,23 @@ The repository contains the code for the main methodology and analyses described
 
 ## System requirements
 
-The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed. Note that for setups with less available RAM and/or GPU, parameters like the batch size for the training of the neural networks might have to be adjusted.
+The code has been developed on a system running Ubuntu 20.04. LTS using a Intel(R) Xeon(R) W-2255 CPU with 3.70GHz, 128GB RAM and a Nvidia RTX 4000 GPU with CUDA v.11.1.74 installed.
+However, the demo application of our pipeline described in the following only requires a Linux system with at least 10 GB storage and a internet connection and thus a significantly less powerful system to run.
 
 ---
 
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented an easy demonstration of how our pipeline can be used to predict novel, unseen overexpression conditions from chromatin images once trained.
-We here provide a brief overview of the functionality of the demo application for which we provide a detailed step-by-step guide below. 
+To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs depending on the number of input images in as little as 5 minutes and requires only roughly 10GB of storage.
 
-In particular, it will:
-1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages. Note that these packages are only a subset of all packages used to create the code contained in this repository. If you would like to install all packages, please refer to the next section in this documentation.
-2. Download the required data to run the inference demonstration of our pipeline like e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images, as well as the any imaging data from Rohban et al. (2017) if required.
-3. Preprocess the chromatin images for the inference of the image embeddings eventually yielding the gene perturbation embeddings via e.g. segmenting individual nuclei.
+When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
+1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
+2. Download the required data to run the inference demonstration of our pipeline like e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images, as well as example imaging data from [Rohban et al. (2017)]().
+3. Preprocess the chromatin images provided by the user for which the pipeline should infer the perturbed gene.
 4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
-5. Link the gene perturbation embeddings of all but the held-out test condition to their corresponding regulatory gene embeddings by training the kernel regression model.
-6. Obtain the prediction of the regulatory embedding for the held-out test condition and use it to identify an ordered prediction set of for the gene overexpressed in the held-out test condition.
+5. Link the gene perturbation embeddings of their corresponding regulatory gene embeddings by training the kernel regression model.
+6. Output the 10 genes most likely overexpressed (in decreasing order) in the cells in the user-provided input images.
 
 *Note that we have built the demo to run without a GPU to maximize its compatability.*
 
@@ -35,14 +35,35 @@ In particular, it will:
 
 ### Step-by-step guide
 
-*A linux system is reqired to run the demo. The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.*
 
 
-#### 1. Perequisites: Anaconda installation (2 minutes)
+
+#### 1. Perequisites
+A linux system is reqired to run the demo. The run time is approximately 10-60 minutes depending on the specifications of the system it is run on.
+Further perequisities are described below.
+
+<details>
+<summary><b>Bash shell (1 minute)</b></summary>
+The software is expected to be run in a bash shell. If your default shell is not a bash shell, please switch to the bash shell in your terminal via
+```
+bash
+```
+
+*Make sure that throughout the step by step guide, whenever you restart a terminal it is running the bash shell, i.e. if the bash shell is not your default shell, always run
+``bash`` when you open a new terminal first.*
+
+</details>
+
+#
+
+<details>
+<summary><b>Anaconda installation (2 minutes)</b></summary>
+ 
 The only perequisite the demo application has is that the package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) is installed on your system.
+To test if it is install please open a terminal and type in: ``conda``.
+If you see an error message saying the command was not found, it is not yet installed.
 
-To test if it is install please open a terminal and type in: conda. If you see an error message saying the command was not found, it is not yet installed.
-If it is not installed, please install it as follows:
+##### Option 1: Anaconda/Miniconda is not installed
 
 Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
 Then install miniconda via:
@@ -64,46 +85,117 @@ If you encounter any issues, please refer to the official installation guide whi
 *Please note that after the installation you will have to close the terminal and open a **new** one before continuing with the next steps.
 Please open a new terminal on your system as described above.*
 
+
+
+##### Option 2: Anaconda/Miniconda is installed</b></summary>
+ 
+Please that conda was initialized properly via running
+```conda init```
+</details>
+
+#
+
+<details>
+<summary><b>Input images (1 minute)</b></summary>
+ 
+To run the demo application to apply our Image2Reg pipeline the user needs to provide two different imaging inputs:
+- **Raw chromatin images**: Single-channel (i.e. black-white) images of cells stained for the chromatin similar to those from Rohban et al. (2017). The demo will automatically download a number of example images for 10 perturbation conditions from the Rohban et al. (2017) data set.
+- **Nuclear segmentation masks**: Single-channel (i.e. black-white) images of the same size as the raw chromatin images that contain the nuclear segmentation masks. The format of the segmentation images follows the standard convention where all pixels that mark the mask of one nucleus are given the same but unique positive integer value. The background is assigned a pixel value of 0. Together with the raw chromatin images, the demo will also download the corresponding nuclear segmentation masks for these images. To associate a nuclear mask with its corresponding raw chromatin image, the demo requires the two image files to be named exactly the same.
+
+> [!NOTE]
+> For an initial try of our pipeline, we recommend proceeding with the Step-by-Step guide and use the example images our pipeline will download.
+
+</details>
+
 #
 
 #### 2. Clone the repository (3 minutes)
 
-Next please clone this repository by running the following command in a **new** terminal.
+If the perequisites are satisfied, please clone this repository by running the following command in a **new** terminal.
 ```
 git clone https://github.com/uhlerlab/image2reg.git
+```
+
+#
+
+#### 3. Run the demo application on user-provided imaging data
+To finally run our demo application, run
+
+```
 cd image2reg
+source scripts/demo/image2reg_demo_new_data.sh
 ```
+in the same terminal.
+
+This will trigger the following processes in the following.
+
+<details>
+<summary><b>Installation of the conda environmen and download of the required and sample data (no user interaction required)</b></summary>
+ 
+First, a new conda environment called ``image2reg_demo`` is installed that contains all software packages required to run the code.
+Second, a directory called ``test_data`` is downloaded from the [DOI 10.5281/zenodo.8354854](https://doi.org/10.5281/zenodo.8354854) and extracted within the image2reg repository.
+In addition to required e.g. pretrained model files, the directory ``test_data/sample_data`` contains raw chromatin images and corresponding nuclear segmentation masks for 10 perturbation conditions from Rohban et al. (2017), that can be used to test our demo.
+
+</details>
 
 #
 
-#### 3. Run the demo (5-50 minutes)
+<details>
+<summary><b>Deposition of the image inputs</b></summary>
+ 
+After the download, the demo application will stop and ask the user to confirm that the images input to our pipeline where deposited in the appropriate directories, namely all raw chromatin images in ``test_data/UNKNOWN/images/raw/plate`` and the respective nuclear segmentation masks in ``test_data/UNKNOWN/images/unet_masks/plate``.
 
-You are now ready to run the demo. The demo can be run in the terminal using the command
-```
-source scripts/demo/image2reg_demo.sh
-```
+*To test our demo application, you can for instance copy some images from the any condition in the ``test_data/sample_data`` to the respective directories. Please ensure that you copy for each selected raw chromatin image e.g. taken from ``test_data/sample_data/JUN/raw`` the associated (i.e. equally named) nuclear segmentation masks that can be found ``test_data/sample_data/JUN/unet_masks``.*
 
-This command will run the demo using the default parameters which will apply our pipeline to predict that *BRAF* is the gene targeted for overexpression in cells. 
-<!---To this end, it uses chromatin images from the perturbation data set from [Rohban et al. (2017)](https://elifesciences.org/articles/24060). The pipeline was set up without using any images of cells in the *BRAF*, respectively any other test condition you choose, and thus performs out of sample prediction. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command, if you run the code after having opened a new terminal please simply navigate to the location of the image2eg directory on your system.-->
-Note that to run the command your working directory needs to be ``image2reg``. If you have followed the above instructions this is automatically ensured.
+Please deposit the raw chromatin images and associated segmentation masks in the respective directories and confirm it via typing in 
+```yes``` 
+and hitting enter.
 
-#
-
-#### 4. Specifying the held-out overexpression condition
-This demo application can be used to run our Image2Reg inference pipeline for five different overexpression conditions namely: *BRAF, JUN, RAF1, SMAD4 and SREBF1*. The ``--condition`` argument can be used to specify for which of these conditions our Image2Reg pipeline should be run and predict the overexpression target gene from the corresponding chromatin images.
-
-For instance, to run our pipeline for the *JUN* overexpression condition, simply run in a terminal
-```
-source scripts/demo/image2reg_demo.sh --condition JUN
-```
+</details>
 
 #
 
-#### *5. Advanced run settings/developer options (Optional)*
-In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
-1. ``--random``:    If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
-2. ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
-3. ``--help``:    This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
+<details>
+<summary><b>Prediction output (no user interaction required) </b></summary>
+ 
+The demo will then perform all further inference steps described in the *Overview* section for the user-specified image data set and output the 10 genes that were most likely overexpressed in the cells captured in the data set (in decreasing order).
+
+This completes the demo application.
+
+</details>
+
+> [!IMPORTANT]
+> To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
+
+#
+
+#### *4. Advanced run settings/developer options (Optional)*
+Our demo application can also be run with two additional arguments.
+1. ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
+2. ``--help``:    This argument can be used to obtain help on the usage of our demo
+
+#
+
+#### *5. Reproducing the study results using the demo application (Optional)*
+In addition to above described demo application that applies our pipeline to user-provided image inputs, we have also developed a second application that reproduces the results of the leave-one-target-out cross-validation evaluation described in our manuscript for five selected perturbation condtions, namely *BRAF, JUN, RAF1, SMAD4 and SREBF1*. 
+
+To run our second demo application, simply run
+```
+source scripts/demo/image2reg_demo.sh --condition <CONDITION>
+```
+where you replace ``<CONDITION>`` with either ``BRAF``, ``JUN``, ``RAF1``, ``SMAD4`` or ``SREBF1``.
+
+We also provide some additional functionalities which are described in more detail in the following.
+
+#
+
+<details>
+   <summary><b>Advanced run settings/developer options</b></summary>
+ In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
+
+ 1. ``--random``:    If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
+ 2.  ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
+ 3.   ``--help``:    This argument can be used to obtain help on the usage of our demo and in particular summarizes the meaning of the different arguments (i.e. ``--condition``, ``--random``, ``--environment``) described before.
 
 
 Note that any of these arguments except for the ``--help`` command can be combined to select the setup for the demo application that you like.
@@ -112,35 +204,51 @@ As an example, if you would like to use a pre-existing conda environment e.g. ``
 source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition SREBF1 --random
 ```
 
-#
-
-#### *6. Run the demo application on user-provided imaging data (Optional)*
-The above demo application applies our Image2Reg pipeline to perform out-of-sample prediction for one of five selected overexpression conditions and the corresponding imaging data from Rohban et al. (2017).
-However, our pipeline can also be applied to imaging data (i.e. chromatin images as well as corresponding nuclear segmentation masks) to predict which gene/s were most likely to be overexpressed in the captured cells.
-To this end, the user only needs to provide the raw chromatin images and corresponding nuclear segmentation masks. Thereby, each segmentation mask image should be a image, where each background pixel is marked by a value of 0 and each pixel corresponding to the area of the same nucleus is assigned the same integer value. The segmentation mask and the corresponding raw chromatin images are expected to have matching file names.
-
-If these inputs are available, simply run the following command in a terminal
-```
-cd image2reg
-source scripts/demo/image2reg_demo_new_data.sh
-```
-to run our demo application to perform such inference. Note that the download is skipped if the directory already exists because you have run the demo application applied to user-specified data input before. Note that to run the command your working directory needs to be image2reg. If you have followed the previous steps, this is ensured for by the ``cd image2reg`` command.
-
-This will trigger the following processes:
-1. The conda environment used to run the code is set up
-2. The data repository called ``test_data`` where the image data set should be deposited in is downloaded.
-3. The application will ask you to confirm that you have deposited the imaging data you would like to apply our pipeline to in the appropriate directories, namely all raw chromatin images in ``test_data/UNKNOWN/images/raw/plate`` and the respective nuclear segmentation masks in ``test_data/UNKNOWN/images/unet_masks/plate``.
-4. Please put your image data in the respective directories and type in ``yes`` to confirm it.
-5. The demo will then perform all further inference steps described in the *Overview* section for the user-specified image data set and output the 10 genes that were most likely overexpressed in the cells captured in the data set (in decreasing order).
+</details>
 
 #
 
-*Please note that the demo application makes use of models trained on the image data from Rohban et al. (2017). Just like any machine learning application if your imaging data differs vastly in terms of e.g. resolution, size of the cells imaged from those used in the Rohban data set, the models, in particular the image encoder model, should be retrained. The descriptions in the following section detailing how to reproduce all of our analysis from scratch together with the detailed explanations in our manuscript should provide sufficient input to perform this task. However, we are also more than happy to help you with your specific use case. Please simply open an issue in this repository and we will assist you as soon as possible.*
+#### 6. Concluding remarks
+
+We appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.
+If you would like to reproduce all results of the paper from scratch please refer to [this guide](reproducibility_guide.md). Please note that this will substantially larger computing resources and can take up to 300 hours of computation time. 
+
 
 #
 
-**If you would like to reproduce all results of the paper from scratch please refer to [this guide](reproducibility_guide.md). 
-If not we appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.**
+### Troubleshooting/Support
+
+We here describe any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
+If you encounter any other errors, please open an issue in this repository and we will extend the list accordingly.
+
+<font size=8>
+ 
+| Problem | Error Message(s) | Cause | Solution |
+| --- | --- | --- | --- |
+| **Empty input directory** | *The directory test_data/UNKNOWN/ images/raw/plate is empty.* | The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. | Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo |
+| **Empty nuclear mask directory** | *The directory test_data/UNKNOWN/ images/unet_masks/plate is empty.* | The demo requires the nuclear segmentation masks corresponding to the input raw chromatin images (i.e. the images located in ``test_data/UNKNOWN/images/raw/plate) to be located in the specified directory. | Please deposit the segmentation mask images in the directory ``test_data/UNKNOWN/images/unet_masks/plate`` and restart the demo.|
+| **Missing/Wrong segmentation mask** | *FileNotFoundError: [Errno 2] No such file or directory* | The demo application requires for each raw chromatin image located in ``test_data/UNKNOWN/images/raw/plate`` a respective nuclear segmentation mask to be located in ``test_data/UNKNOWN/images/unet_masks/plate`` which has the same file name as the corresponding raw chromatin image and satifies the criteria described in the Perequisites section.  The error message occurs if for any raw image the corresponding mask was not found. | Please make sure that all mask images are deposited in the before mentioned directory and restart the demo |
+| **Malformed mask image** | *`Cannot access <...>: No such file or directory* or *TypeError: Non-integer label_image types are ambiguous.* | The provided mask images need to satisfy the following criteria: a) a nuclear mask image is single-channel (black-white) image of the same dimensions as the corresponding raw chromatin image and b) each pixel is assigned an integer value where the background is assigned the value 0 and all other pixels get the value equal to the unique integer ID of the nucleus for which they mark the respective mask. Such nuclear mask images are e.g. the output of the function ``[skimage.measure.label](https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label) | Please make sure you provide appropriate nuclear mask images in the ``test_data/UNKNOWN/images/unet_masks/plate directory and restart the demo. |
+| **Missing directory or files** | *Cannot access <...>: No such file or directory.* | This error is most likely caused due to an malformed ``test_data`` directory likely due to an incomplete extraction or download of the data when the demo is run for the first time. | Please delete the ``test_data`` directory completely and restart the demo which will redownload the directory. Please make sure to not interrupt the download or extraction process but run the demo until it asks you to confirm that the input data has been deposited in the correct directories to avoid this error. |
+| **Missing conda environment** | *Provided conda environment not found.* | This error only occurs if the demo is run with the ``--environment`` argument and a non-existing conda environment is provided. | Please make sure that the conda environment you provide exists on your system or simply run the demo without the ``--environment`` argument to safely install a new conda environment that contains all required software packages.|
+| **Python module not found** | *ModuleNotFoundError: No module named '<module>'.* | This error occurs if the conda environment used to run the demo does not contain all the required python packages. If you have run the demo by specifying the environment via the ``--environment`` argument, please make sure that the provided conda environment contains all package listed in the file ``requirements/demo/requirements_demo.txt``. If you ran the demo without the ``--environment`` the newly installed conda environment is ensured to contain all packages, if the installation was successful and conda was appropriately initiliazed as described in the Perequisites section. |  Please run ``conda init`` in the terminal. Next run ``pip cache purge`` to remove any potentially malformed cached python packages and then restart our demo **without** providing the ``--environment`` argument to perform a fresh install of the conda environment used to run our demo. |
+| **No or just one nuclei is found** | *ValueError: Empty data passed with indices specified.* or *ValueError: Found array with 1 sample(s)[...] while aminimum of 2 is required.* | Your provided input images were found to contain less than two nuclei. Please note that might be due to the used filter settings in our image preprocessing. | Please ensure that your input images contain at least two nuclei and the filters for the cell size and shape defined in the file ``config/demo/preprocessing/full_image_pipeline_new_target.yml`` are appropriate for the resolution and cell size of the images. Our choices are selected for the 20x images of U2OS cells from the Rohban et al. (2017) or the JUMP-CP data set. If your images/nuclei are of different resolution or size, you might want to adjust in particular the minimal/maximum nuclear area (``min_area`` and ``max_area``), the maximal area of the bounding box (``max_bbarea``), the maximum eccentricity (``max_eccentricitiy``), minimal solidity (``min_solidity``) and the minimal aspect ratio (``min_aspect_ratio``). All quantities are given in terms of pixels. For larger images of higher resolution and/or larger cells increase e.g. the maximum values for the area and the area of the bounding box. |
+
+</font>
+
+<!--
+- **Empty input directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/raw/plate is empty.`` The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo;
+- **Empty nuclear mask directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/unet_masks/plate is empty.`` The demo requires the nuclear segmentation masks corresponding to the input raw chromatin images (i.e. the images located in ``test_data/UNKNOWN/images/raw/plate) to be located in the specified directory. Please deposit the segmentation mask images in the directory ``test_data/UNKNOWN/images/unet_masks/plate`` and restart the demo;
+- **Missing/Wrong segmentation mask**:  The demo exits with the error message: ``FileNotFoundError: [Errno 2] No such file or directory``. The demo application requires for each raw chromatin image located in ``test_data/UNKNOWN/images/raw/plate`` a respective nuclear segmentation mask to be located in ``test_data/UNKNOWN/images/unet_masks/plate`` which has the same file name as the corresponding raw chromatin image and satifies the criteria described in the Perequisites section. The error message occurs if for any raw image the corresponding mask was not found. Please make sure that all mask images are deposited in the before mentioned directory and restart the demo;
+
+- **Malformed mask image**:  The demo exits with error messages such as ``ValueError: Label and intensity image shapes must match, except for channel (last) axis.`` or ``TypeError: Non-integer label_image types are ambiguous
+``. The provided mask images need to satisfy the following criteria: a) a nuclear mask image is single-channel (black-white) image of the same dimensions as the corresponding raw chromatin image and b) each pixel is assigned an integer value where the background is assigned the value 0 and all other pixels get the value equal to the unique integer ID of the nucleus for which they mark the respective mask. Such nuclear mask images are e.g. the output of the function ``[skimage.measure.label](https://scikit-image.org/docs/stable/api/skimage.measure.html#skimage.measure.label)``.
+- **Missing directory or files**: The demo exits with an error message: ``Cannot access <...>: No such file or directory``. This error is most likely caused due to an malformed ``test_data`` directory likely due to an incomplete extraction or download of the data when the demo is run for the first time. Please delete the ``test_data`` directory completely and restart the demo which will redownload the directory. Please make sure to not interrupt the download or extraction process but run the demo until it asks you to confirm that the input data has been deposited in the correct directories to avoid this error.
+- **Missing conda environment**:  The demo exits with the error message ``Provided conda environment not found.`` This error only occurs if the demo is run with the ``--environment`` argument and a non-existing conda environment is provided. Please make sure that the conda environment you provide exists on your system or simply run the demo without the ``--environment`` argument to safely install a new conda environment that contains all required software packages.
+
+- **Python module not found**:  The demo exits with the error message ``ModuleNotFoundError: No module named '<module>'``. This error occurs if the conda environment used to run the demo does not contain all the required python packages. If you have run the demo by specifying the environment via the ``--environment`` argument, please make sure that the provided conda environment contains all package listed in the file ``requirements/demo/requirements_demo.txt``. If you ran the demo without the ``--environment`` the newly installed conda environment is ensured to contain all packages, if the installation was successful and conda was appropriately initiliazed as described in the Perequisites section. Please run ``conda init`` in the terminal. Next run ``pip cache purge`` to remove any potentially malformed cached python packages and then restart our demo **without** providing the ``--environment`` argument to perform a fresh install of the conda environment used to run our demo.
+- **No or just one nuclei is found**: The demo exists with an error message such as ``ValueError: Empty data passed with indices specified`` or ``ValueError: Found array with 1 sample(s)[...] while aminimum of 2 is required.``. The demo requires at least two nuclei to be contained in the input images. Please make sure that your input images contain at least two nuclei. Please note that you might also have to adjust the filters for the cell size and shape defined in the file ``config/demo/preprocessing/full_image_pipeline_new_target.yml``. In particular you might want to adjust the minimal/maximum nuclear area (``min_area`` and ``max_area``), the maximal area of the bounding box (``max_bbarea``), the maximum eccentricity (``max_eccentricitiy``), minimal solidity (``min_solidity``) and the minimal aspect ratio (``min_aspect_ratio``). All quantities are given in terms of pixels. For larger images of higher resolution and/or larger cells increase e.g. the maximum values for the area and the area of the bounding box.
+-->
 
 ---
 
