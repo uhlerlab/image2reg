@@ -109,7 +109,8 @@ if ! [ -d "demo" ]
 then
 	echo "Data directory for the demo not found. Downloading..." | fold -sw 80
 	echo ""
-	wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=FILEID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1H89cywD1kCP0MNnYEJJ2_sQDe73EL1Y2" -O demo.zip && rm -rf /tmp/cookies.txt
+	wget -O "demo.zip" "https://zenodo.org/record/8354979/files/demo.zip?download=1"
+#	wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=FILEID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=1H89cywD1kCP0MNnYEJJ2_sQDe73EL1Y2" -O demo.zip && rm -rf /tmp/cookies.txt
 	echo ""
 	echo "Unzipping the directory..." | fold -sw 80
 	unzip -q demo.zip
