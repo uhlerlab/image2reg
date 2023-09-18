@@ -193,8 +193,8 @@ We also provide some additional functionalities which are described in more deta
 #
 
 <details>
-   <summary><b>Advanced run settings/developer options</b></summary>
- In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
+   <summary><b>Advanced run settings/developer options for the demo to partially reproduce the study results</b></summary>
+ In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application that is used to reproduce our results of our study for the selected perturbation conditions:
 
  1. ``--random``:    If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
  2.  ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
