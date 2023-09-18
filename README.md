@@ -133,7 +133,7 @@ This will trigger the following processes in the following.
 <summary><b>Installation of the conda environmen and download of the required and sample data (no user interaction required)</b></summary>
  
 First, a new conda environment called ``image2reg_demo`` is installed that contains all software packages required to run the code.
-Second, a directory called ``test_data`` is downloaded from the DOI *.....* and extracted within the image2reg repository.
+Second, a directory called ``test_data`` is downloaded from the [DOI 10.5281/zenodo.8354854](https://doi.org/10.5281/zenodo.8354854) and extracted within the image2reg repository.
 In addition to required e.g. pretrained model files, the directory ``test_data/sample_data`` contains raw chromatin images and corresponding nuclear segmentation masks for 10 perturbation conditions from Rohban et al. (2017), that can be used to test our demo.
 
 </details>
