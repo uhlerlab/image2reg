@@ -221,8 +221,8 @@ class ImageDatasetPreprocessor:
                 label_image_input_dir, plate, label_image_file_name
             )
 
-            image = tifffile.imread(image_file_path)
-            label_image = tifffile.imread(label_image_file_path)
+            image = imread(image_file_path)
+            label_image = imread(label_image_file_path)
 
             image_metadata.iloc[i, metadata_cols.index(nuclei_count_col_name)] = len(
                 np.unique(label_image)
@@ -497,7 +497,7 @@ class ImageDatasetPreprocessor:
             os.makedirs(output_dir)
         for i in tqdm(range(len(file_list)), desc="Save padded images"):
             file = file_list[i]
-            image = tifffile.imread(file)
+            image = imread(file)
             dir_name, file_name = os.path.split(file)
 
             width, height = image.shape
@@ -537,7 +537,7 @@ class ImageDatasetPreprocessor:
             os.makedirs(output_dir)
         for i in tqdm(range(len(file_list)), desc="Save resized images"):
             file = file_list[i]
-            image = tifffile.imread(file)
+            image = imread(file)
             dir_name, file_name = os.path.split(file)
             plate = os.path.split(dir_name)[1]
             plate_output_dir = os.path.join(output_dir, plate)
@@ -640,8 +640,8 @@ class ImageJUMPDatasetPreprocessor:
                 label_image_input_dir, label_image_file_name
             )
 
-            image = tifffile.imread(image_file_path)
-            label_image = tifffile.imread(label_image_file_path)
+            image = imread(image_file_path)
+            label_image = imread(label_image_file_path)
 
             image_metadata.iloc[i, metadata_cols.index(nuclei_count_col_name)] = len(
                 np.unique(label_image)
@@ -894,7 +894,7 @@ class ImageJUMPDatasetPreprocessor:
             os.makedirs(output_dir)
         for i in tqdm(range(len(file_list)), desc="Save padded images"):
             file = file_list[i]
-            image = tifffile.imread(file)
+            image = imread(file)
             dir_name, file_name = os.path.split(file)
 
             width, height = image.shape
