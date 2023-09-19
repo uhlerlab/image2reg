@@ -23,6 +23,29 @@ To facilitate the use and testing of our pipeline, we have implemented a demo ap
 
 When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
+2. Download the required data to run the inference demonstration of our pipeline.
+3. Preprocess the chromatin images provided by the user for which the pipeline should infer the perturbed gene.
+4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
+5. Link the gene perturbation embeddings of their corresponding regulatory gene embeddings by training the kernel regression model.
+6. Output the 10 genes most likely overexpressed (in decreasing order) in the cells in the user-provided input images.
+
+> [!NOTE]
+> We recommend to first run the variant of our Image2Reg pipeline using test inputs before running it with user-provided inputs.
+
+#
+
+### Demo variants
+There are three variants of our Image2Reg demo application we have developed. 
+- [**Image2Reg for test inputs**](test_demo.md):   This variant runs our demo with default parameters and example inputs to quickly verify its functionality.
+- [**Image2Reg for user-provided inputs**](user_demo.md):  This variant enables the application of our pipeline to user-provided input images.
+- [**Image2Reg for reproducibility**](reproducibility_demo.md): This variant reproduces the results of the leave-one-target-out cross-validation for five selected perturbation conditions described in our paper.
+
+Please click on the name of the variant you would like to run for a more detailed description and a step-by-step guide.
+
+
+<!--
+When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
+1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
 2. Download the required data to run the inference demonstration of our pipeline like e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images, as well as example imaging data from [Rohban et al. (2017)]().
 3. Preprocess the chromatin images provided by the user for which the pipeline should infer the perturbed gene.
 4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
@@ -218,6 +241,10 @@ If you would like to reproduce all results of the paper from scratch please refe
 
 
 #
+
+-->
+
+---
 
 ### Troubleshooting/Support
 
