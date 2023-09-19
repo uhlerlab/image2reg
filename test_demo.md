@@ -31,7 +31,7 @@ source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data
 ```
 
 This will run the complete demo. No further user-interaction is required.
-Please refer to the following section for more information on the triggered processes. In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
+Please refer to the following section for more information on the triggered processes.
 
 > [!IMPORTANT]
 > To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
@@ -62,5 +62,11 @@ The demo will then perform all further the following inference steps for the two
 
 > [!NOTE]
 > The true gene target that was overexpressed in the test images was BRAF
+
+---
+
+## Troubleshooting
+
+In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
 
 
