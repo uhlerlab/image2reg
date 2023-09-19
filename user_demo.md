@@ -87,8 +87,9 @@ Please refer to the following section for more information on the triggered proc
 > [!IMPORTANT]
 > To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
 
+#
 
-#### *4. Advanced run settings/developer options (Optional)*
+### *4. Advanced run settings/developer options (Optional)*
 Our demo application can also be run with two additional optional arguments.
 1. ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
 2. ``--help``:    This argument can be used to obtain help on the usage of our demo
