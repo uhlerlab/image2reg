@@ -76,7 +76,7 @@ We provide the sample imaging data for 10 distinct overexpression conditions fro
 | **CEBPA** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CEBPA/raw --mask_dir test_data_sample_data/CEBPA/unet_masks`` |
 | **CREB1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CREB1/raw --mask_dir test_data_sample_data/CREB1/unet_masks`` |
 | **JUN** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/JUN/raw --mask_dir test_data_sample_data/JUN/unet_masks`` |
-| **PRKCE** | ```source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/PRKCE/raw --mask_dir test_data_sample_data/PRKCE/unet_masks`` |
+| **PRKCE** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/PRKCE/raw --mask_dir test_data_sample_data/PRKCE/unet_masks`` |
 | **RAF1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RAF1/raw --mask_dir test_data_sample_data/RAF1/unet_masks`` |
 | **RELB** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RELB/raw --mask_dir test_data_sample_data/RELB/unet_masks`` |
 | **RHOA**| ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RHOA/raw --mask_dir test_data_sample_data/RHOA/unet_masks`` |
