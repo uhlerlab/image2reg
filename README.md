@@ -248,8 +248,14 @@ If you would like to reproduce all results of the paper from scratch please refe
 
 ### Troubleshooting/Support
 
-We here describe any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
+In the enclosed table we summarize any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
 If you encounter any other errors, please open an issue in this repository and we will extend the list accordingly.
+
+<details>
+ <summary>
+  <b>Table: Common Errors and Solutions</b>
+ </summary>
+
 
 <font size=8>
  
@@ -265,6 +271,7 @@ If you encounter any other errors, please open an issue in this repository and w
 | **No or just one nuclei is found** | *ValueError: Empty data passed with indices specified.* or *ValueError: Found array with 1 sample(s)[...] while aminimum of 2 is required.* | Your provided input images were found to contain less than two nuclei. Please note that might be due to the used filter settings in our image preprocessing. | Please ensure that your input images contain at least two nuclei and the filters for the cell size and shape defined in the file ``config/demo/preprocessing/full_image_pipeline_new_target.yml`` are appropriate for the resolution and cell size of the images. Our choices are selected for the 20x images of U2OS cells from the Rohban et al. (2017) or the JUMP-CP data set. If your images/nuclei are of different resolution or size, you might want to adjust in particular the minimal/maximum nuclear area (``min_area`` and ``max_area``), the maximal area of the bounding box (``max_bbarea``), the maximum eccentricity (``max_eccentricitiy``), minimal solidity (``min_solidity``) and the minimal aspect ratio (``min_aspect_ratio``). All quantities are given in terms of pixels. For larger images of higher resolution and/or larger cells increase e.g. the maximum values for the area and the area of the bounding box. |
 
 </font>
+</details>
 
 <!--
 - **Empty input directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/raw/plate is empty.`` The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo;
@@ -284,9 +291,23 @@ If you encounter any other errors, please open an issue in this repository and w
 
 ## Changelog
 
-- **September 6th, 2023.**&emsp;We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
-- **August 18th, 2023.**&emsp;We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
-- **August 2nd, 2023.**&emsp;On *July 17th 2023* the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+<details>
+ <summary><b>September 6th, 2023.</b></summary>
+ 
+ We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
+</details>
+
+<details>
+ <summary><b>August 18th, 2023.</b></summary>
+ 
+We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
+</details>
+
+<details>
+ <summary><b>August 2nd, 2023.</b></summary>
+ 
+ On *July 17th 2023* the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+</details>
 
 ---
 
