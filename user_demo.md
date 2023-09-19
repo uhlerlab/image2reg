@@ -100,16 +100,15 @@ Our demo application can also be run with two additional optional arguments.
 ## Processes triggered by the demo application
 
 ### Demo preparation
-First, a new conda environment called ``image2reg_demo`` is installed that contains all software packages required to run the code.
-Second, a directory called ``test_data`` is downloaded from the [DOI 10.5281/zenodo.8354979](https://doi.org/10.5281/zenodo.8354979) and extracted within the image2reg repository. This step is skipped if such a directory already exists. This should only be the case, if you have run the demo application successfully before.
+1. A new conda environment called ``image2reg_demo`` is installed that contains all software packages required to run the code.
+2. A directory called ``test_data`` is downloaded from the [DOI 10.5281/zenodo.8354979](https://doi.org/10.5281/zenodo.8354979) and extracted within the image2reg repository. This step is skipped if such a directory already exists. This should only be the case, if you have run the demo application successfully before.
+3. The input images you provide will be copied in the designated directories, i.e. the chromatin images are copied to ``test_data/UNKNOWN/images/raw/plate`` and the segmentation masks are copied to ``test_data/UNKNOWN/images/raw/plate``.
 
 > [!WARNING]
 > Please do not interrupt the download of the data directories and their extraction, i.e. unzipping. This could result in corrupt files which will break the demo application. If you encounter any problems indicating that some files were not found, please remove the ``test_data`` or the ``demo`` directory and restart the as described in above.
 
-Third, the input images you provide will be copied in the designated directories, i.e. the chromatin images are copied to ``test_data/UNKNOWN/images/raw/plate`` and the segmentation masks are copied to ``test_data/UNKNOWN/images/raw/plate``.
-
 > [!WARNING]
-> All contents in the two destination directories are deleted before the new data is copied.
+> All contents in the directories ``test_data/UNKNOWN/images/raw/plate`` and ``test_data/UNKNOWN/images/unet_masks/plate`` are deleted before the new data is copied.
 
 #
 
