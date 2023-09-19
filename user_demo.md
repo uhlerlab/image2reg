@@ -56,9 +56,7 @@ where you
 - replace the ``/path/to/input/raw/chromatin/images`` with the directory that contains the chromatin images you would like to apply our pipeline to, e.g. ``test_data/sample_data/JUN/raw``
 - replace the ``/path/to/nuclear/segmentation/masks`` with the directory that contains the corresponding segmentation masks, e.g. ``test_data/sample_data/JUN/raw``
 
-The above command will run the complete demo and no further user-interaction will be required.
-
-Please see below for more information on the triggered processes. In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
+The above command will run the complete demo and no further user-interaction will be required. Please see below for more information on the triggered processes.
 
 > [!IMPORTANT]
 > To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
@@ -121,4 +119,9 @@ The demo will then perform all further the following inference steps for the inp
 3. Link the gene perturbation embeddings of their corresponding regulatory gene embeddings by training the kernel regression model.
 4. Output the 10 genes most likely overexpressed (in decreasing order) in the cells in the input images.
 
+---
+
+## Troubleshooting
+
+In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
 
