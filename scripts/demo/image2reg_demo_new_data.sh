@@ -25,6 +25,8 @@ Help()
    
    echo "Arguments:"
    echo "----------"
+   echo "--image_dir | -e	File path to the directory that contains the single-channel (black-white) chromatin images of the cells the Image2Reg pipeline is supposed to perform inference on." | fold -sw 80
+      echo "--mask_dir | -e	File path to the directory that contains the single-channel (black-white) nuclear mask images corresponding to the images in the directory provided as the image_dir argument. Note that each mask image must have the exact same file name as the corresponding chromatin image." | fold -sw 80
    echo "--environment | -e	Name of the conda environment used to run the demo. If no argument is given a new conda enviornment will be setup called: image2reg_demo and all python packages required to run the demo will be installed." | fold -sw 80
    echo
 }
@@ -38,6 +40,8 @@ Help()
 env=""
 target="UNKNOWN"
 random="no"
+image_dir=""
+mask_dir=""
 
 while [ True ]; do
 if [ "$1" = "--help" -o "$1" = "-h" ]
@@ -48,10 +52,27 @@ elif [ "$1" = "--environment" -o "$1" = "-e" ]
 then
     env=$2
     shift 2
+elif [ "$1" = "--image_dir" -o "$1" = "-i" ]
+then
+    image_dir=$2
+    shift 2
+elif [ "$1" = "--mask_dir" -o "$1" = "-m" ]
+then
+    mask_dir=$2
+    shift 2
 else
     break
 fi
 done
+
+if [ -z $image_dir ] || [ -z $mask_dir ]
+then
+  echo "Required --image_dir argument was not provided. Please ensure that you provide the an existing directory that contains the chromatin images as the --image_dir argument." | fold -sw 80
+  echo "Similarly ensure that you provide an existing directory that contains for all the images in the image directory corresponding segmentation masks as the --mask_dir argument". | fold -sw 80
+  echo "Please restart the demo and provide appropriate file paths." | fold -sw 80
+  return 1
+fi
+
 
 
 
@@ -62,8 +83,8 @@ echo "Selected conda environment (if empty, a new environment called image2reg_d
 echo ""
 
 echo "Selected inference for new image data set."
-echo "Raw images are expected to be located in: image2reg/test_data/UNKNOWN/images/raw/plate." | fold -sw 80
-echo "Nuclear masks are expected to be located in: image2reg/test_data/UNKNOWN/images/unet_masks/plate." | fold -sw 80
+echo "Raw images are expected to be located in: $image_dir" | fold -sw 80
+echo "Nuclear masks are expected to be located in: $mask_dir" | fold -sw 80
 echo ""
 
 
@@ -155,44 +176,35 @@ fi
 trap SIGINT
 sleep 1
 echo ""
-
 echo "------------------------------" | fold -sw 80
 
-echo ""
-echo "If you have not done so already, please place now the image data which you would like to apply our Image2Reg pipeline to in the following directories." | fold -sw 80
-echo ""
-echo "Raw chromatin images: test_data/UNKNOWN/images/raw/plate" | fold -sw 80
-echo "Nuclear segmentation masks: test_data/UNKNOWN/images/unet_masks/plate" | fold -sw 80
-echo ""
-echo "Please note that the raw chromatin images and their corresponding nuclear segmentation masks are required to be named exactly the same such that the pipeline can associate these two different image inputs to one another." | fold -sw 80
 
-echo ""
-
-read -p "Has the imaging data been placed in the above mentioned directories? [no]/yes: " proceed
-proceed=${proceed:-no}
-
-if [ $proceed != "yes" ]
-then
-  echo "Image data needs to be positioned in the directories: test_data/UNKNOWN/images/raw/plate and test_data/UNKNOWN/images/unet_masks/plate to apply our pipeline to the new imaging data set." |fold -sw 80
-  echo "Please restart the demo application, once the data was placed in the respective directories." | fold -sw 80
-  echo "Exiting demo..."
-  return 1
-fi
-
-if [ -z "$(ls -A test_data/UNKNOWN/images/raw/plate)" ]; then
+if [ -z "$(ls -A $image_dir)" ]; then
    echo
-   echo "The directory test_data/UNKNOWN/images/raw/plate is empty."
-   echo "Please restart the application after making sure that the raw chromatin image inputs are put into the above mentioned directory" | fold -sw 80
+   echo "The directory $image_dir is empty."
+   echo "Please restart the application after making sure that the directory given as the --image_dir argument contains your raw chromatin image inputs." | fold -sw 80
    return 1
 fi
 
-if [ -z "$(ls -A test_data/UNKNOWN/images/unet_masks/plate)" ]; then
+if [ -z "$(ls -A $mask_dir)" ]; then
    echo
-   echo "The directory test_data/UNKNOWN/images/unet_masks/plate is empty."
-   echo "Please restart the application after making sure that the segmentation masks are put into the above mentioned directory" | fold -sw 80
+   echo "The directory $image_dir is empty."
+   echo "Please restart the application after making sure that the directory given as the --mask_dir argument contains your the nuclear segmentation masks for your images in $image_dir." | fold -sw 80
    return 1
 fi
 
+
+echo ""
+echo "Clearing the cache..."
+rm -rf test_data/UNKNOWN/images/raw/plate/*
+rm -rf test_data/UNKNOWN/images/unet_masks/plate/*
+rm -rf test_data/UNKNOWN/images/preprocessed/*
+rm -rf test_data/UNKNOWN/images/metadata/*
+
+echo "Copying the input images from $image_dir to test_data/UNKNOWN/images/raw/plate" | fold -sw 80
+echo "Copying the mask images from $mask_dir to test_data/UNKNOWN/images/unet_masks/plate" | fold -sw 80
+cp -r $image_dir/* test_data/UNKNOWN/images/raw/plate
+cp -r $mask_dir/* test_data/UNKNOWN/images/unet_masks/plate
 echo ""
 
 echo "Demo preparation complete..." | fold -sw 80
@@ -214,7 +226,5 @@ fi
 
 echo
 sleep 1
-rm -R test_data/UNKNOWN/images/preprocessed/*
-rm -R test_data/UNKNOWN/images/metadata/*
 echo "Demo complete..." | fold -sw 80
 echo "Thanks for using our Image2Reg pipeline." | fold -sw 80
