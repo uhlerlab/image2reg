@@ -54,7 +54,7 @@ source scripts/demo/image2reg_demo_new_data.sh --image_dir /path/to/input/raw/ch
 ```
 where you 
 - replace the ``/path/to/input/raw/chromatin/images`` with the directory that contains the chromatin images you would like to apply our pipeline to, e.g. ``test_data/sample_data/JUN/raw``
-- replace the ``/path/to/nuclear/segmentation/masks`` with the directory that contains the corresponding segmentation masks, e.g. ``test_data/sample_data/JUN/raw``
+- replace the ``/path/to/nuclear/segmentation/masks`` with the directory that contains the corresponding segmentation masks, e.g. ``test_data/sample_data/JUN/unet_masks``
 
 The above command will run the complete demo and no further user-interaction will be required. Please see below for more information on the triggered processes.
 
@@ -72,16 +72,16 @@ We provide the sample imaging data for 10 distinct overexpression conditions fro
 
 | Overexpression condition | Command | 
 | --- | --- |
-| **BRAF** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/BRAF/raw --mask_dir test_data_sample_data/BRAF/unet_masks`` |
-| **CEBPA** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CEBPA/raw --mask_dir test_data_sample_data/CEBPA/unet_masks`` |
-| **CREB1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CREB1/raw --mask_dir test_data_sample_data/CREB1/unet_masks`` |
-| **JUN** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/JUN/raw --mask_dir test_data_sample_data/JUN/unet_masks`` |
-| **PRKCE** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/PRKCE/raw --mask_dir test_data_sample_data/PRKCE/unet_masks`` |
-| **RAF1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RAF1/raw --mask_dir test_data_sample_data/RAF1/unet_masks`` |
-| **RELB** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RELB/raw --mask_dir test_data_sample_data/RELB/unet_masks`` |
-| **RHOA**| ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RHOA/raw --mask_dir test_data_sample_data/RHOA/unet_masks`` |
-| **SMAD4** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/SMAD4/raw --mask_dir test_data_sample_data/SMAD4/unet_masks`` |
-| **SREBF1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/SREBF1/raw --mask_dir test_data_sample_data/SREBF1/unet_masks`` |
+| **BRAF** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/BRAF/raw --mask_dir test_data/sample_data/BRAF/unet_masks`` |
+| **CEBPA** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CEBPA/raw --mask_dir test_data/sample_data/CEBPA/unet_masks`` |
+| **CREB1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/CREB1/raw --mask_dir test_data/sample_data/CREB1/unet_masks`` |
+| **JUN** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/JUN/raw --mask_dir test_data/sample_data/JUN/unet_masks`` |
+| **PRKCE** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/PRKCE/raw --mask_dir test_data/sample_data/PRKCE/unet_masks`` |
+| **RAF1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RAF1/raw --mask_dir test_data/sample_data/RAF1/unet_masks`` |
+| **RELB** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RELB/raw --mask_dir test_data/sample_data/RELB/unet_masks`` |
+| **RHOA**| ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/RHOA/raw --mask_dir test_data/sample_data/RHOA/unet_masks`` |
+| **SMAD4** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/SMAD4/raw --mask_dir test_data/sample_data/SMAD4/unet_masks`` |
+| **SREBF1** | ``source scripts/demo/image2reg_demo_new_data.sh --image_dir test_data/sample_data/SREBF1/raw --mask_dir test_data/sample_data/SREBF1/unet_masks`` |
   
 </details>
 
