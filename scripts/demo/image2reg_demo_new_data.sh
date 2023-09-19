@@ -154,7 +154,7 @@ then
 	echo "Data directory for the demo applied to perform inference on a new image data set not found. Downloading..." | fold -sw 80
 	
 	echo ""
-	wget -O "test_data.zip" "https://zenodo.org/record/8354979/files/test_data.zip?download=1"
+	wget -O "test_data.zip" "https://zenodo.org/record/8360327/files/test_data.zip?download=1"
 #	wget --load-cookies /tmp/cookies.txt "https://docs.google.com/uc?export=download&confirm=$(wget --quiet --save-cookies /tmp/cookies.txt --keep-session-cookies --no-check-certificate 'https://docs.google.com/uc?export=download&id=FILEID' -O- | sed -rn 's/.*confirm=([0-9A-Za-z_]+).*/\1\n/p')&id=10tlljqIDOzyFkSooDn-ee1byITt3dour" -O test_data.zip && rm -rf /tmp/cookies.txt
 	echo ""
 	echo "Unzipping the directory..." | fold -sw 80
