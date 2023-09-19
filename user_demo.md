@@ -56,6 +56,13 @@ where you
 - replace the ``/path/to/input/raw/chromatin/images`` with the directory that contains the chromatin images you would like to apply our pipeline to, e.g. ``test_data/sample_data/JUN/raw``
 - replace the ``/path/to/nuclear/segmentation/masks`` with the directory that contains the corresponding segmentation masks, e.g. ``test_data/sample_data/JUN/raw``
 
+The above command will run the complete demo and no further user-interaction will be required.
+
+Please see below for more information on the triggered processes. In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
+
+> [!IMPORTANT]
+> To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
+
 #
 
 We provide the sample imaging data for 10 distinct overexpression conditions from the data set from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) that the user can provide as input to test our demo.
@@ -80,12 +87,6 @@ We provide the sample imaging data for 10 distinct overexpression conditions fro
   
 </details>
 
-The above command will run the complete demo and no further user-interaction will be required.
-
-Please refer to the following section for more information on the triggered processes. In case you run into any errors please also consult the following section and the [Troubleshooting section in our README file](README.md#Troubleshooting/Support).
-
-> [!IMPORTANT]
-> To run the code please ensure that your working directory is ``image2reg``. The working directory can be changed via the ``cd`` command.
 
 #
 
