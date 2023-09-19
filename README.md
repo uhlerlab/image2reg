@@ -34,6 +34,7 @@ When run, the demo application will perform all required to steps to run our pip
 
 #
 
+
 ### Demo variants
 There are three variants of our Image2Reg demo application we have developed. 
 - [**Image2Reg for test inputs**](test_demo.md):   This variant runs our demo with default parameters and example inputs to quickly verify its functionality.
@@ -244,7 +245,7 @@ If you would like to reproduce all results of the paper from scratch please refe
 
 -->
 
----
+#
 
 ### Troubleshooting/Support
 
