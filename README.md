@@ -41,7 +41,7 @@ There are three variants of our Image2Reg demo application we have developed.
 - [**Image2Reg for user-provided inputs**](user_demo.md):  This variant enables the application of our pipeline to user-provided input images.
 - [**Image2Reg for reproducibility**](reproducibility_demo.md): This variant reproduces the results of the leave-one-target-out cross-validation for five selected perturbation conditions described in our paper.
 
-Please click on the name of the variant you would like to run for a more detailed description and a step-by-step guide.
+**Please click on the name of the variant you would like to run for a more detailed description and a step-by-step guide.**
 
 
 <!--
