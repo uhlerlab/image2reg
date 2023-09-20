@@ -25,8 +25,8 @@ Help()
    
    echo "Arguments:"
    echo "----------"
-   echo "--image_dir | -e	File path to the directory that contains the single-channel (black-white) chromatin images of the cells the Image2Reg pipeline is supposed to perform inference on." | fold -sw 80
-      echo "--mask_dir | -e	File path to the directory that contains the single-channel (black-white) nuclear mask images corresponding to the images in the directory provided as the image_dir argument. Note that each mask image must have the exact same file name as the corresponding chromatin image." | fold -sw 80
+   echo "--image_dir | -i	File path to the directory that contains the single-channel (black-white) chromatin images of the cells the Image2Reg pipeline is supposed to perform inference on." | fold -sw 80
+      echo "--mask_dir | -m	File path to the directory that contains the single-channel (black-white) nuclear mask images corresponding to the images in the directory provided as the image_dir argument. Note that each mask image must have the exact same file name as the corresponding chromatin image." | fold -sw 80
    echo "--environment | -e	Name of the conda environment used to run the demo. If no argument is given a new conda enviornment will be setup called: image2reg_demo and all python packages required to run the demo will be installed." | fold -sw 80
    echo
 }
