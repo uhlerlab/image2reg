@@ -8,6 +8,9 @@ This variant of our demo application uses our Image2Reg pipeline to perform to p
 
 ## Step-by-step guide
 
+> [!WARNING]
+> Before you proceed make sure that you have followed the instructions and in particular run the steps 1 and 2 of the [Step-by-Step guide in the README file](https://github.com/uhlerlab/image2reg/blob/master/README.md#step-by-step-guide).
+
 ### 1. Activating the bash shell
 Please open a new terminal and activate the bash shell via
 ```
