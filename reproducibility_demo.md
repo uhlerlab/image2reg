@@ -2,7 +2,7 @@
 
 ## Overview
 
-This variant of our demo application can be used to run the Image2Reg pipeline to perform out-of-sample prediction for five selected overexpression conditions (*BRAF, JUN, RAF1, SMAD4, SREBF1*) from the dataset from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) thereby reproducing the results of the leave-one-target-out cross-validation approach for these conditions as reported in our manuscript.
+This version of our demo application can be used to run the Image2Reg pipeline to perform out-of-sample prediction for five selected overexpression conditions (*BRAF, JUN, RAF1, SMAD4, SREBF1*) from the dataset from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) thereby reproducing the results of the leave-one-target-out cross-validation approach for these conditions as reported in our manuscript.
 
 In particular, this demo
 1. Preprocesses the chromatin images of the selected test condition.
