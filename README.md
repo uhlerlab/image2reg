@@ -75,6 +75,7 @@ mkdir -p ~/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
 bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
 rm -rf ~/miniconda3/miniconda.sh
+~/miniconda3/bin/conda init bash
 ```
 
 <!--This will start the installer, which will guide you through the installation of miniconda. 
@@ -94,7 +95,7 @@ If you encounter any issues, please refer to the official installation guide whi
 
 Make sure conda is initialized appropriately in your shell via typing
 ```
-~/miniconda3/bin/conda init bash
+conda init bash
 source ~/.bashrc
 ```
 
