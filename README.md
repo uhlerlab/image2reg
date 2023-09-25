@@ -44,9 +44,9 @@ bash
 ```
 
 <details>
-          <summary><i>
+          <summary><b>
            Click here if you see the output: "command "bash" not found".
-          </i></summary>
+          </b></summary>
  
  Please install ``bash`` as described in the output of your system e.g. via
  ```
