@@ -71,17 +71,19 @@ If the command ``conda`` was not found, Anaconda or Miniconda is not installed o
 Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
 Then install miniconda via:
 ```
-cd ~/
-wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
-bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
 ```
 
-This will start the installer, which will guide you through the installation of miniconda. 
+<!--This will start the installer, which will guide you through the installation of miniconda. 
 To run the installation using the default setup:
 - Press ``enter``, **until** you are asked to agree to the license agreement by typing in yes;
 - Type in ``yes`` when asked to accept the license agreement;
 - Press enter to use the default installation location;
 - Finally type in ``yes`` when asked to run conda init.
+-->
 
 If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
 
@@ -92,7 +94,8 @@ If you encounter any issues, please refer to the official installation guide whi
 
 Make sure conda is initialized appropriately in your shell via typing
 ```
-conda init
+~/miniconda3/bin/conda init bash
+source ~/.bashrc
 ```
 
 #
