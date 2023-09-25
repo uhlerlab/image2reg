@@ -34,7 +34,14 @@ cd ~/image2reg
 
 ### 3. Running the demo application 
 
- Run this variant of demo application via typing in
+ Run this version of demo application via e.g. typing in
+```
+source scripts/demo/image2reg_demo.sh --condition SMAD4
+```
+
+This applies our Image2Reg pipeline to perform out-of-sample prediction for the SMAD4 overexpression condition.
+
+You can choose the condition you would like to apply our pipeline to and perform out-of-sample prediction via
 ```
 source scripts/demo/image2reg_demo.sh --condition <CONDITION>
 ```
