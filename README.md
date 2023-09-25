@@ -19,7 +19,7 @@ However, the demo application of our pipeline described in the following only re
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs depending on the number of input images in as little as 5 minutes and requires only roughly 10GB of storage.
+To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs (depending on the number of input images) in as little as 5 minutes and requires only roughly 10GB of storage.
 
 When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
@@ -37,8 +37,8 @@ When run, the demo application will perform all required to steps to run our pip
 A Linux system is required to run the demo.
 
 ##### Bash shell
-To run the commands described in this guide, you will need a bash shell.
-To activate a bash shell after opening a terminal on your system, type in
+To run the commands described in this guide, you need a bash shell.
+To activate a bash shell after opening a terminal (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system), type in
 ```
 bash
 ```
@@ -68,7 +68,7 @@ conda
  <summary><b>Click here if the command "conda" not found</b></summary>
 
 If the command ``conda`` was not found, Anaconda or Miniconda is not installed on your system.
-Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
+Please open a **new** terminal on your system.
 Then install miniconda via:
 ```
 mkdir -p ~/miniconda3
@@ -95,6 +95,7 @@ If you encounter any issues, please refer to the official installation guide whi
 
 Make sure conda is initialized appropriately in your shell via typing
 ```
+bash
 conda init bash
 source ~/.bashrc
 ```
