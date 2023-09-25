@@ -131,7 +131,9 @@ source scripts/demo/image2reg_demo_new_data.sh --environment image2reg image2reg
 3. The input images you provide will be copied in the designated directories, i.e. the chromatin images are copied to ``test_data/UNKNOWN/images/raw/plate`` and the segmentation masks are copied to ``test_data/UNKNOWN/images/raw/plate``.
 
 > [!WARNING]
-> Please do not interrupt the download of the data directories and their extraction, i.e. unzipping. This could result in corrupt files which will break the demo application. If you encounter any problems indicating that some files were not found, please remove the ``test_data`` or the ``demo`` directory and restart the as described in above.
+> Please do not interrupt the download of the data directories and their extraction, i.e. unzipping. This could result in corrupt files which will break the demo application. If you encounter any problems indicating that some files were not found, please remove the ``test_data`` and if existing the ``demo`` directory located in the cloned image2reg repository. Once you have removed these directories please restart the demo as described in above. If any issues persist, please consult the Troubleshooting section below.
+
+>[!WARNING] 
 > All contents in the directories ``test_data/UNKNOWN/images/raw/plate`` and ``test_data/UNKNOWN/images/unet_masks/plate`` are deleted before the new data is copied.
 
 #
