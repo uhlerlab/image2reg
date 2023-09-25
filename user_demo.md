@@ -65,9 +65,8 @@ where you
 The above command will run the complete demo. 
 **No further user-interaction will be required.**
 Please refer to the following section for more information on the triggered processes.
-#
 
-We provide the sample imaging data for 10 distinct overexpression conditions from the data set from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) that the user can provide as input to test our demo.
+While you can use your own imaging data, we also provide the sample imaging data for 10 distinct overexpression conditions from the data set from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) that the user can provide as input to test our demo.
 
 <details>
   <summary>
@@ -91,22 +90,22 @@ We provide the sample imaging data for 10 distinct overexpression conditions fro
 
 <details>
  <summary>
-  <b>Click here if you want to use your own image data</b>
-
-To run our pipeline, you will need provide two different image inputs.
-
-### Raw chromatin images
-Field-of-view chromatin images of cells are required as input for our pipeline. These images are expected to be black-and-white (i.e. single-channel) images. In these images each pixel is assigned unsigned integer value.
-All images need have a unique file name and need to be located in the same directory. Example images from the image data set of [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) are downloaded the first time our demo application is run. Once it has been run, you can find example images from the JUN overexpression condition in the directory ``test_data/sample_data/JUN/raw``.
-
-> [!NOTE]
-> Our pipeline was set up using 20x resolution 1080x1080px images of U2OS cells. If your input images are of very different resolution and/or your cells are of different size, the default parameters of the pipeline might lead no nuclei being detected. Please refer to the entry *No or just one nuclei is found* in our [Troubleshooting section](README.md#Troubleshooting/Support) for guidance on how to adjust the paramters.
-
-### Nuclear mask images
-For each field-of-view chromatin image a corresponding nuclear segmentation mask is required. These mask images are expected to be black-and-white (i.e. single-channel) images. In each image all pixels that jointly form the mask of the same nucleus are assigned the same unsigned integer value.
-The background is assigned a value of 0. Each nuclear mask image must have exactly the same file name as the corresponding chromatin image.  All nuclear mask images need to be located in the same directory. Example nuclear segmentation masks for the respective example images from the data set from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) are downloaded alongside the chromatin images the first time our demo application is run and are then e.g. located in the directory ``test_data/sample_data/JUN/unet_masks``.
+  <b>Click here if you want to use your own image data</b> </summary>
+ 
+  To run our pipeline, you will need provide two different image inputs.
   
- </summary>
+  ### Raw chromatin images
+  Field-of-view chromatin images of cells are required as input for our pipeline. These images are expected to be black-and-white (i.e. single-channel) images. In these images each pixel is assigned unsigned integer value.
+  All images need have a unique file name and need to be located in the same directory. Example images from the image data set of [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) are downloaded the first time our demo application is run. Once it has been run, you can find
+  example images from the JUN overexpression condition in the directory ``test_data/sample_data/JUN/raw``.
+  
+  > [!NOTE]
+  > Our pipeline was set up using 20x resolution 1080x1080px images of U2OS cells. If your input images are of very different resolution and/or your cells are of different size, the default parameters of the pipeline might lead no nuclei being detected. Please refer to the entry *No or just one nuclei is found* in our [Troubleshooting section](README.md#Troubleshooting/Support) for guidance on how to adjust the paramters.
+
+  ### Nuclear mask images
+  For each field-of-view chromatin image a corresponding nuclear segmentation mask is required. These mask images are expected to be black-and-white (i.e. single-channel) images. In each image all pixels that jointly form the mask of the same nucleus are assigned the same unsigned      integer value.
+  The background is assigned a value of 0. Each nuclear mask image must have exactly the same file name as the corresponding chromatin image.  All nuclear mask images need to be located in the same directory. Example nuclear segmentation masks for the respective example images from the data set from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) are downloaded alongside the chromatin images the first time our demo application is run and are then e.g. located in the directory ``test_data/sample_data/JUN/unet_masks``.
+
 </details>
 
 
