@@ -19,7 +19,7 @@ However, the demo application of our pipeline described in the following only re
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs depending on the number of input images in as little as 5 minutes and requires only roughly 10GB of storage.
+To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs (depending on the number of input images) in as little as 5 minutes and requires only roughly 10GB of storage.
 
 When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
@@ -37,16 +37,16 @@ When run, the demo application will perform all required to steps to run our pip
 A Linux system is required to run the demo.
 
 ##### Bash shell
-To run the commands described in this guide, you will need a bash shell.
-To activate a bash shell after opening a terminal on your system, type in
+To run the commands described in this guide, you need a bash shell.
+To activate a bash shell after opening a terminal (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system), type in
 ```
 bash
 ```
 
 <details>
-          <summary><i>
-           Click here if the command "bash" was not found.
-          </i></summary>
+          <summary><b>
+           Click here if you see the output: "command "bash" not found".
+          </b></summary>
  
  Please install ``bash`` as described in the output of your system e.g. via
  ```
@@ -68,20 +68,23 @@ conda
  <summary><b>Click here if the command "conda" not found</b></summary>
 
 If the command ``conda`` was not found, Anaconda or Miniconda is not installed on your system.
-Please open a new terminal on your system (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system).
+Please open a **new** terminal on your system.
 Then install miniconda via:
 ```
-cd ~/
-wget https://repo.anaconda.com/miniconda/Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
-bash Miniconda3-py311_23.5.2-0-Linux-x86_64.sh
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+~/miniconda3/bin/conda init bash
 ```
 
-This will start the installer, which will guide you through the installation of miniconda. 
+<!--This will start the installer, which will guide you through the installation of miniconda. 
 To run the installation using the default setup:
-- Press ``enter``, **until** you are asked to agree to the license agreement;
+- Press ``enter``, **until** you are asked to agree to the license agreement by typing in yes;
 - Type in ``yes`` when asked to accept the license agreement;
 - Press enter to use the default installation location;
 - Finally type in ``yes`` when asked to run conda init.
+-->
 
 If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
 
@@ -92,7 +95,9 @@ If you encounter any issues, please refer to the official installation guide whi
 
 Make sure conda is initialized appropriately in your shell via typing
 ```
-conda init
+bash
+conda init bash
+source ~/.bashrc
 ```
 
 #
@@ -108,12 +113,12 @@ git clone https://github.com/uhlerlab/image2reg.git
 
 #### 3. Running the demo application
 
-There are three variants of our Image2Reg demo application we have developed. 
+There are three versions of our Image2Reg demo application we have developed. 
 - [**Image2Reg for test inputs**](test_demo.md):   This variant runs our demo with default parameters and example inputs to quickly verify its functionality.
 - [**Image2Reg for user-provided inputs**](user_demo.md):  This variant enables the application of our pipeline to user-provided input images.
 - [**Image2Reg for reproducibility**](reproducibility_demo.md): This variant reproduces the results of the leave-one-target-out cross-validation for five selected perturbation conditions described in our paper.
 
-**Please click on the name of the variant you would like to run and follow the instructions.**
+**Please click on the name of the version you would like to run and follow the instructions.**
 
 > [!NOTE]
 > We recommend to first run the variant of our Image2Reg pipeline using test inputs before running it with user-provided inputs.

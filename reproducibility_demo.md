@@ -2,7 +2,7 @@
 
 ## Overview
 
-This variant of our demo application can be used to run the Image2Reg pipeline to perform out-of-sample prediction for five selected overexpression conditions (*BRAF, JUN, RAF1, SMAD4, SREBF1*) from the dataset from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) thereby reproducing the results of the leave-one-target-out cross-validation approach for these conditions as reported in our manuscript.
+This version of our demo application can be used to run the Image2Reg pipeline to perform out-of-sample prediction for five selected overexpression conditions (*BRAF, JUN, RAF1, SMAD4, SREBF1*) from the dataset from [Rohban et al. (2017)](https://doi.org/10.7554/eLife.24060) thereby reproducing the results of the leave-one-target-out cross-validation approach for these conditions as reported in our manuscript.
 
 In particular, this demo
 1. Preprocesses the chromatin images of the selected test condition.
@@ -13,6 +13,9 @@ In particular, this demo
 ---
 
 ## Step-by-step guide
+
+> [!WARNING]
+> Before you proceed make sure that you have followed the instructions and in particular run the steps 1 and 2 of the [Step-by-Step guide in the README file](https://github.com/uhlerlab/image2reg/blob/master/README.md#step-by-step-guide).
 
 ### 1. Activating the bash shell
 Please open a new terminal and activate the bash shell via
@@ -31,7 +34,14 @@ cd ~/image2reg
 
 ### 3. Running the demo application 
 
- Run this variant of demo application via typing in
+ Run this version of demo application via e.g. typing in
+```
+source scripts/demo/image2reg_demo.sh --condition SMAD4
+```
+
+This applies our Image2Reg pipeline to perform out-of-sample prediction for the SMAD4 overexpression condition.
+
+You can choose the condition you would like to apply our pipeline to and perform out-of-sample prediction via
 ```
 source scripts/demo/image2reg_demo.sh --condition <CONDITION>
 ```
