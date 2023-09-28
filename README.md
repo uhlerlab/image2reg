@@ -19,8 +19,112 @@ However, the demo application of our pipeline described in the following only re
 ## Demonstration of Image2Reg
 
 ### Overview
-To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs depending on the number of input images in as little as 5 minutes and requires only roughly 10GB of storage.
+To facilitate the use and testing of our pipeline, we have implemented a demo application that can be used to predict novel, unseen overexpression conditions from chromatin images and is easy to use with minimal software and storage requirements. In particular, our demo application runs (depending on the number of input images) in as little as 5 minutes and requires only roughly 10GB of storage.
 
+When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
+1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
+2. Download the required data to run the inference demonstration of our pipeline.
+3. Preprocess the chromatin images provided by the user for which the pipeline should infer the perturbed gene.
+4. Obtain the image and consequently the gene perturbation embedding for the test condition by encoding the images using the pretrained convolutional neural network ensemble image encoder model.
+5. Link the gene perturbation embeddings of their corresponding regulatory gene embeddings by training the kernel regression model.
+6. Output the 10 genes most likely overexpressed (in decreasing order) in the cells in the user-provided input images.
+
+#
+
+### Step-by-step guide
+
+#### 1. Perequisites
+A Linux system is required to run the demo.
+
+##### Bash shell
+To run the commands described in this guide, you need a bash shell.
+To activate a bash shell after opening a terminal (e.g. via the short-cut Ctrl+Alt+T if you are running Ubuntu or by typing in ``terminal`` in the application search of your system), type in
+```
+bash
+```
+
+<details>
+          <summary><b>
+           Click here if you see the output: "command "bash" not found".
+          </b></summary>
+ 
+ Please install ``bash`` as described in the output of your system e.g. via
+ ```
+ sudo apt-get update
+ sudo apt-get install bash
+ ```
+</details>
+
+#
+
+##### Anaconda installation
+The package manager [``Anaconda``](https://docs.anaconda.com/free/) or [``miniconda``](https://docs.conda.io/en/latest/miniconda.html) needs to be installed on your system.
+To test if it is installed, open a terminal on your system and type in
+```
+conda
+```
+
+<details>
+ <summary><b>Click here if the command "conda" not found</b></summary>
+
+If the command ``conda`` was not found, Anaconda or Miniconda is not installed on your system.
+Please open a **new** terminal on your system.
+Then install miniconda via:
+```
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+~/miniconda3/bin/conda init bash
+```
+
+<!--This will start the installer, which will guide you through the installation of miniconda. 
+To run the installation using the default setup:
+- Press ``enter``, **until** you are asked to agree to the license agreement by typing in yes;
+- Type in ``yes`` when asked to accept the license agreement;
+- Press enter to use the default installation location;
+- Finally type in ``yes`` when asked to run conda init.
+-->
+
+If you encounter any issues, please refer to the official installation guide which can be found [here](https://docs.conda.io/en/latest/miniconda.html#installing).
+
+> [!WARNING]
+> You need to close the terminal and open a **new** one to complete the installation
+
+</details>
+
+Make sure conda is initialized appropriately in your shell via typing
+```
+bash
+conda init bash
+source ~/.bashrc
+```
+
+#
+
+#### 2. Clone the repository
+
+If the perequisites are satisfied, please clone this repository by running the following command in a **new** terminal.
+```
+git clone https://github.com/uhlerlab/image2reg.git
+```
+
+#
+
+#### 3. Running the demo application
+
+There are three versions of our Image2Reg demo application we have developed. 
+- [**Image2Reg for test inputs**](test_demo.md):   This variant runs our demo with default parameters and example inputs to quickly verify its functionality.
+- [**Image2Reg for user-provided inputs**](user_demo.md):  This variant enables the application of our pipeline to user-provided input images.
+- [**Image2Reg for reproducibility**](reproducibility_demo.md): This variant reproduces the results of the leave-one-target-out cross-validation for five selected perturbation conditions described in our paper.
+
+**Please click on the name of the version you would like to run and follow the instructions.**
+
+> [!NOTE]
+> We recommend to first run the variant of our Image2Reg pipeline using test inputs before running it with user-provided inputs.
+
+
+<!--
 When run, the demo application will perform all required to steps to run our pipeline, i.e. it will
 1. Install a minimal software environment containing the required python version 3.8.10 and a few additional python packages.
 2. Download the required data to run the inference demonstration of our pipeline like e.g. the pretrained image encoder model used to obtain image embeddings from the chromatin images, as well as example imaging data from [Rohban et al. (2017)]().
@@ -193,8 +297,8 @@ We also provide some additional functionalities which are described in more deta
 #
 
 <details>
-   <summary><b>Advanced run settings/developer options</b></summary>
- In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application:
+   <summary><b>Advanced run settings/developer options for the demo to partially reproduce the study results</b></summary>
+ In addition to specifying for which overexpression condition our pipeline should be run, there are three additional arguments that one can be used for the demo application that is used to reproduce our results of our study for the selected perturbation conditions:
 
  1. ``--random``:    If this argument is provided, the Image2Reg pipeline is run such that the inferred gene perturbation and regulatory gene embeddings are permuted prior the kernel regression is fit which eventually predicts the overexpression target. This recreates the random baseline described in our manuscript. Using this argument, you will observe a deteriated prediction performance of our pipeline which is expected.
  2.  ``--environment``:    This argument can be used if one would like to specify a pre-existing conda environment that is supposed to be used to run the demo application. By default, if the argument is not provided a new conda environment will be setup as part of the demo application called ``image2reg_demo`` in which all required python packages will be installed and that is used to run our code.
@@ -219,10 +323,20 @@ If you would like to reproduce all results of the paper from scratch please refe
 
 #
 
+-->
+
+#
+
 ### Troubleshooting/Support
 
-We here describe any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
+In the enclosed table we summarize any error messages output by the demo if it is not used as intended and their meaning respectively how these can be resolved.
 If you encounter any other errors, please open an issue in this repository and we will extend the list accordingly.
+
+<details>
+ <summary>
+  <b>Table: Common Errors and Solutions</b>
+ </summary>
+
 
 <font size=8>
  
@@ -238,6 +352,7 @@ If you encounter any other errors, please open an issue in this repository and w
 | **No or just one nuclei is found** | *ValueError: Empty data passed with indices specified.* or *ValueError: Found array with 1 sample(s)[...] while aminimum of 2 is required.* | Your provided input images were found to contain less than two nuclei. Please note that might be due to the used filter settings in our image preprocessing. | Please ensure that your input images contain at least two nuclei and the filters for the cell size and shape defined in the file ``config/demo/preprocessing/full_image_pipeline_new_target.yml`` are appropriate for the resolution and cell size of the images. Our choices are selected for the 20x images of U2OS cells from the Rohban et al. (2017) or the JUMP-CP data set. If your images/nuclei are of different resolution or size, you might want to adjust in particular the minimal/maximum nuclear area (``min_area`` and ``max_area``), the maximal area of the bounding box (``max_bbarea``), the maximum eccentricity (``max_eccentricitiy``), minimal solidity (``min_solidity``) and the minimal aspect ratio (``min_aspect_ratio``). All quantities are given in terms of pixels. For larger images of higher resolution and/or larger cells increase e.g. the maximum values for the area and the area of the bounding box. |
 
 </font>
+</details>
 
 <!--
 - **Empty input directory**:  The demo exits with the error message ``The directory test_data/UNKNOWN/images/raw/plate is empty.`` The demo requires the raw chromatin images for which the perturbed gene is supposed to be predicted to be located in the specified directory. Please deposit the raw chromatin images in the directory ``test_data/UNKNOWN/images/raw/plate`` and restart the demo;
@@ -257,9 +372,23 @@ If you encounter any other errors, please open an issue in this repository and w
 
 ## Changelog
 
-- **September 6th, 2023.**&emsp;We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
-- **August 18th, 2023.**&emsp;We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
-- **August 2nd, 2023.**&emsp;On *July 17th 2023* the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+<details>
+ <summary><b>September 6th, 2023.</b></summary>
+ 
+ We have expanded the demo to enable running our pipeline on image data provided by the user using the models pretrained on the imaging data from Rohban et al. (2017) to facilitate the adaption of our pipeline to new imaging data sets.
+</details>
+
+<details>
+ <summary><b>August 18th, 2023.</b></summary>
+ 
+We have added a novel demonstration of our pipeline that can be easily run without the need of even previously installing the coding environment and/or downloading any data. The demo can be used to run our pipeline in the inference mode, i.e. we provide a pretrained version of the pipeline but show how given images of five selected OE conditions it predicts the corresponding target genes out-of-sample (no information regarding these were used to setup the pipeline as described in the paper).
+</details>
+
+<details>
+ <summary><b>August 2nd, 2023.</b></summary>
+ 
+ On *July 17th 2023* the external ``hdbscan`` package broke due to number of changes of the name resolution. As a consequence the installation of any version of the package including the version 0.8.27 used in our software package was no longer able to be installed, leading to our installation script to no longer be able to run completely ([see here for more information](https://github.com/scikit-learn-contrib/hdbscan/issues/600)). We have updated the requirements file of our package to install the hotfix implemented in version hdbscan v.0.8.33. While we could not have anticipated such an issue suddenly occuring, we apologize for the inconvenience this may have caused. We have tested the updated installation script but please let us know if you encounter any issue with the installation on your end and/or running our code.
+</details>
 
 ---
 
