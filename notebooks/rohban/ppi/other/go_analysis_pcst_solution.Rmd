@@ -9,7 +9,7 @@ This notebook conducts a GO analysis to characterize the gene set identified as 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-knitr::opts_knit$set(root.dir = "/home/paysan_d/PycharmProjects/image2reg/")
+knitr::opts_knit$set(root.dir = "/media/paysan_d/T7/image2reg")
 ```
 
 # 0. Environmental setup
@@ -141,7 +141,7 @@ barplot_topgo <- function(data){
 To characterize the importance of the selected subset of genes in the inferred GGI we conduct a gene ontology analysis testing for the enrichment of terms associated with a biological process using Fisher's exact test and correct for multiple testing using the Bonferroni-Holm procedure. Therefore, we first load the information into memory which nodes were selected by the Prize-collecting Steiner tree analysis.
 
 ```{r}
-node_selection <- read.csv("data/ppi/inference_results/cv/node_selection.csv", row.names=1)
+node_selection <- read.csv("data/experiments/rohban/interactome/inference_results/node_selection.csv", row.names=1)
 
 ppi_nodes <- rownames(node_selection)
 ggi_nodes <- rownames(node_selection)[node_selection$selected_in_ggi==1]
