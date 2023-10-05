@@ -1,0 +1,40 @@
+output_dir: 'data/experiments/rohban/images/screen/morph_profiles/screen/fold_3'
+module: src.experiments.profile_embeddings
+class: BaseProfileEmbeddingExperimentCustomSplit
+run_params:
+  data_config: {      'train_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/FOXO1/morph_md_train_fold_3.csv.gz',
+                      'val_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/FOXO1/morph_md_val_fold_3.csv.gz',
+                      'test_profile_metadata_file':'data/experiments/rohban/images/screen/morph_profiles/screen_splits/FOXO1/morph_md_test_fold_3.csv.gz',
+                      'data_key':'profile', 'label_key':'label',
+                      'label_col':'labels',
+                      'exclude_features':["Nuclei_AreaShape_Center_X", "Nuclei_AreaShape_Center_Y",
+                          "Nuclei_Location_CenterMassIntensity_X_Hoechst",
+                          "Nuclei_Location_CenterMassIntensity_Y_Hoechst",
+                          "Nuclei_Location_Center_X", "Nuclei_Location_Center_Y",
+                          "Nuclei_Location_MaxIntensity_X_Hoechst",
+                          "Nuclei_Location_MaxIntensity_X_Hoechst",
+                          "Nuclei_Neighbors_FirstClosestObjectNumber_1",
+                          "Nuclei_Neighbors_SecondClosestObjectNumber_1",
+#                          "Nuclei_AreaShape_Orientation",
+#                          "Nuclei_Neighbors_AngleBetweenNeighbors_1",
+                      ],
+                      'slide_image_name_col': "ImageNumber"}
+
+  model_config: {'model_config':{'type':'SimpleClassifier', 'n_output_nodes':2, 'input_dim': 126},
+                       'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                       'loss_config':{'type':'ce'}}
+
+  domain_name: 'morph_profile'
+  num_epochs: 300
+  early_stopping: 5
+  batch_size: 64
+  random_state: 1234
+  save_freq: 50
+
+pipeline:
+  - method: initialize_profile_data_set
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+  - method: train_models
+  - method: visualize_loss_evolution
+
