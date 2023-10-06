@@ -1,10 +1,10 @@
-output_dir: 'data/experiments/image_embeddings/jump/specificity_target_emb_cv_strat/fold_0/'
+output_dir: 'data/experiments/jump/images/embedding/extract_latents_from_rohban_trained'
 module: src.experiments.image_embeddings
 class: ImageEmbeddingExperiment
 run_params:
-  data_config: {'nuclei_image_dir':'data/experiments/image_preprocessing/jump/full_pipeline/padded_nuclei',
-                'nuclei_metadata_file':'data/experiments/image_preprocessing/jump/full_pipeline/padded_nuclei_metadata.csv.gz',
-                'slide_image_dir': 'data/images/jump/illum_corrected',
+  data_config: {'nuclei_image_dir':'data/experiments/jump/images/preprocessing/full_pipeline/padded_nuclei',
+                'nuclei_metadata_file':'data/experiments/jump/images/preprocessing/full_pipeline/padded_nuclei_metadata.csv.gz',
+                'slide_image_dir': 'data/resources/images/jump/illum_corrected',
                 'data_key':'images', 'label_key':'label', 'index_key':'image_file',
                 'pseudo_rgb':True,
                 'train_target_list': ['AKT1S1', 'ATF4', 'BAX', 'BCL2L11', 'BRAF', 'CASP8', 'CDKN1A', 'CREB1', 'DIABLO',
@@ -48,7 +48,7 @@ pipeline:
   - method: initialize_domain_config
   - method: load_model
     params:
-      weights_fname: "data/experiments/image_embeddings/jump/specificity_target_emb_cv_strat/fold_0/nuclei_regions/best_model_weights.pth"
+      weights_fname: "data/experiments/jump/images/embedding/specificity_target_emb_cv_strat/fold_0/nuclei_regions/best_model_weights.pth"
   - method: plot_confusion_matrices
     params:
       normalize: "true"
