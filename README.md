@@ -318,7 +318,8 @@ source scripts/demo/image2reg_demo.sh --environment image2reg_demo --condition S
 #### 6. Concluding remarks
 
 We appreciate you testing our code and look forward to the amazing applications we hope our solution will help to create.
-If you would like to reproduce all results of the paper from scratch please refer to [this guide](reproducibility_guide.md). Please note that this will substantially larger computing resources and can take up to 300 hours of computation time. 
+If you would like to reproduce all results of the paper from scratch, please refer to [this guide](test_protocol.md). Please note that this will substantially larger computing resources and can take over 1000 hours of computation time and generates roughly 2TB of data!
+If you would like to reproduce the figures of our manuscript, please refer to [this guide](figure_reproc_guide.md) which also contains instruction to download all the data we have generated during all analyses from DOI-assigned data archive.
 
 
 #
