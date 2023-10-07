@@ -393,7 +393,7 @@ We have added a novel demonstration of our pipeline that can be easily run witho
 
 ---
 
-## Reproducing the paper's results (Advanced options) 
+## Reproducing the paper's results (Advanced setting) 
 
 If you would like to reproduce all results of the paper from scratch, please refer to [this guide](test_protocol.md). Please note that this will require substantially larger computing resources and the described analyses can take over 1000 hours of computation time while generating roughly 2TB of data!
 
