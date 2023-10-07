@@ -35,6 +35,15 @@ conda activate image2reg
 bash scripts/installation/setup_environment_cuda.sh
 ```
 
+The above script will install the environment assuming that a GPU is present.
+If you do not have a GPU, please instead install the environment via
+```
+conda create --name image2reg python==3.8.10
+conda activate image2reg
+bash scripts/installation/setup_environment_cpu.sh
+```
+
+
 # 
 
 ## Data retrieval
@@ -646,3 +655,4 @@ This concludes the reproduction of all results presented in our study from scrat
 4. Ensure that you have a stable internet connection as in particular the download scripts might fail if it is interrupted.
 
 If you encounter any problems and you cannot identify a solution, please open an issue in the GitHub repository and we will try our best to assist you.
+
