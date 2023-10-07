@@ -5,7 +5,7 @@
 > [!WARNING]
 > The total computation time of all analyses described in this protocol can exceed 1000 hours of computation time on a CPU (depending on the used infrastructure) and generates approximately 2 TB of data.
 
-This step-by-step protocol details how all presented analyses can be reproduced from scratch. Given the time and space complexity of the analyses and the amount of additional software packages this requires that this is only run by experienced users. To quickly test our Image2Reg pipeline or use it to perform inference on your own data set, please refer to respective documentation described in our [ReadMe file]()
+This step-by-step protocol details how all presented analyses can be reproduced from scratch. Given the time and space complexity of the analyses and the amount of additional software packages this requires that this is only run by experienced users. To quickly test our Image2Reg pipeline or use it to perform inference on your own data set, please refer to respective documentation described in our [ReadMe file](https://github.com/uhlerlab/image2reg/blob/master/README.md).
 
 
 ---
@@ -653,6 +653,8 @@ This concludes the reproduction of all results presented in our study from scrat
 2. Since we use a number of external software packages from pypi which are not managed by us, please consult the respective documentation in case you encounter any problem e.g. during the installation of these.
 3. Always make sure that your working directory is ``image2reg`` unless specified otherwise.
 4. Ensure that you have a stable internet connection as in particular the download scripts might fail if it is interrupted.
+
+To further illustrate the expected outputs of each individual step, we [here](https://github.com/uhlerlab/image2reg/blob/master/image2reg_protocol.pdf) provide a protocol where we have followed the step-by-step guide to independently on a new system reproduce all anlayses results from scratch.
 
 If you encounter any problems and you cannot identify a solution, please open an issue in the GitHub repository and we will try our best to assist you.
 
