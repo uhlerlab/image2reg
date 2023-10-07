@@ -78,6 +78,9 @@ conda activate image2reg
 bash scripts/data/prepare_rohban_data.sh
 ```
 
+The script will ask for the password for the root user of the mysql database. please type it in when prompted and hit enter each time. 
+
+
 ### Gene expression data
 
 #### Download the CMap gene signatures
