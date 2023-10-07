@@ -126,7 +126,7 @@ mkdir -p data/resources/gex/ccle
 Next, download the following files from [DepMap](https://depmap.org/portal/download/all/) and thereby make sure to select the DepMap version 21Q2:
 - CCLE_expression.csv
 - sample_info.csv
-- 
+
 Place the two files in the created ``ccle`` directory.
 
 Rename the sample_info.csv file to CCLE_expression_sample_info.csv for better association via
@@ -500,11 +500,11 @@ This creates a number of files located at ``data/experiments/rohban/translation`
 
 ## Additional validation using JUMP-CP
 
-###Obtain and prepare data
+### Obtain and prepare data
 
-#####Download JUMP-CP data
+##### Download JUMP-CP data
 - *Time: 4 hours*
-*Size: 105 GB*
+- *Size: 105 GB*
 
 Start the jupyter server in the conda environment via
 ```
