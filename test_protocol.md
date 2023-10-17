@@ -78,7 +78,7 @@ conda activate image2reg
 bash scripts/data/prepare_rohban_data.sh
 ```
 > [!IMPORTANT]
-> This step also generates the file ``data/resources/images/rohban/metadata/nuclei_morph_profiles.csv``. Note that we have downloaded the data in May 2021. Using the newly downloaded data the results might while qualitatively remain the same differ slightly numerically for the analyses using the morphological profiles. To reproduce our results, please use the file ``nuclei_morph_profiles.csv`` that can be downloaded from Zenodo using the [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10015639.svg)](https://doi.org/10.5281/zenodo.10015639) and replace the file ``data/resources/images/rohban/metadata/nuclei_morph_profiles.csv`` with it.
+> This step also generates the file ``data/resources/images/rohban/metadata/nuclei_morph_profiles.csv``. Note that we have downloaded the data in May 2021. Using the newly downloaded data the results might while qualitatively remain the same differ slightly numerically for the analyses using the morphological profiles. To reproduce our results, please use the file ``nuclei_morph_profiles.csv`` that can be downloaded from Zenodo using the DOI [10.5281/zenodo.10015639](https://doi.org/10.5281/zenodo.10015639) and replace the file ``data/resources/images/rohban/metadata/nuclei_morph_profiles.csv`` with it.
 The script will ask for the password for the root user of the mysql database. please type it in when prompted and hit enter each time. 
 
 
