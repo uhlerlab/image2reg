@@ -404,7 +404,7 @@ If you would like to reproduce the figures of our manuscript, please refer to [t
 
 ## Questions/Issues
 
-If you encounter any problems with setting up the software and/or need assistance with adapting the code to run it for your own data set, feel very free to open a respective issue. We will do our very best to assist you as quickly as possible.
+If you encounter any problems with setting up the software please open a respective issue in this repository and we will do our very best to assist you.
 
 ---
 
@@ -414,6 +414,6 @@ If you use the code provided in the directory please also reference our work as 
 
 **TO BE ADDED**
 
-If you use the provided data please make sure to also reference the the corresponding raw data resources described in the paper in addition to our work.
+If you use the our software with the sample input images and/or the data provided please make sure to also reference the the corresponding raw data resources which are described in the paper. as well as our work.
 
 
