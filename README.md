@@ -1,6 +1,6 @@
 # Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens
 
-**by Daniel Paysan (#), Adityanarayanan Radhakrishnan (#), G.V. Shivashankar (^) and Caroline Uhler (^)**
+**by Daniel Paysan (#), Adityanarayanan Radhakrishnan (#), Xinyi Zhang, G.V. Shivashankar (^) and Caroline Uhler (^)**
 
 The repository contains the code for the main methodology and analyses described in our paper: 
  >[*Image2Reg: Linking Chromatin Images to Gene Regulation using Genetic Perturbation Screens (Under Review)*](https://github.com/uhlerlab/Image2Reg).
@@ -395,7 +395,7 @@ We have added a novel demonstration of our pipeline that can be easily run witho
 
 ## Reproducing the paper's results (Advanced setting) 
 
-If you would like to reproduce all results of the paper from scratch, please refer to [this guide](test_protocol.md). Please note that this will require substantially larger computing resources and the described analyses can take over 1000 hours of computation time while generating roughly 2TB of data!
+If you would like to reproduce all results of the paper from scratch, please refer to [this guide](test_protocol.md) for the overexpression conditions and [this guide](test_protocol_compound.md) for the compound perturbation conditions. Please note that this will require substantially larger computing resources and the described analyses can take over 1000 hours of computation time while generating roughly 2TB of data!
 
 
 If you would like to reproduce the figures of our manuscript, please refer to [this guide](figure_reproc_guide.md) which also contains instruction to download all the data we have generated during all analyses from DOI-assigned data archive.

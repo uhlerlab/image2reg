@@ -1,0 +1,64 @@
+output_dir: '/data/xinyi/image2reg/data_new/experiments/jump/images/embedding/specificity_target_combined/all_excludeCompound/'
+module: src.experiments.image_embeddings
+class: ImageEmbeddingExperimentCustomSplit
+run_params:
+  data_config: {'nuclei_image_dir':'/data/xinyi/image2reg/data_new/experiments/jump/images/preprocessing/full_pipeline/20241018_015541/padded_nuclei',
+                      'train_nuclei_metadata_file':'/data/xinyi/image2reg/data_new/experiments/jump/images/preprocessing/specific_targets_combined_excludeCompound/nuclei_md_train.csv',
+                      'val_nuclei_metadata_file':'/data/xinyi/image2reg/data_new/experiments/jump/images/preprocessing/specific_targets_combined_excludeCompound/nuclei_md_val.csv',
+                       'test_nuclei_metadata_file':'/data/xinyi/image2reg/data_new/experiments/jump/images/preprocessing/specific_targets_combined/nuclei_md_compound_others.csv',
+                      'slide_image_dir': '/data/xinyi/image2reg/data_new/resources/images/jump/illum_corrected',
+                      'data_key':'images', 'label_key':'label', 'index_key':'image_file',
+                      'pseudo_rgb':True,
+                      'plate_col': 'batch',}
+
+  model_config: {'model_config':{
+                        'type':'ensemble',
+                        'input_dim': 1024,
+                        'latent_dim': 1024,
+                        'n_output_nodes': 98,
+                        'device': 'cuda:1',
+                        'component_dicts':[
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0,'device': 'cuda:1'},
+                                {'type':'ResNet18', 'pretrained':True, 'n_output_nodes':512,
+                                 fix_feature_extractor: False, 'dropout_rate':0.0,'device': 'cuda:1'}
+                        ]
+                 },
+                 'optimizer_config':{'type':'adam','lr':0.00001, 'weight_decay':0.0005},
+                 'loss_config':{'type':'ce'}}
+
+  domain_name: 'image'
+  num_epochs: 300
+  early_stopping: 5
+  batch_size: 64
+  random_state: 1234
+  save_freq: 50
+
+pipeline:
+  - method: initialize_image_data_set
+    params:
+      multi_image: True
+  - method: initialize_data_transform_pipeline
+    params:
+      data_transform_pipelines: ["nuclei_image", "slide_image"]
+  - method: initialize_data_loader_dict
+  - method: initialize_domain_config
+    params: 
+      device: 'cuda:1'
+  - method: load_model
+    params:
+      weights_fname: "/data/xinyi/image2reg/data_new/experiments/jump/images/embedding/specificity_target_combined/all_excludeCompound/20241105_191946/best_model_weights.pth"
+  # - method: train_models
+  #   params: 
+  #     device: 'cuda:1'
+  # - method: evaluate_test_performance
+  # - method: visualize_loss_evolution
+  - method: plot_confusion_matrices
+    params:
+      normalize: "true" 
+      device: 'cuda:1'
+  - method: extract_and_save_latents
+    params: 
+      device: 'cuda:1'
+      dataset_types: ["test"]
+
